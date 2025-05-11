@@ -3,7 +3,6 @@ import { CalculationResults } from '../types';
 import SummaryPDF from './SummaryPDF';
 import CostComparisonChart from './CostComparisonChart';
 import BreakEvenCalculator from './BreakEvenCalculator';
-import { inflationFetcher } from '../utils/inflationFetcher';
 
 interface ResultsDisplayProps {
   results: CalculationResults;

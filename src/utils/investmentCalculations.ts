@@ -22,24 +22,47 @@ export const calculateIRR = (investment: number, cashFlows: number[]): number | 
   if (investment <= 0) throw new Error("Kwota inwestycji musi być większa od zera");
   if (cashFlows.length === 0) throw new Error("Przepływy pieniężne nie mogą być puste");
   
-  let rate = 0.1; // Początkowe przybliżenie
+  // Implementacja metody Newtona-Raphsona do obliczania IRR
   const maxIterations = 1000;
   const precision = 1e-6;
-
+  
+  // Funkcja do obliczania NPV dla danej stopy
+  const calculateNPVForRate = (rate: number): number => {
+    return cashFlows.reduce(
+      (acc, flow, t) => acc + flow / Math.pow(1 + rate, t + 1),
+      -investment
+    );
+  };
+  
+  // Funkcja do obliczania pochodnej NPV dla danej stopy
+  const calculateDerivative = (rate: number): number => {
+    return cashFlows.reduce(
+      (acc, flow, t) => acc - (t + 1) * flow / Math.pow(1 + rate, t + 2),
+      0
+    );
+  };
+  
+  let currentRate = 0.1; // Początkowe przybliżenie
+  
   for (let i = 0; i < maxIterations; i++) {
-    const npv = cashFlows.reduce((acc, flow, t) => acc + flow / Math.pow(1 + rate, t + 1), -investment);
-    const derivative = cashFlows.reduce((acc, flow, t) => acc - (t + 1) * flow / Math.pow(1 + rate, t + 2), 0);
-
+    const npv = calculateNPVForRate(currentRate);
+    const derivative = calculateDerivative(currentRate);
+    
     // Zabezpieczenie przed dzieleniem przez zero
-    if (Math.abs(derivative) < precision) return null;
-
-    const newRate = rate - npv / derivative;
-    if (Math.abs(newRate - rate) < precision) {
+    if (Math.abs(derivative) < precision) {
+      return null;
+    }
+    
+    const newRate = currentRate - npv / derivative;
+    
+    if (Math.abs(newRate - currentRate) < precision) {
       return newRate * 100;
     }
-    rate = newRate;
+    
+    currentRate = newRate;
   }
-  return null; // Nie udało się obliczyć IRR
+  
+  return null; // Nie udało się osiągnąć zbieżności
 };
 
 /**

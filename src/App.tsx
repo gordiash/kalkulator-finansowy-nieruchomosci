@@ -145,10 +145,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleInflationUpdate = (value: number) => {
-    setAnalysisOptions((prev) => ({ ...prev, inflation: value }));
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 text-gray-800 font-sans">
       <header className="bg-gradient-to-r from-indigo-800 to-blue-700 text-white py-5 shadow-md">

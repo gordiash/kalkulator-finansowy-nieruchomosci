@@ -2,7 +2,6 @@ import React from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CalculationResults } from '../types';
-import { Chart as ChartJS } from 'chart.js';
 
 type SummaryPDFProps = {
   results: CalculationResults;

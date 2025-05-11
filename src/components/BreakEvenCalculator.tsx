@@ -7,7 +7,7 @@ type BreakEvenCalculatorProps = {
 
 const BreakEvenCalculator: React.FC<BreakEvenCalculatorProps> = ({ results }) => {
   // Obliczenie punktu break-even (moment, w którym linia zakupu przecina linię wynajmu)
-  const { breakEvenYear, breakEvenMonth, hasCrossover, approxTime, timeSeries } = useMemo(() => {
+  const { breakEvenYear, hasCrossover, approxTime } = useMemo(() => {
     const { mortgageCostData, rentCostData, labels } = results.comparison.chartData;
     
     // Znalezienie przecięcia linii na wykresie kumulacyjnym
@@ -89,7 +89,6 @@ const BreakEvenCalculator: React.FC<BreakEvenCalculatorProps> = ({ results }) =>
     returnTimeYears,
   } = useMemo(() => {
     const { propertyValue, buyingTotal, downPayment } = results.buyingSummary;
-    const { investmentValue, rentingTotal } = results.rentingSummary;
     const { finalDifference } = results.comparison;
     
     // Całkowita kwota zaoszczędzona / zysk
