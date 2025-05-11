@@ -8,6 +8,9 @@ import SubscriptionPopup from './components/SubscriptionPopup';
 import SuccessMessage from './components/SuccessMessage';
 import { calculateResults } from './utils/calculations';
 import { sendSubscriberToAirtable } from './utils/airtable';
+import InvestmentCalculator from './components/InvestmentCalculator';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
+
 
 const App: React.FC = () => {
   // Stan formularzy
@@ -23,7 +26,11 @@ const App: React.FC = () => {
     maintenance: 2000,
     communityRent: 4800,
     appreciation: 3,
-    transactionCosts: 10000
+    transactionCosts: 10000,
+    notaryFee: 500000 * 0.01, // 1% of property price
+    pcc: 500000 * 0.02, // 2% of property price
+    courtFee: 200, // Fixed value
+    notarialActCopyCost: 100 // Fixed value
   });
 
   const [rentData, setRentData] = useState<RentFormData>({
@@ -67,6 +74,14 @@ const App: React.FC = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  useEffect(() => {
+    setPropertyData((prev) => ({
+      ...prev,
+      notaryFee: prev.propertyPrice * 0.01, // 1% of property price
+      pcc: prev.propertyPrice * 0.02, // 2% of property price
+    }));
+  }, [propertyData.propertyPrice]);
 
   const handlePropertyChange = (data: Partial<PropertyFormData>) => {
     setPropertyData(prev => ({ ...prev, ...data }));
@@ -128,6 +143,10 @@ const App: React.FC = () => {
     }
   };
 
+  const handleInflationUpdate = (value: number) => {
+    setAnalysisOptions((prev) => ({ ...prev, inflation: value }));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 text-gray-800 font-sans">
       <header className="bg-gradient-to-r from-indigo-800 to-blue-700 text-white py-5 shadow-md">
@@ -136,42 +155,62 @@ const App: React.FC = () => {
             Kalkulator Finansowy Nieruchomości
           </h1>
           <p className="text-center mt-2 text-blue-100 max-w-2xl mx-auto text-sm md:text-base">
-            Porównaj koszty zakupu i wynajmu nieruchomości oraz sprawdź, która opcja jest bardziej opłacalna w Twojej sytuacji
+            Wybierz kalkulator, który chcesz użyć.
           </p>
         </div>
       </header>
-      
+
       <main className="container mx-auto py-6 px-4 max-w-7xl">
-        {/* Karta parametrów */}
-        <div className="bg-white rounded-xl shadow-md p-5 mb-8 border border-gray-100 transition-all duration-300 hover:shadow-lg">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-indigo-900 mb-2">
-              Parametry kalkulacji
-            </h2>
-            <p className="text-gray-600 text-sm">Wprowadź dane dotyczące zakupu i wynajmu, aby otrzymać szczegółową analizę.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-            <PropertyForm data={propertyData} onChange={handlePropertyChange} />
-            <RentForm data={rentData} onChange={handleRentChange} />
-          </div>
-          
-          {/* Opcje analizy - przeniesione niżej */}
-          <div className="mt-8 mb-6">
-            <AnalysisForm 
-              options={analysisOptions} 
-              onChange={handleAnalysisOptionsChange}
-              onCalculate={handleCalculate}
-            />
-          </div>
-        </div>
-        
-        {/* Sekcja wyników */}
-        {showResults && results && (
-          <div id="results-section">
-            <ResultsDisplay results={results} inflation={analysisOptions.inflation} />
-          </div>
-        )}
+        {/* Nawigacja do podstron */}
+        <nav className="flex justify-center space-x-4 mb-6">
+          <Link to="/roi" className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Kalkulator ROI</Link>
+          <Link to="/investment" className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300">Kalkulator Inwestycji</Link>
+        </nav>
+        {/* Definicja tras */}
+        <Routes>
+          <Route path="/" element={<Navigate to="/roi" replace />} />
+          <Route path="/roi" element={
+            <div>
+              <h2 className="text-lg font-bold text-center mb-4">Kalkulator ROI</h2>
+              {/* Karta parametrów ROI */}
+              <div className="bg-white rounded-xl shadow-md p-5 mb-8 border border-gray-100 transition-all duration-300 hover:shadow-lg">
+                <div className="mb-4">
+                  <h3 className="text-xl font-bold text-indigo-900 mb-2">Parametry kalkulacji</h3>
+                  <p className="text-gray-600 text-sm">Wprowadź dane dotyczące zakupu i wynajmu, aby otrzymać szczegółową analizę.</p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+                  <PropertyForm data={propertyData} onChange={handlePropertyChange} />
+                  <RentForm data={rentData} onChange={handleRentChange} />
+                </div>
+                <div className="mt-8 mb-6">
+                  <AnalysisForm 
+                    options={analysisOptions} 
+                    onChange={handleAnalysisOptionsChange}
+                    onCalculate={handleCalculate}
+                  />
+                </div>
+              </div>
+              {/* Sekcja wyników ROI */}
+              {showResults && results && (
+                <div id="results-section">
+                  <ResultsDisplay results={results} inflation={analysisOptions.inflation} />
+                </div>
+              )}
+            </div>
+          } />
+          <Route path="/investment" element={
+            <div className="mb-8">
+              <InvestmentCalculator 
+                investment={propertyData.propertyPrice} 
+                cashFlows={[20000, 25000, 30000, 35000, 40000]} 
+                discountRate={5} 
+              />
+            </div>
+          } />
+        </Routes>
+
+        {/* Formularz i wyniki przeniesione do trasy ROI */}
+
       </main>
       
       {/* Stopka */}
@@ -197,4 +236,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App; 
+export default App;

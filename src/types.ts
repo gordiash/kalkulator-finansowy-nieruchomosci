@@ -12,6 +12,10 @@ export interface PropertyFormData {
   communityRent: number;
   appreciation: number;
   transactionCosts: number;
+  notaryFee: number; // Stawka taksy notarialnej
+  pcc: number; // Podatek PCC
+  courtFee: number; // Opłata sądowa
+  notarialActCopyCost: number; // Koszty odpisów aktu notarialnego
 }
 
 export interface RentFormData {
@@ -24,7 +28,7 @@ export interface RentFormData {
 }
 
 export interface AnalysisOptions {
-  analysisPeriod: 5 | 10 | 20 | 25 | 30;
+  analysisPeriod: number;
   inflation: number;
 }
 
@@ -56,4 +60,4 @@ export interface CalculationResults {
       rentCostData: number[];
     };
   };
-} 
+}

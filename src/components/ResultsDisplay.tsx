@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CalculationResults } from '../types';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-
-// Rejestracja komponentów Chart.js
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import SummaryPDF from './SummaryPDF';
+import CostComparisonChart from './CostComparisonChart';
+import BreakEvenCalculator from './BreakEvenCalculator';
+import { inflationFetcher } from '../utils/inflationFetcher';
 
 interface ResultsDisplayProps {
   results: CalculationResults;
   inflation: number;
+  propertyPrice?: number;
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, inflation }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
+  results, 
+  inflation, 
+  propertyPrice = 500000, // domyślna wartość
+}) => {
+  const [chartView, setChartView] = useState<'cumulative' | 'yearly'>('cumulative');
+  const [showPdfSuccessMessage, setShowPdfSuccessMessage] = useState(false);
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pl-PL', {
       style: 'currency',
@@ -21,106 +28,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, inflation }) =
 
   const { buyingSummary, rentingSummary, comparison } = results;
   
-  // Konfiguracja wykresu
-  const chartData = {
-    labels: comparison.chartData.labels,
-    datasets: [
-      {
-        label: 'Skumulowane koszty kredytu',
-        data: comparison.chartData.mortgageCostData,
-        borderColor: '#3b82f6', // blue-500
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.1,
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      },
-      {
-        label: 'Skumulowane koszty najmu',
-        data: comparison.chartData.rentCostData,
-        borderColor: '#ef4444', // red-500
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        tension: 0.1,
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      }
-    ]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          boxWidth: 12,
-          padding: 15,
-          font: {
-            size: 12
-          }
-        }
-      },
-      title: {
-        display: true,
-        text: 'Porównanie skumulowanych kosztów kredytu i najmu w czasie',
-        color: '#1e293b',
-        font: {
-          size: 14,
-          weight: 'bold' as const
-        },
-        padding: {
-          top: 10,
-          bottom: 20
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-          }
-        },
-        padding: 10,
-        titleFont: {
-          size: 12
-        },
-        bodyFont: {
-          size: 12
-        }
-      }
-    },
-    scales: {
-      x: {
-        ticks: {
-          maxRotation: 45,
-          minRotation: 45,
-          font: {
-            size: 10
-          }
-        },
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value: any) => formatCurrency(value),
-          font: {
-            size: 10
-          },
-          maxTicksLimit: 8
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)'
-        }
-      }
-    },
-    interaction: {
-      mode: 'index' as const,
-      intersect: false
-    }
+  const handlePdfGenerated = () => {
+    setShowPdfSuccessMessage(true);
+    setTimeout(() => {
+      setShowPdfSuccessMessage(false);
+    }, 3000);
   };
 
   return (
@@ -131,6 +43,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, inflation }) =
         </svg>
         Wyniki analizy
       </h2>
+
+      {/* Analiza punktu rentowności */}
+      <BreakEvenCalculator results={results} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Podsumowanie zakupu */}
@@ -232,13 +147,50 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, inflation }) =
       </div>
 
       {/* Wykres porównawczy */}
-      <div className="h-64 sm:h-96 md:h-128 lg:h-192 p-4 bg-white rounded-lg shadow-sm overflow-x-auto">
-        <div className="min-w-[600px] h-full">
-          <Line data={chartData} options={chartOptions} />
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-indigo-900">Wizualizacja porównania kosztów</h3>
+          <div className="flex space-x-2">
+            <button 
+              onClick={() => setChartView('cumulative')}
+              className={`px-3 py-1 text-sm rounded ${chartView === 'cumulative' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+            >
+              Koszty kumulowane
+            </button>
+            <button 
+              onClick={() => setChartView('yearly')}
+              className={`px-3 py-1 text-sm rounded ${chartView === 'yearly' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+            >
+              Koszty roczne
+            </button>
+          </div>
         </div>
+        
+        <CostComparisonChart 
+          results={results} 
+          showCumulative={chartView === 'cumulative'}
+          showBreakEvenPoint={true}
+          title={chartView === 'cumulative' ? 'Porównanie skumulowanych kosztów w czasie' : 'Porównanie rocznych kosztów'}
+        />
+      </div>
+
+      {/* Przycisk pobierania PDF */}
+      <div className="mt-6 text-center relative">
+        <SummaryPDF 
+          results={results} 
+          inflation={inflation} 
+          propertyPrice={propertyPrice}
+          onGenerate={handlePdfGenerated}
+        />
+        
+        {showPdfSuccessMessage && (
+          <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-md text-sm">
+            Raport PDF został pomyślnie wygenerowany!
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ResultsDisplay; 
+export default ResultsDisplay;

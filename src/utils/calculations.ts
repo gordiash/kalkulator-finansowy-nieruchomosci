@@ -1,7 +1,7 @@
 import { PropertyFormData, RentFormData, AnalysisOptions, CalculationResults } from '../types';
 
 // Funkcja do obliczania miesięcznej raty kredytu
-const calculateMortgagePayment = (principal: number, annualRate: number, years: number): number => {
+export const calculateMortgagePayment = (principal: number, annualRate: number, years: number): number => {
   const monthlyRate = annualRate / 12 / 100;
   const numberOfPayments = years * 12;
   
@@ -35,6 +35,13 @@ export const calculateResults = (
   if (rentData.monthlyRent <= 0) throw new Error("Miesięczny czynsz musi być większy od zera");
   if (analysisOptions.analysisPeriod <= 0) throw new Error("Okres analizy musi być większy od zera");
 
+  // Obliczenie łącznych kosztów transakcyjnych
+  const transactionCosts = propertyData.transactionCosts + 
+                           propertyData.notaryFee + 
+                           propertyData.pcc + 
+                           propertyData.courtFee + 
+                           propertyData.notarialActCopyCost;
+
   // Przygotowanie danych dla wykresu
   const labels: string[] = [];
   const mortgageCostData: number[] = [];
@@ -46,10 +53,10 @@ export const calculateResults = (
   const loanAmount = propertyData.propertyPrice - downPayment;
   const totalAnnualRate = propertyData.baseRate + propertyData.bankMargin;
   const monthlyMortgagePayment = calculateMortgagePayment(loanAmount, totalAnnualRate, propertyData.loanTerm);
-  let buyingTotal = propertyData.transactionCosts + downPayment;
+  let buyingTotal = transactionCosts + downPayment; // Zmiana: uwzględniam wszystkie koszty transakcyjne od początku
   let propertyValue = propertyData.propertyPrice;
   let totalMortgagePayments = 0;
-  let totalOtherCosts = 0;
+  let totalOtherCosts = transactionCosts; // Zmiana: inicjalizacja z kosztami transakcyjnymi
 
   // Obliczenia dla wynajmu
   let rentingTotal = rentData.securityDeposit;
@@ -145,4 +152,4 @@ export const calculateResults = (
       }
     }
   };
-}; 
+};

@@ -37,9 +37,8 @@ const FormInput: React.FC<FormInputProps> = ({
       <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1 flex items-start h-6">
         <span className="truncate">{label}</span>
         {tooltip && (
-          <span 
-            className="ml-1 flex-shrink-0 relative group cursor-help text-indigo-600"
-            title={tooltip}
+          <span
+            className="ml-1 flex-shrink-0 inline-block relative group cursor-help text-indigo-600"
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -53,7 +52,7 @@ const FormInput: React.FC<FormInputProps> = ({
                 clipRule="evenodd" 
               />
             </svg>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-900 text-white text-xs rounded py-1 px-2 absolute left-0 top-full mt-1 -ml-1 w-48 z-10">
+            <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-900 text-white text-xs rounded py-1 px-2 absolute left-0 top-full mt-1 -ml-1 w-48 z-10">
               {tooltip}
             </span>
           </span>

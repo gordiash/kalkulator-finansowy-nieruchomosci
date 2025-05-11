@@ -58,6 +58,17 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
             Subskrybuj
           </button>
         </form>
+        
+        {/* Sekcja wsparcia - zawsze pod formularzem subskrypcji */}
+        <div className="mt-6 text-center">
+          <p className="mb-4 text-gray-700">
+            Wesprzyj działanie naszej witryny! Twoje wsparcie pozwoli nam dalej rozwijać projekt
+            i dostarczać wartościowe narzędzia.
+          </p>
+          <a href="https://suppi.pl/smallcode" target="_blank" rel="noopener noreferrer">
+            <img width="165" src="https://suppi.pl/api/widget/button.svg?fill=6457FD&textColor=ffffff" alt="Wesprzyj naszą stronę"/>
+          </a>
+        </div>
       </div>
     </div>
   );
