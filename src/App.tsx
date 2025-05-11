@@ -6,6 +6,7 @@ import AnalysisForm from './components/AnalysisForm';
 import ResultsDisplay from './components/ResultsDisplay';
 import SubscriptionPopup from './components/SubscriptionPopup';
 import SuccessMessage from './components/SuccessMessage';
+import DonationModal from './components/DonationModal';
 import { calculateResults } from './utils/calculations';
 import { sendSubscriberToAirtable } from './utils/airtable';
 import InvestmentCalculator from './components/InvestmentCalculator';
@@ -52,6 +53,7 @@ const App: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showDonationModal, setShowDonationModal] = useState(false);
   
   // Sprawdzenie czy to pierwsze kliknięcie przycisku "Oblicz"
   const [hasCalculatedBefore, setHasCalculatedBefore] = useState(false);
@@ -216,9 +218,22 @@ const App: React.FC = () => {
       {/* Stopka */}
       <footer className="bg-gray-800 text-white py-4 mt-8">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Kalkulator Finansowy Nieruchomości. Wszelkie prawa zastrzeżone.
-          </p>
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex items-center justify-center">
+              <button 
+                onClick={() => setShowDonationModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+                Wesprzyj projekt
+              </button>
+            </div>
+            <p className="text-sm text-gray-400">
+              © {new Date().getFullYear()} Kalkulator Finansowy Nieruchomości. Wszelkie prawa zastrzeżone.
+            </p>
+          </div>
         </div>
       </footer>
       
@@ -231,6 +246,10 @@ const App: React.FC = () => {
       
       {showSuccessMessage && (
         <SuccessMessage message="Dziękujemy za zapisanie się do newslettera!" />
+      )}
+
+      {showDonationModal && (
+        <DonationModal onClose={() => setShowDonationModal(false)} />
       )}
     </div>
   );
