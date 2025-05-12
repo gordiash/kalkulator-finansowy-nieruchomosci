@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { inflationFetcher, InflationData } from '../utils/inflationFetcher';
+import { inflationFetcher } from '../utils/inflationFetcher';
+import { type InflationData } from '../utils/gusInflationFetcher';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
@@ -166,7 +167,7 @@ const InflationDisplay: React.FC<InflationDisplayProps> = ({
             </div>
             <div className="ml-3 text-sm text-gray-500">
               <p>Wartość roczna</p>
-              <p className="text-xs">Źródło: NBP</p>
+              <p className="text-xs">Źródło: GUS (Główny Urząd Statystyczny)</p>
             </div>
           </div>
         )}

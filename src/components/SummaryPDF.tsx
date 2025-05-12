@@ -1,7 +1,12 @@
 import React from 'react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { CalculationResults } from '../types';
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+// Inicjalizacja czcionek pdfmake - użycie rzutowania typu, aby ominąć problemy TypeScript
+// @ts-ignore - ignorujemy błąd TypeScript, ponieważ struktura modułu może się różnić w środowisku webpack
+pdfMake.vfs = (pdfFonts as any);
 
 type SummaryPDFProps = {
   results: CalculationResults;
@@ -19,28 +24,6 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
   onGenerate
 }) => {
   const generatePDF = () => {
-    // Inicjalizacja dokumentu PDF z obsługą Unicode (dla polskich znaków)
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-      putOnlyUsedFonts: true,
-      compress: true
-    });
-    
-    // Używamy domyślnej czcionki helvetica, która w jsPDF wspiera znaki diakrytyczne
-    doc.setFont('helvetica', 'normal');
-    
-    // Funkcja pomocnicza do kodowania polskich znaków
-    const encodePolishChars = (text: string): string => {
-      return unescape(encodeURIComponent(text));
-    };
-    
-    // Funkcja pomocnicza do wyświetlania tekstu z polskimi znakami
-    const textWithPolishChars = (text: string, x: number, y: number, options?: any): void => {
-      doc.text(encodePolishChars(text), x, y, options);
-    };
-    
     // Formatowanie liczb jako waluta
     const formatCurrency = (value: number): string => {
       return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
@@ -54,125 +37,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
     // Data generowania raportu
     const today = new Date().toLocaleDateString('pl-PL');
     
-    // Tytuł dokumentu
-    doc.setFontSize(20);
-    doc.setTextColor(0, 51, 102);
-    doc.setFont('helvetica', 'bold');
-    textWithPolishChars('Raport analizy finansowej nieruchomości', 105, 15, { align: 'center' });
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    textWithPolishChars(`Wygenerowano: ${today}`, 105, 22, { align: 'center' });
-    
-    // Podstawowe informacje
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'bold');
-    textWithPolishChars('Podsumowanie analizy', 14, 30);
-    
-    doc.setDrawColor(220, 220, 220);
-    doc.line(14, 32, 196, 32);
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    textWithPolishChars(`Wartość nieruchomości: ${formatCurrency(propertyPrice)}`, 14, 40);
-    textWithPolishChars(`Adres/lokalizacja: ${address}`, 14, 45);
-    textWithPolishChars(`Założona inflacja: ${formatPercent(inflation)}`, 14, 50);
-    textWithPolishChars(`Okres analizy: ${results.comparison.chartData.labels.length} lat`, 14, 55);
-    
-    // Sekcja zakupu
-    doc.setFontSize(12);
-    doc.setTextColor(0, 102, 204);
-    doc.setFont('helvetica', 'bold');
-    textWithPolishChars('Zakup nieruchomości', 14, 65);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    
-    // Przygotowanie danych zakupu z zakodowanymi polskimi znakami
-    const buyingData = [
-      [encodePolishChars('Wkład własny'), formatCurrency(results.buyingSummary.downPayment)],
-      [encodePolishChars('Kwota kredytu'), formatCurrency(results.buyingSummary.loanAmount)],
-      [encodePolishChars('Miesięczna rata'), formatCurrency(results.buyingSummary.monthlyMortgagePayment)],
-      [encodePolishChars('Suma rat kredytu'), formatCurrency(results.buyingSummary.totalMortgagePayments)],
-      [encodePolishChars('Pozostałe koszty'), formatCurrency(results.buyingSummary.totalOtherCosts)],
-      [encodePolishChars('Całkowity koszt zakupu'), formatCurrency(results.buyingSummary.buyingTotal)],
-      [encodePolishChars('Szacowana wartość końcowa'), formatCurrency(results.buyingSummary.propertyValue)],
-      [encodePolishChars('Zysk/strata'), formatCurrency(results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal)]
-    ];
-    
-    // Używam zaimportowanej funkcji autoTable z obsługą polskich znaków
-    autoTable(doc, {
-      startY: 70,
-      head: [[encodePolishChars('Parametr'), encodePolishChars('Wartość')]],
-      body: buyingData,
-      theme: 'grid',
-      headStyles: { 
-        fillColor: [0, 102, 204], 
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3,
-        font: 'helvetica'
-      },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 60, halign: 'right' } },
-    });
-    
-    // Sekcja wynajmu
-    const finalY = (doc as any).lastAutoTable?.finalY || 130;
-    const currentY = finalY + 10;
-
-    doc.setFontSize(12);
-    doc.setTextColor(230, 126, 34);
-    doc.setFont('helvetica', 'bold');
-    textWithPolishChars('Wynajem nieruchomości', 14, currentY);
-    
-    doc.setFont('helvetica', 'normal');
-    
-    // Przygotowanie danych wynajmu z zakodowanymi polskimi znakami
-    const rentingData = [
-      [encodePolishChars('Miesięczny czynsz (początkowy)'), formatCurrency(results.rentingSummary.monthlyRent)],
-      [encodePolishChars('Suma zapłaconych czynszów'), formatCurrency(results.rentingSummary.totalRent)],
-      [encodePolishChars('Suma kosztów ubezpieczenia'), formatCurrency(results.rentingSummary.totalRentInsurance)],
-      [encodePolishChars('Suma kosztów utrzymania'), formatCurrency(results.rentingSummary.totalRentMaintenance)],
-      [encodePolishChars('Całkowity koszt wynajmu'), formatCurrency(results.rentingSummary.rentingTotal)],
-      [encodePolishChars('Wartość końcowa inwestycji'), formatCurrency(results.rentingSummary.investmentValue)],
-      [encodePolishChars('Zysk/strata'), formatCurrency(results.rentingSummary.investmentValue - results.rentingSummary.rentingTotal)]
-    ];
-    
-    autoTable(doc, {
-      startY: currentY + 5,
-      head: [[encodePolishChars('Parametr'), encodePolishChars('Wartość')]],
-      body: rentingData,
-      theme: 'grid',
-      headStyles: { 
-        fillColor: [230, 126, 34], 
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3,
-        font: 'helvetica'
-      },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 60, halign: 'right' } },
-    });
-    
-    // Podsumowanie porównania
-    const finalY2 = (doc as any).lastAutoTable?.finalY || (currentY + 80);
-    const comparisionY = finalY2 + 10;
-
-    doc.setFontSize(12);
-    doc.setTextColor(46, 125, 50);
-    doc.setFont('helvetica', 'bold');
-    textWithPolishChars('Porównanie opcji zakupu i wynajmu', 14, comparisionY);
-    
-    doc.setFont('helvetica', 'normal');
-    
+    // Znalezienie punktu rentowności
     const breakEvenIndex = results.comparison.chartData.mortgageCostData.findIndex((value, index) => 
       value <= results.comparison.chartData.rentCostData[index] && (index === 0 || results.comparison.chartData.mortgageCostData[index - 1] > results.comparison.chartData.rentCostData[index - 1])
     );
@@ -180,84 +45,282 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
     const breakEvenYear = breakEvenIndex !== -1 
       ? results.comparison.chartData.labels[breakEvenIndex] 
       : "Nie osiągnięto w okresie analizy";
-    
-    // Przygotowanie danych porównania z zakodowanymi polskimi znakami
-    const comparisonData = [
-      [encodePolishChars('Końcowa różnica finansowa'), formatCurrency(results.comparison.finalDifference)],
-      [encodePolishChars('Korzystniejsza opcja'), encodePolishChars(results.comparison.buyingIsBetter ? 'ZAKUP' : 'WYNAJEM')],
-      [encodePolishChars('Punkt rentowności (break-even)'), encodePolishChars(breakEvenYear)]
+
+    // Przygotowanie zawartości dokumentu
+    const docContent: any[] = [
+      // Nagłówek dokumentu
+      {
+        text: 'Raport analizy finansowej nieruchomości',
+        style: 'header',
+        alignment: 'center'
+      },
+      {
+        text: `Wygenerowano: ${today}`,
+        style: 'subheader',
+        alignment: 'center',
+        margin: [0, 5, 0, 20]
+      },
+      
+      // Podstawowe informacje
+      {
+        text: 'Podsumowanie analizy',
+        style: 'sectionHeader'
+      },
+      {
+        canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1, lineColor: '#DDDDDD' }]
+      },
+      {
+        margin: [0, 10, 0, 0],
+        columns: [
+          {
+            width: 'auto',
+            text: [
+              { text: `Wartość nieruchomości: `, bold: true },
+              { text: formatCurrency(propertyPrice) }
+            ]
+          }
+        ]
+      },
+      {
+        columns: [
+          {
+            width: 'auto',
+            text: [
+              { text: `Adres/lokalizacja: `, bold: true },
+              { text: address }
+            ]
+          }
+        ]
+      },
+      {
+        columns: [
+          {
+            width: 'auto',
+            text: [
+              { text: `Założona inflacja: `, bold: true },
+              { text: formatPercent(inflation) }
+            ]
+          }
+        ]
+      },
+      {
+        columns: [
+          {
+            width: 'auto',
+            text: [
+              { text: `Okres analizy: `, bold: true },
+              { text: `${results.comparison.chartData.labels.length} lat` }
+            ]
+          }
+        ],
+        margin: [0, 0, 0, 20]
+      },
+      
+      // Sekcja zakupu
+      {
+        text: 'Zakup nieruchomości',
+        style: 'sectionHeader',
+        color: '#0066CC'
+      },
+      {
+        margin: [0, 5, 0, 0],
+        table: {
+          headerRows: 1,
+          widths: ['*', 'auto'],
+          body: [
+            [
+              { text: 'Parametr', style: 'tableHeader', fillColor: '#0066CC' },
+              { text: 'Wartość', style: 'tableHeader', fillColor: '#0066CC' }
+            ],
+            ['Wkład własny', { text: formatCurrency(results.buyingSummary.downPayment), alignment: 'right' }],
+            ['Kwota kredytu', { text: formatCurrency(results.buyingSummary.loanAmount), alignment: 'right' }],
+            ['Miesięczna rata', { text: formatCurrency(results.buyingSummary.monthlyMortgagePayment), alignment: 'right' }],
+            ['Suma rat kredytu', { text: formatCurrency(results.buyingSummary.totalMortgagePayments), alignment: 'right' }],
+            ['Pozostałe koszty', { text: formatCurrency(results.buyingSummary.totalOtherCosts), alignment: 'right' }],
+            ['Całkowity koszt zakupu', { text: formatCurrency(results.buyingSummary.buyingTotal), alignment: 'right' }],
+            ['Szacowana wartość końcowa', { text: formatCurrency(results.buyingSummary.propertyValue), alignment: 'right' }],
+            ['Zysk/strata', { text: formatCurrency(results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal), alignment: 'right' }]
+          ]
+        }
+      },
+      
+      // Sekcja wynajmu
+      {
+        text: 'Wynajem nieruchomości',
+        style: 'sectionHeader',
+        color: '#E67E22',
+        margin: [0, 20, 0, 0]
+      },
+      {
+        margin: [0, 5, 0, 0],
+        table: {
+          headerRows: 1,
+          widths: ['*', 'auto'],
+          body: [
+            [
+              { text: 'Parametr', style: 'tableHeader', fillColor: '#E67E22' },
+              { text: 'Wartość', style: 'tableHeader', fillColor: '#E67E22' }
+            ],
+            ['Miesięczny czynsz (początkowy)', { text: formatCurrency(results.rentingSummary.monthlyRent), alignment: 'right' }],
+            ['Suma zapłaconych czynszów', { text: formatCurrency(results.rentingSummary.totalRent), alignment: 'right' }],
+            ['Suma kosztów ubezpieczenia', { text: formatCurrency(results.rentingSummary.totalRentInsurance), alignment: 'right' }],
+            ['Suma kosztów utrzymania', { text: formatCurrency(results.rentingSummary.totalRentMaintenance), alignment: 'right' }],
+            ['Całkowity koszt wynajmu', { text: formatCurrency(results.rentingSummary.rentingTotal), alignment: 'right' }],
+            ['Wartość końcowa inwestycji', { text: formatCurrency(results.rentingSummary.investmentValue), alignment: 'right' }],
+            ['Zysk/strata', { text: formatCurrency(results.rentingSummary.investmentValue - results.rentingSummary.rentingTotal), alignment: 'right' }]
+          ]
+        }
+      },
+      
+      // Podsumowanie porównania
+      {
+        text: 'Porównanie opcji zakupu i wynajmu',
+        style: 'sectionHeader',
+        color: '#2E7D32',
+        margin: [0, 20, 0, 0]
+      },
+      {
+        margin: [0, 5, 0, 0],
+        table: {
+          headerRows: 1,
+          widths: ['*', 'auto'],
+          body: [
+            [
+              { text: 'Parametr', style: 'tableHeader', fillColor: '#2E7D32' },
+              { text: 'Wartość', style: 'tableHeader', fillColor: '#2E7D32' }
+            ],
+            ['Końcowa różnica finansowa', { text: formatCurrency(results.comparison.finalDifference), alignment: 'right' }],
+            ['Korzystniejsza opcja', { text: results.comparison.buyingIsBetter ? 'ZAKUP' : 'WYNAJEM', alignment: 'right' }],
+            ['Punkt rentowności (break-even)', { text: breakEvenYear, alignment: 'right' }]
+          ]
+        }
+      }
     ];
     
-    autoTable(doc, {
-      startY: comparisionY + 5,
-      head: [[encodePolishChars('Parametr'), encodePolishChars('Wartość')]],
-      body: comparisonData,
-      theme: 'grid',
-      headStyles: { 
-        fillColor: [46, 125, 50], 
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3,
-        font: 'helvetica'
-      },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 60, halign: 'right' } },
-    });
-    
-    // Dodanie wizualizacji danych
+    // Dodawanie wykresów do PDF
     try {
-      // Pobieranie elementów canvas z wykresami (jeśli istnieją)
+      // Nagłówek sekcji wykresów
+      docContent.push(
+        {
+          text: 'Wizualizacja porównania kosztów',
+          style: 'sectionHeader',
+          margin: [0, 20, 0, 10],
+          alignment: 'center'
+        }
+      );
+      
+      // Pobieranie wszystkich elementów canvas z wykresami
       const charts = document.querySelectorAll<HTMLCanvasElement>('canvas');
+      
       if (charts.length > 0) {
-        const finalY3 = (doc as any).lastAutoTable?.finalY || (comparisionY + 50);
-        const chartY = finalY3 + 10;
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.setFont('helvetica', 'bold');
-        textWithPolishChars('Wizualizacja porównania kosztów', 105, chartY, { align: 'center' });
-        
-        const mainChart = charts[0]; // Pierwszy znaleziony wykres
+        // Dodaj pierwszy wykres (główny wykres porównawczy)
+        const mainChart = charts[0];
         const chartImage = mainChart.toDataURL('image/png', 1.0);
         
-        // Dodanie obrazu wykresu
-        doc.addImage(chartImage, 'PNG', 25, chartY + 5, 160, 80);
+        docContent.push({
+          image: chartImage,
+          width: 500,
+          alignment: 'center',
+          margin: [0, 10, 0, 10]
+        });
+        
+        // Dodaj opcjonalnie inne wykresy, jeśli istnieją
+        for (let i = 1; i < charts.length; i++) {
+          const chartImage = charts[i].toDataURL('image/png', 1.0);
+          docContent.push({
+            image: chartImage,
+            width: 450,
+            alignment: 'center',
+            margin: [0, 20, 0, 10]
+          });
+        }
       }
     } catch (error) {
-      console.error('Błąd podczas generowania wykresu w PDF:', error);
+      console.error('Błąd podczas dodawania wykresów do PDF:', error);
     }
-    
-    // Stopka
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.setFont('helvetica', 'normal');
-      textWithPolishChars(`Strona ${i} z ${pageCount}`, 105, 285, { align: 'center' });
-      textWithPolishChars('Kalkulator Finansowy Nieruchomości - Analiza porównawcza zakupu i wynajmu', 105, 290, { align: 'center' });
-    }
-    
-    // Zapisanie i pobranie PDF
-    doc.save('analiza-nieruchomosci.pdf');
-    
-    // Callback po wygenerowaniu
-    if (onGenerate) {
-      onGenerate();
+
+    // Definicja dokumentu PDF
+    const docDefinition: TDocumentDefinitions = {
+      content: docContent,
+      
+      // Definicje stylów
+      styles: {
+        header: {
+          fontSize: 20,
+          bold: true,
+          color: '#003366',
+          margin: [0, 0, 0, 5]
+        },
+        subheader: {
+          fontSize: 10,
+          color: '#666666'
+        },
+        sectionHeader: {
+          fontSize: 14,
+          bold: true,
+          margin: [0, 10, 0, 5]
+        },
+        tableHeader: {
+          color: 'white',
+          bold: true
+        }
+      },
+      
+      // Definicja stopki
+      footer: function(currentPage, pageCount) {
+        return {
+          text: `Strona ${currentPage} z ${pageCount}`,
+          alignment: 'center',
+          fontSize: 8,
+          color: '#999999',
+          margin: [0, 10, 0, 0]
+        };
+      },
+      
+      // Konfiguracja dokumentu
+      defaultStyle: {
+        font: 'Roboto',
+        fontSize: 10
+      },
+      
+      // Ustawienie marginesów strony
+      pageMargins: [40, 40, 40, 40],
+      
+      // Ustawienie języka dokumentu
+      info: {
+        title: 'Raport analizy finansowej nieruchomości',
+        author: 'Kalkulator Finansowy Nieruchomości',
+        subject: 'Analiza porównawcza zakupu i wynajmu nieruchomości',
+        keywords: 'nieruchomości, analiza finansowa, zakup, wynajem'
+      }
+    };
+
+    // Generowanie i zapisywanie pliku PDF
+    try {
+      // Generuj PDF
+      const pdfDoc = pdfMake.createPdf(docDefinition);
+      
+      // Pobierz jako blob i zapisz
+      pdfDoc.download('Analiza_finansowa_nieruchomosci.pdf');
+      
+      // Opcjonalnie wywołaj funkcję po wygenerowaniu
+      if (onGenerate) {
+        onGenerate();
+      }
+    } catch (error) {
+      console.error('Błąd podczas generowania PDF:', error);
     }
   };
 
   return (
-    <button
-      onClick={generatePDF}
-      className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2 px-4 rounded-lg shadow-md hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 flex items-center justify-center"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-      </svg>
-      Generuj PDF z analizą
-    </button>
+    <div className="mt-4 text-center">
+      <button
+        onClick={generatePDF}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-300"
+      >
+        Generuj PDF z analizą
+      </button>
+    </div>
   );
 };
 

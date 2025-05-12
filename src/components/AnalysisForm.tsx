@@ -6,9 +6,15 @@ interface AnalysisFormProps {
   options: AnalysisOptions;
   onChange: (options: Partial<AnalysisOptions>) => void;
   onCalculate: () => void;
+  inflationSource?: string; // Opcjonalne źródło danych o inflacji
 }
 
-const AnalysisForm: React.FC<AnalysisFormProps> = ({ options, onChange, onCalculate }) => {
+const AnalysisForm: React.FC<AnalysisFormProps> = ({ 
+  options, 
+  onChange, 
+  onCalculate,
+  inflationSource 
+}) => {
   return (
     <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
       <h2 className="text-base font-semibold text-indigo-900 mb-3 border-b border-gray-200 pb-2">
@@ -36,17 +42,25 @@ const AnalysisForm: React.FC<AnalysisFormProps> = ({ options, onChange, onCalcul
             ]}
           />
 
-          <FormInput
-            id="inflation"
-            label="Średnioroczna inflacja (%)"
-            type="number"
-            value={options.inflation}
-            onChange={(value) => onChange({ inflation: value })}
-            tooltip="Przewidywana średnia roczna stopa inflacji"
-            required
-            min={0}
-            step={0.1}
-          />
+          <div className="flex flex-col">
+            <FormInput
+              id="inflation"
+              label="Średnioroczna inflacja (%)"
+              type="number"
+              value={options.inflation}
+              onChange={(value) => onChange({ inflation: value })}
+              tooltip="Przewidywana średnia roczna stopa inflacji"
+              required
+              min={0}
+              step={0.1}
+            />
+            
+            {inflationSource && (
+              <div className="text-xs text-teal-600 mt-1 italic">
+                Źródło: {inflationSource}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
