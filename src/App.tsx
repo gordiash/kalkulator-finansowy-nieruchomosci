@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import ROICalculatorPage from './pages/ROICalculatorPage';
 import InvestmentCalculatorPage from './pages/InvestmentCalculatorPage';
 import RentalValueCalculatorPage from './pages/RentalValueCalculatorPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const App: React.FC = () => {
   return (
@@ -14,6 +15,7 @@ const App: React.FC = () => {
         <Route path="/roi" element={<ROICalculatorPage />} />
         <Route path="/investment" element={<InvestmentCalculatorPage />} />
         <Route path="/rental-value" element={<RentalValueCalculatorPage />} />
+        <Route path="/polityka-prywatnosci" element={<PrivacyPolicy />} />
       </Routes>
     </Layout>
   );

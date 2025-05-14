@@ -5,6 +5,16 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          blue: '#1a4e8e',
+          green: '#2e9f74',
+          darkblue: '#14365f',
+          lightblue: '#e6f0fa',
+          darkgreen: '#1e7d5b',
+          lightgreen: '#e6f7f1',
+        },
+      },
       fontFamily: {
         sans: ['Nunito', 'sans-serif'],
       },
