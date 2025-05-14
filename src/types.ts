@@ -41,6 +41,8 @@ export interface CalculationResults {
     totalOtherCosts: number;
     buyingTotal: number;
     propertyValue: number;
+    roe: number; // Return on Equity (zwrot z kapitału własnego)
+    dti: number; // Debt-to-Income (wskaźnik obciążenia dochodów kredytem)
   };
   rentingSummary: {
     monthlyRent: number;

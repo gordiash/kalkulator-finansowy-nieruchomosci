@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ROICalculatorPage from './pages/ROICalculatorPage';
 import InvestmentCalculatorPage from './pages/InvestmentCalculatorPage';
+import RentalValueCalculatorPage from './pages/RentalValueCalculatorPage';
 
 const App: React.FC = () => {
   return (
@@ -12,6 +13,7 @@ const App: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/roi" element={<ROICalculatorPage />} />
         <Route path="/investment" element={<InvestmentCalculatorPage />} />
+        <Route path="/rental-value" element={<RentalValueCalculatorPage />} />
       </Routes>
     </Layout>
   );

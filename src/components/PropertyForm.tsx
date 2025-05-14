@@ -26,6 +26,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange }) => {
           <h3 className="font-medium text-blue-800 mb-2 text-sm">
             Podstawowe informacje
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="h-24">
               <FormInput
@@ -213,66 +214,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ data, onChange }) => {
               min={0}
               step={0.1}
             />
-          </div>
-        </div>
-
-        <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-          <h3 className="font-medium text-red-800 mb-2 text-sm">
-            Dodatkowe koszty
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="h-24">
-              <FormInput
-                id="notaryFee"
-                label="Stawka taksy notarialnej (PLN)"
-                type="number"
-                value={data.notaryFee}
-                onChange={(value) => onChange({ notaryFee: value })}
-                tooltip="Koszt taksy notarialnej za zakup nieruchomości"
-                required
-                min={0}
-              />
-            </div>
-
-            <div className="h-24">
-              <FormInput
-                id="pcc"
-                label="Podatek PCC (PLN)"
-                type="number"
-                value={data.pcc}
-                onChange={(value) => onChange({ pcc: value })}
-                tooltip="Podatek od czynności cywilnoprawnych"
-                required
-                min={0}
-              />
-            </div>
-
-            <div className="h-24">
-              <FormInput
-                id="courtFee"
-                label="Opłata sądowa (PLN)"
-                type="number"
-                value={data.courtFee}
-                onChange={(value) => onChange({ courtFee: value })}
-                tooltip="Koszt opłaty sądowej za zakup nieruchomości"
-                required
-                min={0}
-              />
-            </div>
-
-            <div className="h-24">
-              <FormInput
-                id="notarialActCopyCost"
-                label="Koszty odpisów aktu notarialnego (PLN)"
-                type="number"
-                value={data.notarialActCopyCost}
-                onChange={(value) => onChange({ notarialActCopyCost: value })}
-                tooltip="Koszt odpisów aktu notarialnego"
-                required
-                min={0}
-              />
-            </div>
           </div>
         </div>
       </div>

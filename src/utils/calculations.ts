@@ -123,6 +123,17 @@ export const calculateResults = (
   const finalDifference = (propertyValue - buyingTotal) - (investmentValue - rentingTotal);
   const buyingIsBetter = finalDifference > 0;
 
+  // Obliczenia wskaźników finansowych
+  
+  // ROE (Return on Equity) - zwrot z kapitału własnego
+  // Obliczamy jako: (Wartość końcowa nieruchomości - Całkowite koszty) / Wkład własny
+  const roe = ((propertyValue - buyingTotal) / downPayment) * 100;
+  
+  // DTI (Debt-to-Income) - wskaźnik obciążenia dochodów kredytem
+  // Zakładamy średni miesięczny dochód na poziomie 3x raty kredytu jako bezpieczne obciążenie
+  const assumedMonthlyIncome = monthlyMortgagePayment * 3;
+  const dti = (monthlyMortgagePayment / assumedMonthlyIncome) * 100;
+
   return {
     buyingSummary: {
       monthlyMortgagePayment,
@@ -131,7 +142,9 @@ export const calculateResults = (
       totalMortgagePayments,
       totalOtherCosts,
       buyingTotal,
-      propertyValue
+      propertyValue,
+      roe, // Dodajemy nowy wskaźnik ROE
+      dti  // Dodajemy nowy wskaźnik DTI
     },
     rentingSummary: {
       monthlyRent: rentData.monthlyRent,

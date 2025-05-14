@@ -48,6 +48,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 Kalkulator Inwestycji
               </NavLink>
+              <NavLink 
+                to="/rental-value" 
+                className={({ isActive }) => 
+                  isActive 
+                    ? "px-3 py-2 rounded-md bg-indigo-600 text-white" 
+                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                }
+              >
+                Wartość z Najmu
+              </NavLink>
             </div>
           </div>
         </div>
@@ -71,6 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ul className="space-y-2">
                 <li><Link to="/roi" className="text-gray-400 hover:text-white">Kalkulator ROI</Link></li>
                 <li><Link to="/investment" className="text-gray-400 hover:text-white">Kalkulator Inwestycji</Link></li>
+                <li><Link to="/rental-value" className="text-gray-400 hover:text-white">Wartość z Najmu</Link></li>
               </ul>
             </div>
             <div>

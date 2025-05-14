@@ -140,6 +140,35 @@ describe('calculateResults function', () => {
     // Note: Total other costs also includes yearly expenses over time, so will be higher
     expect(results.buyingSummary.totalOtherCosts).toBeGreaterThanOrEqual(expectedTransactionCosts);
   });
+  
+  test('should calculate ROE (Return on Equity) indicator', () => {
+    const results = calculateResults(mockPropertyData, mockRentData, mockAnalysisOptions);
+    
+    // Sprawdzamy, czy ROE zostało obliczone i ma sensowną wartość
+    expect(results.buyingSummary).toHaveProperty('roe');
+    expect(typeof results.buyingSummary.roe).toBe('number');
+    
+    // Sprawdzamy, czy ROE jest obliczone według wzoru: ((propertyValue - buyingTotal) / downPayment) * 100
+    const expectedRoe = ((results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal) / results.buyingSummary.downPayment) * 100;
+    expect(results.buyingSummary.roe).toBeCloseTo(expectedRoe, 2);
+  });
+  
+  test('should calculate DTI (Debt-to-Income) indicator', () => {
+    const results = calculateResults(mockPropertyData, mockRentData, mockAnalysisOptions);
+    
+    // Sprawdzamy, czy DTI zostało obliczone i ma sensowną wartość
+    expect(results.buyingSummary).toHaveProperty('dti');
+    expect(typeof results.buyingSummary.dti).toBe('number');
+    
+    // Sprawdzamy, czy DTI jest obliczone według wzoru w kodzie: (monthlyMortgagePayment / assumedMonthlyIncome) * 100
+    // gdzie assumedMonthlyIncome = monthlyMortgagePayment * 3
+    const assumedMonthlyIncome = results.buyingSummary.monthlyMortgagePayment * 3;
+    const expectedDti = (results.buyingSummary.monthlyMortgagePayment / assumedMonthlyIncome) * 100;
+    expect(results.buyingSummary.dti).toBeCloseTo(expectedDti, 2);
+    
+    // DTI powinno być około 33.33% przy założeniu dochodu 3x rata
+    expect(results.buyingSummary.dti).toBeCloseTo(33.33, 0);
+  });
 });
 
 // Test dla funkcji calculateMortgagePayment

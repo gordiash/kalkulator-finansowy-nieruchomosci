@@ -139,6 +139,8 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
             ['Pozostałe koszty', { text: formatCurrency(results.buyingSummary.totalOtherCosts), alignment: 'right' }],
             ['Całkowity koszt zakupu', { text: formatCurrency(results.buyingSummary.buyingTotal), alignment: 'right' }],
             ['Szacowana wartość końcowa', { text: formatCurrency(results.buyingSummary.propertyValue), alignment: 'right' }],
+            ['ROE (Zwrot z kapitału)', { text: formatPercent(results.buyingSummary.roe), alignment: 'right' }],
+            ['DTI (Stosunek kredytu do dochodu)', { text: formatPercent(results.buyingSummary.dti), alignment: 'right' }],
             ['Zysk/strata', { text: formatCurrency(results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal), alignment: 'right' }]
           ]
         }
