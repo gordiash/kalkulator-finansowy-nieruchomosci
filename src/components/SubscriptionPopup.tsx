@@ -7,12 +7,33 @@ interface SubscriptionPopupProps {
 
 const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onClose }) => {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Funkcja walidująca adres email za pomocą wyrażenia regularnego
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      onSubscribe(email);
+    
+    // Usuwanie zbędnych znaków białych
+    const sanitizedEmail = email.trim();
+    
+    // Walidacja adresu email
+    if (!sanitizedEmail) {
+      setError('Proszę podać adres email');
+      return;
     }
+    
+    if (!validateEmail(sanitizedEmail)) {
+      setError('Proszę podać poprawny adres email');
+      return;
+    }
+    
+    setError(null);
+    onSubscribe(sanitizedEmail);
   };
 
   return (
@@ -45,10 +66,15 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
               type="email"
               id="popupEmail"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              className={`w-full p-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500`}
               required
+              autoComplete="email"
             />
+            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
           
           <button

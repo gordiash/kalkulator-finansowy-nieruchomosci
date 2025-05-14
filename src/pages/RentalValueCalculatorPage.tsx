@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sanitizeNumber } from '../utils/sanitizeUtils';
 
 const RentalValueCalculatorPage: React.FC = () => {
   const [monthlyRent, setMonthlyRent] = useState<number>(0);
@@ -7,19 +8,37 @@ const RentalValueCalculatorPage: React.FC = () => {
   const [propertyValue, setPropertyValue] = useState<number>(0);
   const [isCalculated, setIsCalculated] = useState<boolean>(false);
 
+  // Bezpieczne metody aktualizacji stanu z walidacją
+  const updateMonthlyRent = (value: string | number) => {
+    setMonthlyRent(sanitizeNumber(value, 0, 0, null));
+  };
+
+  const updateRoi = (value: string | number) => {
+    setRoi(sanitizeNumber(value, 0, 0, 100));
+  };
+
+  const updateRentalPeriod = (value: string | number) => {
+    setRentalPeriod(sanitizeNumber(value, 0, 1, 100));
+  };
+
   const calculatePropertyValue = () => {
     if (monthlyRent <= 0 || roi <= 0 || rentalPeriod <= 0) {
       alert('Wprowadź poprawne wartości dla wszystkich pól');
       return;
     }
 
+    // Ponowna sanityzacja wartości przed obliczeniami
+    const sanitizedMonthlyRent = sanitizeNumber(monthlyRent, 0, 0, null);
+    const sanitizedRoi = sanitizeNumber(roi, 0, 0.1, 100);
+    const sanitizedRentalPeriod = sanitizeNumber(rentalPeriod, 0, 1, 100);
+
     // Obliczanie rocznego zysku z najmu
-    const yearlyRent = monthlyRent * 12;
+    const yearlyRent = sanitizedMonthlyRent * 12;
     
     // Obliczanie wartości nieruchomości na podstawie ROI
     // ROI = (Roczny zysk / Wartość nieruchomości) * 100
     // Wartość nieruchomości = (Roczny zysk / ROI) * 100
-    const calculatedValue = (yearlyRent / roi) * 100;
+    const calculatedValue = (yearlyRent / sanitizedRoi) * 100;
     
     setPropertyValue(calculatedValue);
     setIsCalculated(true);
@@ -44,49 +63,62 @@ const RentalValueCalculatorPage: React.FC = () => {
             <input
               type="number"
               value={monthlyRent || ''}
-              onChange={(e) => setMonthlyRent(Number(e.target.value))}
+              onChange={(e) => updateMonthlyRent(e.target.value)}
               className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Np. 2500"
               min="0"
+              aria-labelledby="monthly-rent-label"
+              aria-describedby="monthly-rent-description"
             />
+            <p id="monthly-rent-description" className="mt-1 text-sm text-gray-500">
+              Wprowadź miesięczny przychód z najmu, po odjęciu kosztów
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label id="roi-label" className="block text-sm font-medium text-gray-700 mb-1">
               Oczekiwany ROI (%)
             </label>
             <input
               type="number"
               value={roi || ''}
-              onChange={(e) => setRoi(Number(e.target.value))}
+              onChange={(e) => updateRoi(e.target.value)}
               className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Np. 5"
               min="0"
               max="100"
               step="0.1"
+              aria-labelledby="roi-label"
+              aria-describedby="roi-description"
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p id="roi-description" className="mt-1 text-sm text-gray-500">
               Return on Investment - roczny zwrot z inwestycji wyrażony jako procent
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label id="rental-period-label" className="block text-sm font-medium text-gray-700 mb-1">
               Okres wynajmu (lata)
             </label>
             <input
               type="number"
               value={rentalPeriod || ''}
-              onChange={(e) => setRentalPeriod(Number(e.target.value))}
+              onChange={(e) => updateRentalPeriod(e.target.value)}
               className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Np. 10"
               min="1"
+              aria-labelledby="rental-period-label"
+              aria-describedby="rental-period-description"
             />
+            <p id="rental-period-description" className="mt-1 text-sm text-gray-500">
+              Planowany okres wynajmu nieruchomości w latach
+            </p>
           </div>
 
           <button
             onClick={calculatePropertyValue}
             className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition-colors font-medium"
+            aria-label="Oblicz wartość nieruchomości na podstawie wprowadzonych danych"
           >
             Oblicz wartość nieruchomości
           </button>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { secureStorage } from './localStorageUtils';
 
 /**
  * Interfejs opisujący strukturę danych inflacyjnych
@@ -33,28 +34,33 @@ export class GUSInflationFetcher {
   private cachedInflationValue: number | null = null;
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 dni w milisekundach
+  private readonly STORAGE_KEY = 'gusInflationData';
 
   /**
    * Konstruktor, inicjalizuje pamięć podręczną z localStorage
    */
   constructor() {
-    this.initCacheFromLocalStorage();
+    this.initCacheFromStorage();
   }
 
   /**
-   * Inicjalizuje pamięć podręczną z localStorage
+   * Inicjalizuje pamięć podręczną z bezpiecznego storage
    */
-  private initCacheFromLocalStorage() {
+  private initCacheFromStorage() {
     try {
-      const cachedData = localStorage.getItem('gusInflationCache');
+      const cachedData = secureStorage.getItem<{
+        value: number;
+        timestamp: number;
+        lastFetchTime: number;
+      } | null>(this.STORAGE_KEY, null);
+      
       if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-        this.cachedInflationValue = parsedData.value;
-        this.cacheTimestamp = parsedData.timestamp;
-        this.lastFetchTime = parsedData.lastFetchTime || 0;
+        this.cachedInflationValue = cachedData.value;
+        this.cacheTimestamp = cachedData.timestamp;
+        this.lastFetchTime = cachedData.lastFetchTime || 0;
       }
     } catch (error) {
-      console.error('Błąd podczas odczytu danych z localStorage:', error);
+      console.error('Błąd podczas odczytu danych z pamięci podręcznej:', error);
     }
   }
 
@@ -66,13 +72,20 @@ export class GUSInflationFetcher {
       this.cachedInflationValue = value;
       this.cacheTimestamp = Date.now();
       
-      localStorage.setItem('gusInflationCache', JSON.stringify({
-        value: this.cachedInflationValue,
-        timestamp: this.cacheTimestamp,
-        lastFetchTime: this.lastFetchTime
-      }));
+      secureStorage.setItem(
+        this.STORAGE_KEY,
+        {
+          value: this.cachedInflationValue,
+          timestamp: this.cacheTimestamp,
+          lastFetchTime: this.lastFetchTime
+        },
+        true // Szyfrowanie danych
+      );
+      
+      // Ustaw automatyczne wygaśnięcie danych po 7 dniach
+      secureStorage.setupAutoExpiry(this.STORAGE_KEY, this.CACHE_DURATION);
     } catch (error) {
-      console.error('Błąd podczas zapisu danych do localStorage:', error);
+      console.error('Błąd podczas zapisu danych do pamięci podręcznej:', error);
     }
   }
 
@@ -95,18 +108,7 @@ export class GUSInflationFetcher {
       const opts = { ...this.DEFAULT_OPTIONS, ...options };
       
       // W rzeczywistym scenariuszu należałoby tu zarejestrować się i uzyskać klucz API
-      // Wyszukanie identyfikatora zmiennej dla wskaźnika inflacji
       // Przykładowe zapytanie (do dostosowania po rejestracji):
-      // Najpierw szukamy tematu związanego z inflacją
-      /*
-      const response = await axios.get(`${this.API_URL}/subjects/search`, {
-        params: {
-          name: 'inflacja',
-          format: 'json'
-        }
-      });
-      */
-      
       // Ponieważ powyższe wymaga rejestracji, na potrzeby demo użyjemy symulowanych danych
       const currentDate = new Date();
       const formattedDate = currentDate.toISOString().split('T')[0];

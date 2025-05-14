@@ -9,6 +9,7 @@ import SuccessMessage from '../components/SuccessMessage';
 import { calculateResults } from '../utils/calculations';
 import { sendSubscriberToAirtable } from '../utils/airtable';
 import { gusInflationFetcher } from '../utils/gusInflationFetcher';
+import { secureStorage } from '../utils/localStorageUtils';
 
 const ROICalculatorPage: React.FC = () => {
   // Stan formularzy
@@ -61,12 +62,12 @@ const ROICalculatorPage: React.FC = () => {
   // Resetowanie stanu hasCalculatedBefore przy każdym uruchomieniu aplikacji
   useEffect(() => {
     // Sprawdzamy, czy użytkownik już wcześniej kliknął przycisk "Oblicz"
-    const hasClickedBefore = localStorage.getItem('userClickedCalculate') === 'true';
+    const hasClickedBefore = secureStorage.getItem<boolean>('userClickedCalculate', false);
     setHasCalculatedBefore(hasClickedBefore);
     
     // Dodajemy obsługę zdarzenia beforeunload, które resetuje localStorage po zamknięciu strony
     const handleBeforeUnload = () => {
-      localStorage.removeItem('userClickedCalculate');
+      secureStorage.removeItem('userClickedCalculate');
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -147,7 +148,10 @@ const ROICalculatorPage: React.FC = () => {
       if (!hasCalculatedBefore) {
         setShowSubscriptionPopup(true);
         setHasCalculatedBefore(true);
-        localStorage.setItem('userClickedCalculate', 'true');
+        secureStorage.setItem('userClickedCalculate', true);
+        
+        // Ustawiamy automatyczne wygaśnięcie po 30 dniach
+        secureStorage.setupAutoExpiry('userClickedCalculate', 30 * 24 * 60 * 60 * 1000);
       }
       
       // Przewijanie do wyników

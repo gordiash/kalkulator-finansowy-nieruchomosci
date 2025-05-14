@@ -5,3 +5,25 @@
 [build.environment]
   # Wyłączenie traktowania ostrzeżeń ESLint jako błędów
   CI = "false" 
+
+# Konfiguracja nagłówków bezpieczeństwa
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Zapobieganie clickjacking
+    X-Frame-Options = "DENY"
+    # Zapobieganie MIME sniffing
+    X-Content-Type-Options = "nosniff"
+    # Ochrona przed XSS
+    X-XSS-Protection = "1; mode=block"
+    # Polityka odnośników
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Polityka bezpieczeństwa zawartości
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://suppi.pl data:; connect-src 'self' https://api.airtable.com https://api-sdp.stat.gov.pl; font-src 'self' data:;"
+    # Zapobieganie cachowaniu danych wrażliwych
+    Cache-Control = "no-store, max-age=0"
+
+# Funkcje Netlify
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild" 
