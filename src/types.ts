@@ -56,10 +56,19 @@ export interface CalculationResults {
     difference: number;
     finalDifference: number;
     buyingIsBetter: boolean;
-    chartData: {
+    breakEvenYear?: number; // Rok, w którym inwestycja się zwraca
+    chartData?: {
       labels: string[];
       mortgageCostData: number[];
       rentCostData: number[];
     };
+  };
+  yearlyCosts?: {
+    buying: number[];
+    renting: number[];
+  };
+  cumulativeCosts?: {
+    buying: number[];
+    renting: number[];
   };
 }

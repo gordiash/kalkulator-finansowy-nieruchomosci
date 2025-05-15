@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 interface ShareResultsProps {
   results: any;
-  calculatorType: 'roi' | 'investment' | 'rental-value';
+  calculatorType: 'roi' | 'investment' | 'rental-value' | string;
 }
 
 const ShareResults: React.FC<ShareResultsProps> = ({ results, calculatorType }) => {
@@ -13,7 +13,12 @@ const ShareResults: React.FC<ShareResultsProps> = ({ results, calculatorType }) 
   const generateShareableLink = () => {
     // Konwertujemy dane do formatu base64, aby uniknąć problemów ze znakami specjalnymi
     const encodedData = btoa(JSON.stringify(results));
-    return `${window.location.origin}/${calculatorType}?data=${encodedData}`;
+    let path = '';
+    if (calculatorType === 'roi') path = 'kalkulator-roi';
+    else if (calculatorType === 'investment') path = 'kalkulator-inwestycji';
+    else if (calculatorType === 'rental-value') path = 'kalkulator-wartosci-najmu';
+    else path = calculatorType;
+    return `${window.location.origin}/${path}?data=${encodedData}`;
   };
 
   const copyToClipboard = async () => {
@@ -93,7 +98,7 @@ const ShareResults: React.FC<ShareResultsProps> = ({ results, calculatorType }) 
                 </button>
               </div>
 
-              <div className="flex justify-center space-x-4">
+              <div className="flex items-center justify-center space-x-4">
                 <button
                   onClick={() => shareOnSocialMedia('facebook')}
                   className="p-2 bg-[#1877F2] text-white rounded-full hover:opacity-90"

@@ -15,9 +15,15 @@ type InvestmentCalculatorProps = {
   investment: number;
   cashFlows: number[];
   discountRate: number;
+  onCalculate?: (results: any) => void;
 };
 
-const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({ investment, cashFlows, discountRate }) => {
+const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({ 
+  investment, 
+  cashFlows, 
+  discountRate,
+  onCalculate 
+}) => {
   const [roi, setRoi] = useState<number | null>(null);
   const [irr, setIrr] = useState<number | null>(null);
   const [npv, setNpv] = useState<number | null>(null);
@@ -121,9 +127,13 @@ const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({ investment,
       }
       
       // Obliczenia z wykorzystaniem funkcji pomocniczych
-      setRoi(calculateROI(inputInvestment, parsedCashFlows));
-      setIrr(calculateIRR(inputInvestment, parsedCashFlows));
-      setNpv(calculateNPV(inputInvestment, parsedCashFlows, inputDiscountRate));
+      const roiValue = calculateROI(inputInvestment, parsedCashFlows);
+      const irrValue = calculateIRR(inputInvestment, parsedCashFlows);
+      const npvValue = calculateNPV(inputInvestment, parsedCashFlows, inputDiscountRate);
+      
+      setRoi(roiValue);
+      setIrr(irrValue);
+      setNpv(npvValue);
       
       // Generowanie danych wykresu
       generateChartData(parsedCashFlows);
@@ -131,6 +141,34 @@ const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({ investment,
       // Obliczanie scenariuszy
       const scenarios = calculateScenarios(inputInvestment, parsedCashFlows, inputDiscountRate);
       console.log("Scenarios:", scenarios);
+
+      // Przygotowanie danych wynikowych
+      if (onCalculate) {
+        // Obliczanie sumy przepływów pieniężnych
+        const totalReturn = parsedCashFlows.reduce((sum, flow) => sum + flow, 0);
+        
+        // Znajdowanie roku, w którym inwestycja się zwraca
+        const cumulativeCashFlows = calculateCumulativeCashFlows(parsedCashFlows);
+        const breakEvenYear = cumulativeCashFlows.findIndex(value => value >= inputInvestment);
+        
+        // Dane do wykresu
+        const yearlyCashFlows = parsedCashFlows.map(flow => flow);
+        
+        // Zwracanie wyników
+        onCalculate({
+          investment: inputInvestment,
+          cashFlows: parsedCashFlows,
+          discountRate: inputDiscountRate,
+          roi: roiValue,
+          irr: irrValue,
+          npv: npvValue,
+          totalReturn,
+          breakEvenYear: breakEvenYear >= 0 ? breakEvenYear + 1 : null,
+          yearlyCashFlows,
+          cumulativeCashFlows,
+          scenarios
+        });
+      }
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);

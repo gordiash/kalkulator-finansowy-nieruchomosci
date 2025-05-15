@@ -2,7 +2,7 @@ import React from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { CalculationResults } from '../types';
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { TDocumentDefinitions, Style, Alignment } from 'pdfmake/interfaces';
 
 // Inicjalizacja czcionek pdfmake - użycie rzutowania typu, aby ominąć problemy TypeScript
 // @ts-ignore - ignorujemy błąd TypeScript, ponieważ struktura modułu może się różnić w środowisku webpack
@@ -38,13 +38,20 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
     const today = new Date().toLocaleDateString('pl-PL');
     
     // Znalezienie punktu rentowności
-    const breakEvenIndex = results.comparison.chartData.mortgageCostData.findIndex((value, index) => 
-      value <= results.comparison.chartData.rentCostData[index] && (index === 0 || results.comparison.chartData.mortgageCostData[index - 1] > results.comparison.chartData.rentCostData[index - 1])
-    );
+    let breakEvenYear = "Nie osiągnięto w okresie analizy";
     
-    const breakEvenYear = breakEvenIndex !== -1 
-      ? results.comparison.chartData.labels[breakEvenIndex] 
-      : "Nie osiągnięto w okresie analizy";
+    // Sprawdzamy, czy istnieje chartData
+    if (results.comparison.chartData) {
+      const { mortgageCostData, rentCostData, labels } = results.comparison.chartData;
+      
+      const breakEvenIndex = mortgageCostData.findIndex((value, index) => 
+        value <= rentCostData[index] && (index === 0 || mortgageCostData[index - 1] > rentCostData[index - 1])
+      );
+      
+      if (breakEvenIndex !== -1) {
+        breakEvenYear = labels[breakEvenIndex];
+      }
+    }
 
     // Przygotowanie zawartości dokumentu
     const docContent: any[] = [
@@ -52,12 +59,12 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
       {
         text: 'Raport analizy finansowej nieruchomości',
         style: 'header',
-        alignment: 'center'
+        alignment: 'center' as Alignment
       },
       {
         text: `Wygenerowano: ${today}`,
         style: 'subheader',
-        alignment: 'center',
+        alignment: 'center' as Alignment,
         margin: [0, 5, 0, 20]
       },
       
@@ -109,7 +116,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
             width: 'auto',
             text: [
               { text: `Okres analizy: `, bold: true },
-              { text: `${results.comparison.chartData.labels.length} lat` }
+              { text: `${results.comparison.chartData?.labels.length || results.yearlyCosts?.buying?.length || 30} lat` }
             ]
           }
         ],
@@ -132,16 +139,16 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
               { text: 'Parametr', style: 'tableHeader', fillColor: '#0066CC' },
               { text: 'Wartość', style: 'tableHeader', fillColor: '#0066CC' }
             ],
-            ['Wkład własny', { text: formatCurrency(results.buyingSummary.downPayment), alignment: 'right' }],
-            ['Kwota kredytu', { text: formatCurrency(results.buyingSummary.loanAmount), alignment: 'right' }],
-            ['Miesięczna rata', { text: formatCurrency(results.buyingSummary.monthlyMortgagePayment), alignment: 'right' }],
-            ['Suma rat kredytu', { text: formatCurrency(results.buyingSummary.totalMortgagePayments), alignment: 'right' }],
-            ['Pozostałe koszty', { text: formatCurrency(results.buyingSummary.totalOtherCosts), alignment: 'right' }],
-            ['Całkowity koszt zakupu', { text: formatCurrency(results.buyingSummary.buyingTotal), alignment: 'right' }],
-            ['Szacowana wartość końcowa', { text: formatCurrency(results.buyingSummary.propertyValue), alignment: 'right' }],
-            ['ROE (Zwrot z kapitału)', { text: formatPercent(results.buyingSummary.roe), alignment: 'right' }],
-            ['DTI (Stosunek kredytu do dochodu)', { text: formatPercent(results.buyingSummary.dti), alignment: 'right' }],
-            ['Zysk/strata', { text: formatCurrency(results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal), alignment: 'right' }]
+            ['Wkład własny', { text: formatCurrency(results.buyingSummary.downPayment), alignment: 'right' as Alignment }],
+            ['Kwota kredytu', { text: formatCurrency(results.buyingSummary.loanAmount), alignment: 'right' as Alignment }],
+            ['Miesięczna rata', { text: formatCurrency(results.buyingSummary.monthlyMortgagePayment), alignment: 'right' as Alignment }],
+            ['Suma rat kredytu', { text: formatCurrency(results.buyingSummary.totalMortgagePayments), alignment: 'right' as Alignment }],
+            ['Pozostałe koszty', { text: formatCurrency(results.buyingSummary.totalOtherCosts), alignment: 'right' as Alignment }],
+            ['Całkowity koszt zakupu', { text: formatCurrency(results.buyingSummary.buyingTotal), alignment: 'right' as Alignment }],
+            ['Szacowana wartość końcowa', { text: formatCurrency(results.buyingSummary.propertyValue), alignment: 'right' as Alignment }],
+            ['ROE (Zwrot z kapitału)', { text: formatPercent(results.buyingSummary.roe), alignment: 'right' as Alignment }],
+            ['DTI (Stosunek kredytu do dochodu)', { text: formatPercent(results.buyingSummary.dti), alignment: 'right' as Alignment }],
+            ['Zysk/strata', { text: formatCurrency(results.buyingSummary.propertyValue - results.buyingSummary.buyingTotal), alignment: 'right' as Alignment }]
           ]
         }
       },
@@ -163,13 +170,13 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
               { text: 'Parametr', style: 'tableHeader', fillColor: '#E67E22' },
               { text: 'Wartość', style: 'tableHeader', fillColor: '#E67E22' }
             ],
-            ['Miesięczny czynsz (początkowy)', { text: formatCurrency(results.rentingSummary.monthlyRent), alignment: 'right' }],
-            ['Suma zapłaconych czynszów', { text: formatCurrency(results.rentingSummary.totalRent), alignment: 'right' }],
-            ['Suma kosztów ubezpieczenia', { text: formatCurrency(results.rentingSummary.totalRentInsurance), alignment: 'right' }],
-            ['Suma kosztów utrzymania', { text: formatCurrency(results.rentingSummary.totalRentMaintenance), alignment: 'right' }],
-            ['Całkowity koszt wynajmu', { text: formatCurrency(results.rentingSummary.rentingTotal), alignment: 'right' }],
-            ['Wartość końcowa inwestycji', { text: formatCurrency(results.rentingSummary.investmentValue), alignment: 'right' }],
-            ['Zysk/strata', { text: formatCurrency(results.rentingSummary.investmentValue - results.rentingSummary.rentingTotal), alignment: 'right' }]
+            ['Miesięczny czynsz (początkowy)', { text: formatCurrency(results.rentingSummary.monthlyRent), alignment: 'right' as Alignment }],
+            ['Suma zapłaconych czynszów', { text: formatCurrency(results.rentingSummary.totalRent), alignment: 'right' as Alignment }],
+            ['Suma kosztów ubezpieczenia', { text: formatCurrency(results.rentingSummary.totalRentInsurance), alignment: 'right' as Alignment }],
+            ['Suma kosztów utrzymania', { text: formatCurrency(results.rentingSummary.totalRentMaintenance), alignment: 'right' as Alignment }],
+            ['Całkowity koszt wynajmu', { text: formatCurrency(results.rentingSummary.rentingTotal), alignment: 'right' as Alignment }],
+            ['Wartość końcowa inwestycji', { text: formatCurrency(results.rentingSummary.investmentValue), alignment: 'right' as Alignment }],
+            ['Zysk/strata', { text: formatCurrency(results.rentingSummary.investmentValue - results.rentingSummary.rentingTotal), alignment: 'right' as Alignment }]
           ]
         }
       },
@@ -191,9 +198,9 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
               { text: 'Parametr', style: 'tableHeader', fillColor: '#2E7D32' },
               { text: 'Wartość', style: 'tableHeader', fillColor: '#2E7D32' }
             ],
-            ['Końcowa różnica finansowa', { text: formatCurrency(results.comparison.finalDifference), alignment: 'right' }],
-            ['Korzystniejsza opcja', { text: results.comparison.buyingIsBetter ? 'ZAKUP' : 'WYNAJEM', alignment: 'right' }],
-            ['Punkt rentowności (break-even)', { text: breakEvenYear, alignment: 'right' }]
+            ['Końcowa różnica finansowa', { text: formatCurrency(results.comparison.finalDifference), alignment: 'right' as Alignment }],
+            ['Korzystniejsza opcja', { text: results.comparison.buyingIsBetter ? 'ZAKUP' : 'WYNAJEM', alignment: 'right' as Alignment }],
+            ['Punkt rentowności (break-even)', { text: breakEvenYear, alignment: 'right' as Alignment }]
           ]
         }
       }
@@ -207,7 +214,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
           text: 'Wizualizacja porównania kosztów',
           style: 'sectionHeader',
           margin: [0, 20, 0, 10],
-          alignment: 'center'
+          alignment: 'center' as Alignment
         }
       );
       
@@ -222,7 +229,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
         docContent.push({
           image: chartImage,
           width: 500,
-          alignment: 'center',
+          alignment: 'center' as Alignment,
           margin: [0, 10, 0, 10]
         });
         
@@ -232,7 +239,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
           docContent.push({
             image: chartImage,
             width: 450,
-            alignment: 'center',
+            alignment: 'center' as Alignment,
             margin: [0, 20, 0, 10]
           });
         }
@@ -240,89 +247,107 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
     } catch (error) {
       console.error('Błąd podczas dodawania wykresów do PDF:', error);
     }
-
-    // Definicja dokumentu PDF
-    const docDefinition: TDocumentDefinitions = {
-      content: docContent,
-      
-      // Definicje stylów
-      styles: {
-        header: {
-          fontSize: 20,
-          bold: true,
-          color: '#003366',
-          margin: [0, 0, 0, 5]
-        },
-        subheader: {
-          fontSize: 10,
-          color: '#666666'
-        },
-        sectionHeader: {
-          fontSize: 14,
-          bold: true,
-          margin: [0, 10, 0, 5]
-        },
-        tableHeader: {
-          color: 'white',
-          bold: true
-        }
+    
+    // Dodanie stopki raportu
+    docContent.push(
+      {
+        text: 'Zastrzeżenia prawne',
+        style: 'sectionHeader',
+        margin: [0, 20, 0, 5],
       },
-      
-      // Definicja stopki
-      footer: function(currentPage, pageCount) {
-        return {
-          text: `Strona ${currentPage} z ${pageCount}`,
-          alignment: 'center',
-          fontSize: 8,
-          color: '#999999',
-          margin: [0, 10, 0, 0]
-        };
+      {
+        text: 'Niniejszy raport stanowi wyłącznie symulację finansową opartą na przyjętych założeniach i danych wprowadzonych przez Użytkownika. Nie stanowi on porady finansowej ani rekomendacji inwestycyjnej. Rzeczywiste koszty i przychody mogą różnić się od prezentowanych w raporcie w zależności od zmian na rynku nieruchomości, stóp procentowych, inflacji oraz innych czynników ekonomicznych i indywidualnych uwarunkowań.',
+        style: 'small',
+        margin: [0, 0, 0, 10]
       },
-      
-      // Konfiguracja dokumentu
-      defaultStyle: {
-        font: 'Roboto',
-        fontSize: 10
+      {
+        text: 'Wygenerowano przez Kalkulator Finansowy Nieruchomości',
+        style: 'footer',
+        alignment: 'center' as Alignment,
+        margin: [0, 20, 0, 0]
       },
-      
-      // Ustawienie marginesów strony
-      pageMargins: [40, 40, 40, 40],
-      
-      // Ustawienie języka dokumentu
-      info: {
-        title: 'Raport analizy finansowej nieruchomości',
-        author: 'Kalkulator Finansowy Nieruchomości',
-        subject: 'Analiza porównawcza zakupu i wynajmu nieruchomości',
-        keywords: 'nieruchomości, analiza finansowa, zakup, wynajem'
+      {
+        text: 'kalkulator-finansowy-nieruchomosci.pl',
+        style: 'footer',
+        alignment: 'center' as Alignment,
+        color: '#3366CC',
+      }
+    );
+    
+    // Definicja stylów dokumentu
+    const styles = {
+      header: {
+        fontSize: 22,
+        bold: true,
+        color: '#333333',
+        margin: [0, 0, 0, 10] as [number, number, number, number]
+      },
+      subheader: {
+        fontSize: 14,
+        color: '#666666',
+      },
+      sectionHeader: {
+        fontSize: 16,
+        bold: true,
+        color: '#444444',
+        margin: [0, 10, 0, 8] as [number, number, number, number]
+      },
+      tableHeader: {
+        fontSize: 12,
+        bold: true,
+        color: 'white',
+        fillColor: '#4472C4',
+        margin: [0, 5, 0, 5] as [number, number, number, number]
+      },
+      small: {
+        fontSize: 10,
+        color: '#666666',
+        alignment: 'justify' as Alignment
+      },
+      footer: {
+        fontSize: 10,
+        color: '#999999'
       }
     };
-
-    // Generowanie i zapisywanie pliku PDF
-    try {
-      // Generuj PDF
-      const pdfDoc = pdfMake.createPdf(docDefinition);
-      
-      // Pobierz jako blob i zapisz
-      pdfDoc.download('Analiza_finansowa_nieruchomosci.pdf');
-      
-      // Opcjonalnie wywołaj funkcję po wygenerowaniu
-      if (onGenerate) {
-        onGenerate();
+    
+    // Konfiguracja dokumentu PDF
+    const docDefinition: TDocumentDefinitions = {
+      content: docContent,
+      styles: styles,
+      defaultStyle: {
+        fontSize: 12,
+        color: '#333333'
+      },
+      pageMargins: [40, 40, 40, 60],
+      footer: function(currentPage, pageCount) {
+        return {
+          text: `Strona ${currentPage.toString()} z ${pageCount}`,
+          alignment: 'center' as Alignment,
+          style: 'footer',
+          margin: [0, 20, 0, 0] as [number, number, number, number]
+        };
       }
-    } catch (error) {
-      console.error('Błąd podczas generowania PDF:', error);
+    };
+    
+    // Generowanie PDF
+    pdfMake.createPdf(docDefinition).download('Analiza_finansowa_nieruchomosci.pdf');
+    
+    // Wywołanie callback-a po wygenerowaniu PDF
+    if (onGenerate) {
+      onGenerate();
     }
   };
-
+  
   return (
-    <div className="mt-4 text-center">
-      <button
-        onClick={generatePDF}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-300"
-      >
-        Generuj PDF z analizą
-      </button>
-    </div>
+    <button 
+      onClick={generatePDF}
+      className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+      </svg>
+      Generuj raport PDF
+    </button>
   );
 };
 

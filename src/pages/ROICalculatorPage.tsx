@@ -12,6 +12,7 @@ import { gusInflationFetcher } from '../utils/gusInflationFetcher';
 import { secureStorage } from '../utils/localStorageUtils';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Helmet } from 'react-helmet';
 
 const ROICalculatorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -190,56 +191,65 @@ const ROICalculatorPage: React.FC = () => {
   }, [searchParams]);
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-7xl">
-      <h2 className="text-2xl font-bold text-center mb-6 text-indigo-900">Kalkulator ROI Nieruchomości</h2>
+    <>
+      <Helmet>
+        <title>Kalkulator ROI Nieruchomości | Oblicz zwrot z inwestycji</title>
+        <meta name="description" content="Kalkulator ROI Nieruchomości pozwala precyzyjnie obliczyć zwrot z inwestycji w nieruchomość uwzględniając wszystkie czynniki. Sprawdź opłacalność zakupu." />
+        <meta name="keywords" content="kalkulator ROI nieruchomości, zwrot z inwestycji w mieszkanie, opłacalność zakupu nieruchomości, ROI zakup mieszkania" />
+        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl/kalkulator-roi" />
+      </Helmet>
       
-      {isLoadingInflation && (
-        <div className="bg-blue-50 text-blue-700 p-2 rounded-lg mb-4 text-sm">
-          Pobieranie aktualnych danych o inflacji z GUS...
+      <div className="container mx-auto py-12 px-4 max-w-7xl">
+        <h2 className="text-2xl font-bold text-center mb-6 text-indigo-900">Kalkulator ROI Nieruchomości</h2>
+        
+        {isLoadingInflation && (
+          <div className="bg-blue-50 text-blue-700 p-2 rounded-lg mb-4 text-sm">
+            Pobieranie aktualnych danych o inflacji z GUS...
+          </div>
+        )}
+        
+        {inflationLoadError && (
+          <div className="bg-red-50 text-red-700 p-2 rounded-lg mb-4 text-sm">
+            Błąd pobierania danych o inflacji: {inflationLoadError}
+          </div>
+        )}
+        
+        <div className="bg-white rounded-xl shadow-md p-5 mb-8 border border-gray-100 transition-all duration-300 hover:shadow-lg">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-indigo-900 mb-2">Parametry kalkulacji</h3>
+            <p className="text-gray-600 text-sm">Wprowadź dane dotyczące zakupu i wynajmu, aby otrzymać szczegółową analizę.</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+            <PropertyForm data={propertyData} onChange={handlePropertyChange} />
+            <RentForm data={rentData} onChange={handleRentChange} />
+          </div>
+          <div className="mt-8 mb-6">
+            <AnalysisForm 
+              options={analysisOptions} 
+              onChange={handleAnalysisOptionsChange}
+              onCalculate={handleCalculate}
+              inflationSource="GUS (Główny Urząd Statystyczny)"
+            />
+          </div>
         </div>
-      )}
-      
-      {inflationLoadError && (
-        <div className="bg-red-50 text-red-700 p-2 rounded-lg mb-4 text-sm">
-          Błąd pobierania danych o inflacji: {inflationLoadError}
-        </div>
-      )}
-      
-      <div className="bg-white rounded-xl shadow-md p-5 mb-8 border border-gray-100 transition-all duration-300 hover:shadow-lg">
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-indigo-900 mb-2">Parametry kalkulacji</h3>
-          <p className="text-gray-600 text-sm">Wprowadź dane dotyczące zakupu i wynajmu, aby otrzymać szczegółową analizę.</p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-          <PropertyForm data={propertyData} onChange={handlePropertyChange} />
-          <RentForm data={rentData} onChange={handleRentChange} />
-        </div>
-        <div className="mt-8 mb-6">
-          <AnalysisForm 
-            options={analysisOptions} 
-            onChange={handleAnalysisOptionsChange}
-            onCalculate={handleCalculate}
-            inflationSource="GUS (Główny Urząd Statystyczny)"
-          />
-        </div>
+        
+        {showResults && results && (
+          <div id="results-section">
+            <ResultsDisplay 
+              results={results} 
+              inflation={analysisOptions.inflation}
+              calculatorType="roi"
+            />
+          </div>
+        )}
+        
+        {showSubscriptionPopup && (
+          <SubscriptionPopup onSubscribe={handleSubscribe} onClose={() => setShowSubscriptionPopup(false)} />
+        )}
+        
+        {showSuccessMessage && <SuccessMessage message="Dziękujemy za zapisanie się do newslettera!" />}
       </div>
-      
-      {showResults && results && (
-        <div id="results-section">
-          <ResultsDisplay 
-            results={results} 
-            inflation={analysisOptions.inflation}
-            calculatorType="roi"
-          />
-        </div>
-      )}
-      
-      {showSubscriptionPopup && (
-        <SubscriptionPopup onSubscribe={handleSubscribe} onClose={() => setShowSubscriptionPopup(false)} />
-      )}
-      
-      {showSuccessMessage && <SuccessMessage message="Dziękujemy za zapisanie się do newslettera!" />}
-    </div>
+    </>
   );
 };
 

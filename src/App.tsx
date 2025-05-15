@@ -8,6 +8,7 @@ import ROICalculatorPage from './pages/ROICalculatorPage';
 import InvestmentCalculatorPage from './pages/InvestmentCalculatorPage';
 import RentalValueCalculatorPage from './pages/RentalValueCalculatorPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 
 const App: React.FC = () => {
   return (
@@ -26,10 +27,13 @@ const App: React.FC = () => {
       />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/roi" element={<ROICalculatorPage />} />
-        <Route path="/investment" element={<InvestmentCalculatorPage />} />
-        <Route path="/rental-value" element={<RentalValueCalculatorPage />} />
+        <Route path="/kalkulator-nieruchomosci" element={<ROICalculatorPage />} />
+        <Route path="/kalkulator-roi" element={<ROICalculatorPage />} />
+        <Route path="/kalkulator-inwestycji" element={<InvestmentCalculatorPage />} />
+        <Route path="/kalkulator-wartosci-nieruchomosci" element={<RentalValueCalculatorPage />} />
+        <Route path="/kalkulator-wartosci-najmu" element={<RentalValueCalculatorPage />} />
         <Route path="/polityka-prywatnosci" element={<PrivacyPolicy />} />
+        <Route path="/regulamin" element={<Terms />} />
       </Routes>
     </Layout>
   );

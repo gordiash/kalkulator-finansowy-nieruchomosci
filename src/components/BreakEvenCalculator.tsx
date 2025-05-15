@@ -8,6 +8,17 @@ type BreakEvenCalculatorProps = {
 const BreakEvenCalculator: React.FC<BreakEvenCalculatorProps> = ({ results }) => {
   // Obliczenie punktu break-even (moment, w którym linia zakupu przecina linię wynajmu)
   const { breakEvenYear, hasCrossover, approxTime } = useMemo(() => {
+    // Sprawdzamy czy istnieje chartData
+    if (!results.comparison.chartData) {
+      return { 
+        breakEvenYear: null,
+        breakEvenMonth: 0,
+        hasCrossover: false,
+        approxTime: "",
+        timeSeries: []
+      };
+    }
+
     const { mortgageCostData, rentCostData, labels } = results.comparison.chartData;
     
     // Znalezienie przecięcia linii na wykresie kumulacyjnym
@@ -95,7 +106,17 @@ const BreakEvenCalculator: React.FC<BreakEvenCalculatorProps> = ({ results }) =>
     const totalSavings = finalDifference;
     
     // Średnia miesięczna różnica w kosztach
-    const totalMonths = results.comparison.chartData.labels.length * 12;
+    let totalMonths = 0;
+    if (results.comparison.chartData && results.comparison.chartData.labels) {
+      totalMonths = results.comparison.chartData.labels.length * 12;
+    } else if (results.comparison.breakEvenYear) {
+      // Jeśli brak chartData, ale mamy breakEvenYear
+      totalMonths = parseInt(results.comparison.breakEvenYear.toString()) * 12;
+    } else {
+      // Domyślnie 30 lat
+      totalMonths = 30 * 12;
+    }
+    
     const monthlyDifference = totalSavings / totalMonths;
     
     // ROI (Return on Investment) dla zakupu nieruchomości

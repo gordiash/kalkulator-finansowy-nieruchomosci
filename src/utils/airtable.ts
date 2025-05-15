@@ -1,9 +1,7 @@
 // airtable.ts
 
 // Konfiguracja Airtable
-const AIRTABLE_API_KEY = process.env.REACT_APP_AIRTABLE_API_KEY || '';
-const AIRTABLE_BASE_ID = process.env.REACT_APP_AIRTABLE_BASE_ID || '';
-const AIRTABLE_TABLE_NAME = 'Mailing';
+// Usunięto nieużywane zmienne dla API Airtable
 
 // Interfejs dla danych subskrybenta
 interface SubscriberData {
@@ -87,3 +85,17 @@ function generateCSRFToken(): string {
   
   return token;
 }
+
+// Funkcja do zapisywania danych kalkulacji do Airtable (stub)
+export const saveCalculationToAirtable = async (data: any) => {
+  // Implementacja do dodania w przyszłości
+  console.log('Zapisywanie danych kalkulacji:', data);
+  return { success: true, id: 'mock-id-' + Date.now() };
+};
+
+// Funkcja do pobierania danych kalkulacji z Airtable (stub)
+export const getCalculationFromAirtable = async (id: string) => {
+  // Implementacja do dodania w przyszłości
+  console.log('Pobieranie danych kalkulacji o ID:', id);
+  return { success: true, data: {} };
+};

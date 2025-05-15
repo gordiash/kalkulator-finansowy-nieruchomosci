@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { secureStorage } from './localStorageUtils';
 
 /**
@@ -105,8 +104,6 @@ export class GUSInflationFetcher {
     }
     
     try {
-      const opts = { ...this.DEFAULT_OPTIONS, ...options };
-      
       // W rzeczywistym scenariuszu należałoby tu zarejestrować się i uzyskać klucz API
       // Przykładowe zapytanie (do dostosowania po rejestracji):
       // Ponieważ powyższe wymaga rejestracji, na potrzeby demo użyjemy symulowanych danych
