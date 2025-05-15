@@ -267,7 +267,7 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
         margin: [0, 20, 0, 0]
       },
       {
-        text: 'kalkulator-finansowy-nieruchomosci.pl',
+        text: 'kalkulatorynieruchomosci.pl',
         style: 'footer',
         alignment: 'center' as Alignment,
         color: '#3366CC',
