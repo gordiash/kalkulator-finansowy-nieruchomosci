@@ -10,6 +10,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [showDonationModal, setShowDonationModal] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-lightblue to-white text-gray-800 font-sans flex flex-col">
@@ -17,19 +18,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <nav className="bg-gradient-to-r from-brand-darkblue to-brand-blue text-white py-4 shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <Link to="/" className="flex items-center mb-3 md:mb-0">
-              
-              <span className="text-xl font-bold">Kalkulator Finansowy Nieruchomości</span>
-            </Link>
-            <div className="flex space-x-4">
+            <div className="flex justify-between items-center w-full md:w-auto">
+              <Link to="/" className="flex items-center">
+                <span className="text-lg md:text-xl font-bold">Kalkulator Finansowy Nieruchomości</span>
+              </Link>
+              <button 
+                className="md:hidden p-2"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Menu"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
+            </div>
+            <div className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto mt-4 md:mt-0`}>
               <NavLink 
                 to="/" 
                 className={({ isActive }) => 
                   isActive 
-                    ? "px-3 py-2 rounded-md bg-brand-green text-white" 
-                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors"
+                    ? "px-3 py-2 rounded-md bg-brand-green text-white text-center" 
+                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors text-center"
                 }
                 end
+                onClick={() => setIsMenuOpen(false)}
               >
                 Strona główna
               </NavLink>
@@ -37,9 +53,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 to="/roi" 
                 className={({ isActive }) => 
                   isActive 
-                    ? "px-3 py-2 rounded-md bg-brand-green text-white" 
-                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors"
+                    ? "px-3 py-2 rounded-md bg-brand-green text-white text-center" 
+                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors text-center"
                 }
+                onClick={() => setIsMenuOpen(false)}
               >
                 Kalkulator ROI
               </NavLink>
@@ -47,9 +64,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 to="/investment" 
                 className={({ isActive }) => 
                   isActive 
-                    ? "px-3 py-2 rounded-md bg-brand-green text-white" 
-                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors"
+                    ? "px-3 py-2 rounded-md bg-brand-green text-white text-center" 
+                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors text-center"
                 }
+                onClick={() => setIsMenuOpen(false)}
               >
                 Kalkulator Inwestycji
               </NavLink>
@@ -57,9 +75,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 to="/rental-value" 
                 className={({ isActive }) => 
                   isActive 
-                    ? "px-3 py-2 rounded-md bg-brand-green text-white" 
-                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors"
+                    ? "px-3 py-2 rounded-md bg-brand-green text-white text-center" 
+                    : "px-3 py-2 rounded-md text-blue-100 hover:bg-brand-green hover:text-white transition-colors text-center"
                 }
+                onClick={() => setIsMenuOpen(false)}
               >
                 Wartość z Najmu
               </NavLink>
@@ -69,19 +88,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </nav>
 
       {/* Główna zawartość */}
-      <main className="flex-grow">
+      <main className="flex-grow container mx-auto px-4 py-6">
         {children}
       </main>
 
       {/* Stopka */}
       <footer className="bg-brand-darkblue text-white py-8 mt-auto">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="text-center sm:text-left">
               <h3 className="text-lg font-semibold mb-4">Kalkulator Finansowy Nieruchomości</h3>
-              <p className="text-blue-200">Profesjonalne narzędzie do analizy inwestycji w nieruchomości.</p>
+              <p className="text-blue-200">Profesjonalne narzędzie do analizy inwestycji w nieruchomościach.</p>
             </div>
-            <div>
+            <div className="text-center sm:text-left">
               <h3 className="text-lg font-semibold mb-4">Przydatne linki</h3>
               <ul className="space-y-2">
                 <li><Link to="/roi" className="text-blue-200 hover:text-white">Kalkulator ROI</Link></li>
@@ -90,12 +109,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-blue-200 hover:text-white bg-transparent border-0 p-0 cursor-pointer">Wróć na górę</button></li>
               </ul>
             </div>
-            <div>
+            <div className="text-center sm:text-left">
               <h3 className="text-lg font-semibold mb-4">Kontakt</h3>
               <p className="text-blue-200">Masz pytania? Skontaktuj się z nami.</p>
               
               {/* Ikony mediów społecznościowych */}
-              <div className="flex space-x-4 mt-3 mb-4">
+              <div className="flex justify-center sm:justify-start space-x-4 mt-3 mb-4">
                 <a 
                   href="https://facebook.com/kalkulatornieruchomosci" 
                   target="_blank" 
@@ -136,12 +155,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </a>
               </div>
               
-              <button 
-                onClick={() => setShowDonationModal(true)}
-                className="px-4 py-2 bg-brand-green text-white rounded hover:bg-brand-darkgreen transition-colors duration-300"
-              >
-                Wesprzyj projekt
-              </button>
+              <div className="flex justify-center sm:justify-start">
+                <button 
+                  onClick={() => setShowDonationModal(true)}
+                  className="px-4 py-2 bg-brand-green text-white rounded hover:bg-brand-darkgreen transition-colors duration-300"
+                >
+                  Wesprzyj projekt
+                </button>
+              </div>
             </div>
           </div>
           <div className="border-t border-blue-900 mt-8 pt-8 text-center text-blue-200">

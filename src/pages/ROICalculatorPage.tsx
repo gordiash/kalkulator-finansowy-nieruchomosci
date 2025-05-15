@@ -10,9 +10,11 @@ import { calculateResults } from '../utils/calculations';
 import { sendSubscriberToAirtable } from '../utils/airtable';
 import { gusInflationFetcher } from '../utils/gusInflationFetcher';
 import { secureStorage } from '../utils/localStorageUtils';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const ROICalculatorPage: React.FC = () => {
-  // Stan formularzy
+  const [searchParams] = useSearchParams();
   const [propertyData, setPropertyData] = useState<PropertyFormData>({
     propertyPrice: 500000,
     downPaymentType: 'amount',
@@ -46,39 +48,31 @@ const ROICalculatorPage: React.FC = () => {
     inflation: 2.5 // Początkowo wartość domyślna, zostanie zaktualizowana danymi z GUS
   });
 
-  // Stany UI
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   
-  // Stan ładowania danych inflacji
   const [isLoadingInflation, setIsLoadingInflation] = useState(false);
   const [inflationLoadError, setInflationLoadError] = useState<string | null>(null);
   
-  // Sprawdzenie czy to pierwsze kliknięcie przycisku "Oblicz"
   const [hasCalculatedBefore, setHasCalculatedBefore] = useState(false);
   
-  // Resetowanie stanu hasCalculatedBefore przy każdym uruchomieniu aplikacji
   useEffect(() => {
-    // Sprawdzamy, czy użytkownik już wcześniej kliknął przycisk "Oblicz"
     const hasClickedBefore = secureStorage.getItem<boolean>('userClickedCalculate', false);
     setHasCalculatedBefore(hasClickedBefore);
     
-    // Dodajemy obsługę zdarzenia beforeunload, które resetuje localStorage po zamknięciu strony
     const handleBeforeUnload = () => {
       secureStorage.removeItem('userClickedCalculate');
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // Czyszczenie event listenera przy odmontowaniu komponentu
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
-  // Pobieranie aktualnej wartości inflacji z API GUS
   useEffect(() => {
     const fetchInflationData = async () => {
       setIsLoadingInflation(true);
@@ -87,7 +81,6 @@ const ROICalculatorPage: React.FC = () => {
       try {
         const inflationValue = await gusInflationFetcher.getCurrentInflation();
         
-        // Aktualizacja stanu tylko jeśli komponent jest wciąż zamontowany
         setAnalysisOptions(prev => ({
           ...prev,
           inflation: inflationValue
@@ -106,13 +99,10 @@ const ROICalculatorPage: React.FC = () => {
       }
     };
     
-    // Wywołanie funkcji pobierającej dane
     fetchInflationData();
     
-    // Ustawienie interwału sprawdzającego aktualizacje inflacji co tydzień
     const inflationCheckInterval = setInterval(fetchInflationData, 7 * 24 * 60 * 60 * 1000);
     
-    // Oczyszczenie interwału przy odmontowaniu komponentu
     return () => {
       clearInterval(inflationCheckInterval);
     };
@@ -144,17 +134,14 @@ const ROICalculatorPage: React.FC = () => {
       setResults(calculationResults);
       setShowResults(true);
       
-      // Pokazanie popupu subskrypcji przy pierwszym kliknięciu
       if (!hasCalculatedBefore) {
         setShowSubscriptionPopup(true);
         setHasCalculatedBefore(true);
         secureStorage.setItem('userClickedCalculate', true);
         
-        // Ustawiamy automatyczne wygaśnięcie po 30 dniach
         secureStorage.setupAutoExpiry('userClickedCalculate', 30 * 24 * 60 * 60 * 1000);
       }
       
-      // Przewijanie do wyników
       setTimeout(() => {
         const resultsElement = document.getElementById('results-section');
         if (resultsElement) {
@@ -172,11 +159,9 @@ const ROICalculatorPage: React.FC = () => {
 
   const handleSubscribe = async (email: string) => {
     try {
-      // Wysyłanie danych do Airtable
       await sendSubscriberToAirtable(email);
       console.log('Subskrybowano: ', email);
       
-      // Zamknięcie popupu i pokazanie komunikatu sukcesu
       setShowSubscriptionPopup(false);
       setShowSuccessMessage(true);
       
@@ -189,11 +174,24 @@ const ROICalculatorPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const sharedData = searchParams.get('data');
+    if (sharedData) {
+      try {
+        const decodedData = JSON.parse(atob(sharedData));
+        setResults(decodedData);
+        toast.success('Wyniki zostały załadowane pomyślnie!');
+      } catch (error) {
+        console.error('Błąd podczas dekodowania udostępnionych danych:', error);
+        toast.error('Nie udało się załadować udostępnionych wyników');
+      }
+    }
+  }, [searchParams]);
+
   return (
     <div className="container mx-auto py-12 px-4 max-w-7xl">
       <h2 className="text-2xl font-bold text-center mb-6 text-indigo-900">Kalkulator ROI Nieruchomości</h2>
       
-      {/* Informacja o danych inflacji */}
       {isLoadingInflation && (
         <div className="bg-blue-50 text-blue-700 p-2 rounded-lg mb-4 text-sm">
           Pobieranie aktualnych danych o inflacji z GUS...
@@ -206,7 +204,6 @@ const ROICalculatorPage: React.FC = () => {
         </div>
       )}
       
-      {/* Karta parametrów ROI */}
       <div className="bg-white rounded-xl shadow-md p-5 mb-8 border border-gray-100 transition-all duration-300 hover:shadow-lg">
         <div className="mb-4">
           <h3 className="text-xl font-bold text-indigo-900 mb-2">Parametry kalkulacji</h3>
@@ -226,19 +223,20 @@ const ROICalculatorPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Sekcja wyników ROI */}
       {showResults && results && (
         <div id="results-section">
-          <ResultsDisplay results={results} inflation={analysisOptions.inflation} />
+          <ResultsDisplay 
+            results={results} 
+            inflation={analysisOptions.inflation}
+            calculatorType="roi"
+          />
         </div>
       )}
       
-      {/* Popup subskrypcji */}
       {showSubscriptionPopup && (
         <SubscriptionPopup onSubscribe={handleSubscribe} onClose={() => setShowSubscriptionPopup(false)} />
       )}
       
-      {/* Komunikat sukcesu */}
       {showSuccessMessage && <SuccessMessage message="Dziękujemy za zapisanie się do newslettera!" />}
     </div>
   );

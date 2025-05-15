@@ -3,17 +3,20 @@ import { CalculationResults } from '../types';
 import SummaryPDF from './SummaryPDF';
 import CostComparisonChart from './CostComparisonChart';
 import BreakEvenCalculator from './BreakEvenCalculator';
+import ShareResults from './ShareResults';
 
 interface ResultsDisplayProps {
   results: CalculationResults;
   inflation: number;
   propertyPrice?: number;
+  calculatorType: 'roi' | 'investment' | 'rental-value';
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
   results, 
   inflation, 
   propertyPrice = 500000, // domyślna wartość
+  calculatorType,
 }) => {
   const [chartView, setChartView] = useState<'cumulative' | 'yearly'>('cumulative');
   const [showPdfSuccessMessage, setShowPdfSuccessMessage] = useState(false);
@@ -231,6 +234,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           </div>
         )}
       </div>
+
+      {/* Komponent udostępniania */}
+      <ShareResults 
+        results={results} 
+        calculatorType={calculatorType}
+      />
     </div>
   );
 };
