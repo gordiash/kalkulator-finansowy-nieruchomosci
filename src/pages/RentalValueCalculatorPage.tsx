@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import ResultsDisplay from '../components/ResultsDisplay';
 import { CalculationResults } from '../types';
 import { sanitizeNumber } from '../utils/sanitizeUtils';
+import ShareResults from '../components/ShareResults';
 
 const RentalValueCalculatorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +22,7 @@ const RentalValueCalculatorPage: React.FC = () => {
       try {
         const decodedData = JSON.parse(atob(sharedData));
         setResults(decodedData);
+        setIsCalculated(true);
         toast.success('Wyniki zostały załadowane pomyślnie!');
       } catch (error) {
         console.error('Błąd podczas dekodowania udostępnionych danych:', error);
@@ -68,11 +70,16 @@ const RentalValueCalculatorPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {results && (
-        <ResultsDisplay 
-          results={results} 
-          inflation={inflation}
-          calculatorType="rental-value"
-        />
+        <>
+          <ResultsDisplay 
+            results={results} 
+            inflation={inflation}
+            calculatorType="rental-value"
+          />
+          <div className="mt-6">
+            <ShareResults results={results} calculatorType="rental-value" />
+          </div>
+        </>
       )}
       <div className="container mx-auto py-12 px-4 max-w-7xl">
         <h1 className="text-3xl font-bold text-center mb-8 text-indigo-900">

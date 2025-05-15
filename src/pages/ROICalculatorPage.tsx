@@ -180,6 +180,7 @@ const ROICalculatorPage: React.FC = () => {
       try {
         const decodedData = JSON.parse(atob(sharedData));
         setResults(decodedData);
+        setShowResults(true);
         toast.success('Wyniki zostały załadowane pomyślnie!');
       } catch (error) {
         console.error('Błąd podczas dekodowania udostępnionych danych:', error);

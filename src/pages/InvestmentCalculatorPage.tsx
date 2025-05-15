@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import InvestmentCalculator from '../components/InvestmentCalculator';
 import ResultsDisplay from '../components/ResultsDisplay';
+import ShareResults from '../components/ShareResults';
 import { CalculationResults } from '../types';
 
 const InvestmentCalculatorPage: React.FC = () => {
@@ -35,11 +36,16 @@ const InvestmentCalculatorPage: React.FC = () => {
         />
       </div>
       {results && (
-        <ResultsDisplay 
-          results={results} 
-          inflation={inflation}
-          calculatorType="investment"
-        />
+        <>
+          <ResultsDisplay 
+            results={results} 
+            inflation={inflation}
+            calculatorType="investment"
+          />
+          <div className="mt-6">
+            <ShareResults results={results} calculatorType="investment" />
+          </div>
+        </>
       )}
     </div>
   );

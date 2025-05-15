@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { CalculationResults } from '../types';
 
 interface ShareResultsProps {
-  results: CalculationResults;
+  results: any;
   calculatorType: 'roi' | 'investment' | 'rental-value';
 }
 
