@@ -8,11 +8,11 @@ const Terms: React.FC = () => {
         <title>Regulamin | Kalkulator Finansowy Nieruchomości</title>
         <meta name="description" content="Regulamin serwisu Kalkulator Finansowy Nieruchomości. Zasady korzystania z naszych kalkulatorów ROI, porównania zakupu i wynajmu oraz analizy wartości nieruchomości." />
         <meta name="keywords" content="regulamin, zasady korzystania, kalkulator nieruchomości, RODO, ochrona danych osobowych, pliki cookies" />
-        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl/regulamin" />
+        <link rel="canonical" href="https://kalkulatorynieruchomosci.pl/regulamin" />
         <meta property="og:title" content="Regulamin | Kalkulator Finansowy Nieruchomości" />
         <meta property="og:description" content="Poznaj zasady korzystania z kalkulatorów i narzędzi finansowych do analizy inwestycji w nieruchomości." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://kalkulator-finansowy-nieruchomosci.pl/regulamin" />
+        <meta property="og:url" content="https://kalkulatorynieruchomosci.pl/regulamin" />
       </Helmet>
       
       <div className="container mx-auto py-12 px-4 max-w-4xl">
@@ -23,7 +23,7 @@ const Terms: React.FC = () => {
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§1. Postanowienia ogólne</h2>
             
             <ol className="list-decimal pl-6 space-y-3 text-gray-700">
-              <li>Niniejszy regulamin (dalej "Regulamin") określa zasady korzystania z serwisu internetowego Kalkulator Finansowy Nieruchomości dostępnego pod adresem <span className="text-indigo-600">kalkulator-finansowy-nieruchomosci.pl</span> (dalej "Serwis").</li>
+              <li>Niniejszy regulamin (dalej "Regulamin") określa zasady korzystania z serwisu internetowego Kalkulator Finansowy Nieruchomości dostępnego pod adresem <span className="text-indigo-600">kalkulatorynieruchomosci.pl</span> (dalej "Serwis").</li>
               <li>Administratorem Serwisu jest Kalkulator Finansowy Nieruchomości z siedzibą w Warszawie (dalej "Administrator").</li>
               <li>Regulamin określa prawa i obowiązki Użytkowników Serwisu oraz prawa, obowiązki i zakres odpowiedzialności Administratora.</li>
               <li>Korzystanie z Serwisu jest równoznaczne z akceptacją Regulaminu oraz Polityki Prywatności.</li>

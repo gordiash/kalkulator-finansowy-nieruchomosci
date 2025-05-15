@@ -5,6 +5,7 @@ import ResultsDisplay from '../components/ResultsDisplay';
 import { CalculationResults } from '../types';
 import { sanitizeNumber } from '../utils/sanitizeUtils';
 import { Helmet } from 'react-helmet';
+import { gusInflationFetcher } from '../utils/gusInflationFetcher';
 
 const RentalValueCalculatorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -14,7 +15,41 @@ const RentalValueCalculatorPage: React.FC = () => {
   const [rentalPeriod, setRentalPeriod] = useState<number>(10);
   const [propertyValue, setPropertyValue] = useState<number>(0);
   const [isCalculated, setIsCalculated] = useState<boolean>(false);
-  const [inflation] = useState<number>(2.5);
+  const [inflation, setInflation] = useState<number>(2.5);
+  const [isLoadingInflation, setIsLoadingInflation] = useState(false);
+  const [inflationLoadError, setInflationLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchInflationData = async () => {
+      setIsLoadingInflation(true);
+      setInflationLoadError(null);
+      
+      try {
+        const inflationValue = await gusInflationFetcher.getCurrentInflation();
+        
+        setInflation(inflationValue);
+        
+        console.log('Pobrano aktualną wartość inflacji z GUS:', inflationValue);
+      } catch (error) {
+        if (error instanceof Error) {
+          setInflationLoadError(error.message);
+        } else {
+          setInflationLoadError('Wystąpił błąd podczas pobierania danych o inflacji');
+        }
+        console.error('Błąd podczas pobierania danych o inflacji:', error);
+      } finally {
+        setIsLoadingInflation(false);
+      }
+    };
+    
+    fetchInflationData();
+    
+    const inflationCheckInterval = setInterval(fetchInflationData, 7 * 24 * 60 * 60 * 1000);
+    
+    return () => {
+      clearInterval(inflationCheckInterval);
+    };
+  }, []);
 
   useEffect(() => {
     const sharedData = searchParams.get('data');
@@ -116,23 +151,34 @@ const RentalValueCalculatorPage: React.FC = () => {
       </Helmet>
       
       <div className="container mx-auto px-4 py-8">
-        {results && (
-          <ResultsDisplay 
-            results={results} 
-            inflation={inflation}
-            calculatorType="rental-value"
-            propertyPrice={propertyValue}
-          />
-        )}
         <div className="container mx-auto py-12 px-4 max-w-7xl">
           <h1 className="text-3xl font-bold text-center mb-8 text-indigo-900">
             Kalkulator wartości nieruchomości na podstawie ROI
           </h1>
           
+          {isLoadingInflation && (
+            <div className="bg-blue-50 text-blue-700 p-2 rounded-lg mb-4 text-sm">
+              Pobieranie aktualnych danych o inflacji z GUS...
+            </div>
+          )}
+          
+          {inflationLoadError && (
+            <div className="bg-red-50 text-red-700 p-2 rounded-lg mb-4 text-sm">
+              Błąd pobierania danych o inflacji: {inflationLoadError}
+            </div>
+          )}
+          
           <div className="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto">
             <p className="text-gray-600 mb-6">
               Ten kalkulator pomoże Ci określić wartość nieruchomości na podstawie zysku z najmu, oczekiwanego zwrotu z inwestycji (ROI) oraz planowanego okresu wynajmu.
             </p>
+            
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-sm text-gray-500">Aktualna inflacja:</span>
+              <span className="text-sm font-medium bg-indigo-50 text-indigo-700 px-2 py-1 rounded">
+                {inflation.toFixed(1)}% (źródło: GUS)
+              </span>
+            </div>
             
             <div className="space-y-6">
               <div>
@@ -230,6 +276,15 @@ const RentalValueCalculatorPage: React.FC = () => {
             )}
           </div>
         </div>
+        
+        {results && (
+          <ResultsDisplay 
+            results={results} 
+            inflation={inflation}
+            calculatorType="rental-value"
+            propertyPrice={propertyValue}
+          />
+        )}
       </div>
     </>
   );
