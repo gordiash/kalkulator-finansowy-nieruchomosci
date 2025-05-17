@@ -37,11 +37,11 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4 py-6">
+      <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md relative animate-fadeIn mx-auto">
         <button 
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors p-2 touch-manipulation"
           aria-label="Zamknij"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -49,11 +49,11 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
           </svg>
         </button>
         
-        <h3 className="text-xl font-semibold text-indigo-900 mb-2">
+        <h3 className="text-lg sm:text-xl font-semibold text-indigo-900 mb-2 mt-1">
           Zapisz się na newsletter
         </h3>
         
-        <p className="text-gray-600 mb-4">
+        <p className="text-sm sm:text-base text-gray-600 mb-4">
           Otrzymuj najnowsze informacje o kalkulatorze i porady dotyczące nieruchomości.
         </p>
         
@@ -70,16 +70,17 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
                 setEmail(e.target.value);
                 if (error) setError(null);
               }}
-              className={`w-full p-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500`}
+              className={`w-full p-3 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base`}
               required
               autoComplete="email"
+              placeholder="Twój adres email"
             />
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
           
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-md transition-colors text-base"
           >
             Subskrybuj
           </button>
@@ -87,11 +88,16 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onSubscribe, onCl
         
         {/* Sekcja wsparcia - zawsze pod formularzem subskrypcji */}
         <div className="mt-6 text-center">
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-sm sm:text-base text-gray-700">
             Wesprzyj działanie naszej witryny! Twoje wsparcie pozwoli nam dalej rozwijać projekt
             i dostarczać wartościowe narzędzia.
           </p>
-          <a href="https://suppi.pl/smallcode" target="_blank" rel="noopener noreferrer">
+          <a 
+            href="https://suppi.pl/smallcode" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block"
+          >
             <img width="165" src="https://suppi.pl/api/widget/button.svg?fill=6457FD&textColor=ffffff" alt="Wesprzyj naszą stronę"/>
           </a>
         </div>

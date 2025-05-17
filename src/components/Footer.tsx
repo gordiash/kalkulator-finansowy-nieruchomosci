@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import LogoSVG from '../assets/images/LogoSVG';
+
 
 const Footer: React.FC = () => {
   const [showDonationModal, setShowDonationModal] = useState(false);

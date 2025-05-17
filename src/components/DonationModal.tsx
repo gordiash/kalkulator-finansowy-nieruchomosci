@@ -6,11 +6,11 @@ interface DonationModalProps {
 
 const DonationModal: React.FC<DonationModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4 py-6">
+      <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md relative animate-fadeIn mx-auto">
         <button 
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors p-2 touch-manipulation"
           aria-label="Zamknij"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -25,18 +25,18 @@ const DonationModal: React.FC<DonationModalProps> = ({ onClose }) => {
             </svg>
           </div>
           
-          <h3 className="text-xl font-semibold text-indigo-900 mb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-indigo-900 mb-2 mt-1">
             Wesprzyj nasz projekt
           </h3>
           
-          <p className="text-gray-600 mb-6">
+          <p className="text-sm sm:text-base text-gray-600 mb-5">
             Twoje wsparcie pomaga nam rozwijać kalkulator i tworzyć nowe funkcje.
             Dzięki Tobie możemy dalej dostarczać wartościowe narzędzia dla inwestorów!
           </p>
           
-          <div className="p-6 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors mb-6">
-            <h4 className="font-medium text-lg text-indigo-800 mb-3">Jednorazowa darowizna</h4>
-            <p className="text-gray-600 mb-4">
+          <div className="p-4 sm:p-6 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors mb-4 sm:mb-6">
+            <h4 className="font-medium text-base sm:text-lg text-indigo-800 mb-2 sm:mb-3">Jednorazowa darowizna</h4>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               Twoje wsparcie ma ogromne znaczenie i pozwala nam utrzymać projekt oraz rozwijać nowe funkcje.
               Każda darowizna, nawet najmniejsza, przybliża nas do celu!
             </p>
@@ -44,13 +44,13 @@ const DonationModal: React.FC<DonationModalProps> = ({ onClose }) => {
               href="https://suppi.pl/smallcode" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="inline-block bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-md transition-colors font-bold text-lg"
+              className="inline-block bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-6 rounded-md transition-colors font-bold text-base w-full sm:w-auto"
             >
               Przekaż darowiznę
             </a>
           </div>
           
-          <div className="text-center mt-6">
+          <div className="text-center mt-4 sm:mt-6">
             <p className="text-xs text-gray-500">
               Wszystkie darowizny są dobrowolne i nie są wymagane do korzystania z kalkulatora.
             </p>
