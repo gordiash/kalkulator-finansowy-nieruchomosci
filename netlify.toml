@@ -18,8 +18,8 @@
     X-XSS-Protection = "1; mode=block"
     # Polityka odnośników
     Referrer-Policy = "strict-origin-when-cross-origin"
-    # Polityka bezpieczeństwa zawartości
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.google.com https://*.googleadservices.com https://*.googlesyndication.com https://*.doubleclick.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' https://suppi.pl data: https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.googlesyndication.com https://*.doubleclick.net; connect-src 'self' https://api.airtable.com https://api-sdp.stat.gov.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googleadservices.com https://*.googlesyndication.com https://*.doubleclick.net; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://*.googlesyndication.com https://*.doubleclick.net;"
+    # Najbardziej liberalna polityka CSP - do zastosowania tylko w ostateczności
+    Content-Security-Policy = "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob:; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';"
     # Zapobieganie cachowaniu danych wrażliwych
     Cache-Control = "no-store, max-age=0"
 

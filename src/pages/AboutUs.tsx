@@ -44,7 +44,7 @@ const AboutUs: React.FC = () => {
           <h2 className="text-2xl font-semibold text-indigo-700 mb-4">Skontaktuj się z nami</h2>
           <p className="text-gray-700 leading-relaxed mb-4">
             Masz pytania, sugestie lub chcesz podzielić się swoją opinią na temat naszych kalkulatorów?
-            Napisz do nas na adres: <a href="mailto:kontakt@kalkulatornieruchomosci.pl" className="text-indigo-600 hover:underline">kontakt@kalkulatornieruchomosci.pl</a>
+            Napisz do nas na adres: <a href="mailto:jaroslaw.jakubczyk@gmail.com" className="text-indigo-600 hover:underline">kontakt@kalkulatornieruchomosci.pl</a>
           </p>
           <p className="text-gray-700 leading-relaxed">
             Jesteśmy otwarci na wszelkie sugestie i propozycje dotyczące rozwoju naszych narzędzi!

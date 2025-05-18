@@ -17,23 +17,38 @@ const GoogleAdsense = () => {
       }
 
       try {
+        // Inicjalizacja tablicy adsbygoogle
+        window.adsbygoogle = window.adsbygoogle || [];
+        
         // Tworzenie skryptu
         const script = document.createElement('script');
-        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2543665837502840';
+        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
         script.async = true;
-        script.crossOrigin = 'anonymous';
-        script.defer = true;
+        script.dataset.adClient = 'ca-pub-2543665837502840';
+        
+        // Ustawienie atrybutów w sposób zgodny z CSP
+        // Nie używamy crossOrigin="anonymous", które może powodować problemy z CSP
         
         // Obsługa błędów ładowania skryptu
-        script.onerror = () => {
-          console.error('Błąd ładowania skryptu Google AdSense');
+        script.onerror = (error) => {
+          console.error('Błąd ładowania skryptu Google AdSense:', error);
+          
+          // Alternatywne podejście - próba załadowania z innym adresem
+          setTimeout(() => {
+            const alternativeScript = document.createElement('script');
+            alternativeScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2543665837502840';
+            alternativeScript.async = true;
+            document.head.appendChild(alternativeScript);
+          }, 1000);
+        };
+        
+        // Obsługa sukcesu ładowania
+        script.onload = () => {
+          console.log('Google AdSense załadowany pomyślnie');
         };
         
         // Dodanie skryptu do dokumentu
         document.head.appendChild(script);
-        
-        // Inicjalizacja tablicy adsbygoogle
-        window.adsbygoogle = window.adsbygoogle || [];
       } catch (error) {
         console.error('Błąd podczas inicjalizacji Google AdSense:', error);
       }
@@ -41,7 +56,8 @@ const GoogleAdsense = () => {
     
     // Ładujemy Google AdSense tylko w środowisku produkcyjnym
     if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
-      loadGoogleAdsense();
+      // Dodanie opóźnienia przed ładowaniem AdSense może pomóc rozwiązać problemy z CSP
+      setTimeout(loadGoogleAdsense, 1000);
     }
     
     return () => {

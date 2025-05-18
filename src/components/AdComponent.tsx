@@ -10,39 +10,46 @@ const AdComponent: React.FC<AdComponentProps> = ({ adSlot, adFormat = 'auto', st
   const adContainerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Sprawdź, czy jesteśmy w środowisku produkcyjnym
-    // Nie ładuj reklam na localhost/środowisku deweloperskim
-    if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
-      try {
-        // Sprawdzenie czy skrypt AdSense został już załadowany
-        if (typeof window.adsbygoogle !== 'undefined') {
-          // AdSense jest załadowany, możemy dodać reklamę
-          window.adsbygoogle = window.adsbygoogle || [];
-          window.adsbygoogle.push({});
-        } else {
-          // Czekaj na załadowanie skryptu AdSense
-          const waitForAdsense = setInterval(() => {
-            if (typeof window.adsbygoogle !== 'undefined') {
-              window.adsbygoogle.push({});
-              clearInterval(waitForAdsense);
-            }
-          }, 300);
-          
-          // Limit czasu oczekiwania - jeśli AdSense nie załaduje się w ciągu 5 sekund, przestań próbować
-          setTimeout(() => {
-            clearInterval(waitForAdsense);
-          }, 5000);
-        }
-      } catch (error) {
-        console.error('Błąd podczas ładowania reklamy AdSense:', error);
-      }
-    } else {
-      // W środowisku deweloperskim wyświetl placeholder zamiast reklamy
+    // W środowisku deweloperskim wyświetl placeholder
+    if (process.env.NODE_ENV !== 'production' || window.location.hostname === 'localhost') {
       if (adContainerRef.current) {
         adContainerRef.current.innerHTML = 
           '<div style="background-color:#f0f0f0;border:1px solid #ccc;padding:1rem;text-align:center;color:#666;height:100%;display:flex;align-items:center;justify-content:center;">'+
           '<p>Miejsce na reklamę (widoczne tylko w środowisku produkcyjnym)</p>'+
           '</div>';
+      }
+      return;
+    }
+
+    try {
+      // Używamy najprostszej możliwej metody aktywacji reklam
+      if (adContainerRef.current) {
+        // Bezpośrednie wstawienie kodu HTML reklamy
+        adContainerRef.current.innerHTML = `
+          <ins class="adsbygoogle"
+              style="display:block"
+              data-ad-client="ca-pub-2543665837502840"
+              data-ad-slot="${adSlot}"
+              data-ad-format="${adFormat}"
+              data-full-width-responsive="true">
+          </ins>
+          <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        `;
+      }
+    } catch (error) {
+      console.error('Błąd podczas renderowania reklamy:', error);
+      
+      // Zapasowa metoda ładowania reklam
+      if (adContainerRef.current && typeof window.adsbygoogle !== 'undefined') {
+        setTimeout(() => {
+          try {
+            window.adsbygoogle.push({});
+          } catch (pushError) {
+            console.error('Błąd podczas ładowania reklamy metodą zapasową:', pushError);
+          }
+        }, 1000);
       }
     }
     
@@ -67,16 +74,9 @@ const AdComponent: React.FC<AdComponentProps> = ({ adSlot, adFormat = 'auto', st
       ref={adContainerRef}
       className={`ad-container ${formatClasses[adFormat]}`} 
       style={style}
-    >
-      <ins 
-        className="adsbygoogle"
-        style={{ display: 'block' }}
-        data-ad-client="ca-pub-2543665837502840"
-        data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive="true"
-      />
-    </div>
+      data-ad-slot={adSlot}
+      data-ad-format={adFormat}
+    />
   );
 };
 

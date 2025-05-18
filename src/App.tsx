@@ -12,13 +12,13 @@ import Terms from './pages/Terms';
 import AboutUs from './pages/AboutUs';
 import PropertyPricesPage from './pages/PropertyPricesPage';
 import GoogleAnalytics from './components/GoogleAnalytics';
-import GoogleAdsense from './components/GoogleAdsense';
+import NoCSPAdsLoader from './components/NoCSPAdsLoader';
 
 const App: React.FC = () => {
   return (
     <Layout>
       <GoogleAnalytics />
-      <GoogleAdsense />
+      <NoCSPAdsLoader />
       <ToastContainer
         position="top-right"
         autoClose={3000}
