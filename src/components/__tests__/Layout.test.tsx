@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../../test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import Layout from '../Layout';
+import '@testing-library/jest-dom';
 
 // Mock dla komponentu DonationModal
 jest.mock('../DonationModal', () => {
@@ -53,7 +54,8 @@ describe('Layout Component', () => {
     );
     
     // Sprawdzamy czy stopka jest widoczna
-    expect(screen.getByText(/© 2023 Kalkulator Finansowy Nieruchomości/i)).toBeInTheDocument();
+    // Używamy wyrażenia regularnego, które zadziała niezależnie od roku
+    expect(screen.getByText(/© \d{4} Kalkulator Finansowy Nieruchomości/i)).toBeInTheDocument();
     
     // Sprawdzamy przycisk wesprzyj projekt
     expect(screen.getByText(/Wesprzyj projekt/i)).toBeInTheDocument();

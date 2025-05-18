@@ -1,4 +1,4 @@
-import { calculateResults, calculateMortgagePayment } from './calculations';
+import { calculateResults, calculateMortgagePayment, generateMortgageSchedule } from './calculations';
 import { PropertyFormData, RentFormData, AnalysisOptions } from '../types';
 
 // Dane przykładowe do testów
@@ -222,5 +222,150 @@ describe('calculateMortgagePayment function', () => {
     
     // Dla długiego okresu, miesięczna rata powinna być niższa
     expect(monthlyPayment).toBeLessThan(3000);
+  });
+});
+
+// Test dla funkcji generateMortgageSchedule
+describe('generateMortgageSchedule function', () => {
+  test('should generate correct mortgage schedule', () => {
+    const principal = 400000;
+    const annualRate = 7.6;
+    const years = 5; // używamy krótszego okresu dla uproszczenia testów
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years);
+    
+    // Liczba rat powinna być równa liczbie miesięcy
+    expect(schedule.length).toBe(years * 12);
+    
+    // Pierwsza rata
+    const firstPayment = schedule[0];
+    expect(firstPayment.paymentNumber).toBe(1);
+    expect(firstPayment.totalPayment).toBeCloseTo(calculateMortgagePayment(principal, annualRate, years), 2);
+    expect(firstPayment.interestPayment).toBeCloseTo(principal * (annualRate / 12 / 100), 2);
+    expect(firstPayment.principalPayment).toBeCloseTo(
+      firstPayment.totalPayment - firstPayment.interestPayment, 2
+    );
+    
+    // Ostatnia rata
+    const lastPayment = schedule[schedule.length - 1];
+    expect(lastPayment.paymentNumber).toBe(years * 12);
+    expect(lastPayment.remainingPrincipal).toBe(0); // Saldo powinno być równe zero po ostatniej racie
+    
+    // Suma wszystkich płatności kapitału powinna być równa kwocie kredytu
+    const totalPrincipal = schedule.reduce((sum, payment) => sum + payment.principalPayment, 0);
+    expect(totalPrincipal).toBeCloseTo(principal, 0); // Sprawdzamy z dokładnością do pełnych złotych
+    
+    // Suma wszystkich odsetek + kapitał powinny być równe sumie wszystkich płatności
+    const totalInterest = schedule.reduce((sum, payment) => sum + payment.interestPayment, 0);
+    const totalPayments = schedule.reduce((sum, payment) => sum + payment.totalPayment, 0);
+    expect(totalPrincipal + totalInterest).toBeCloseTo(totalPayments, 0);
+  });
+  
+  test('should handle zero interest rate correctly', () => {
+    const principal = 400000;
+    const annualRate = 0;
+    const years = 5;
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years);
+    
+    // Sprawdzenie poprawności harmonogramu dla zerowego oprocentowania
+    expect(schedule.length).toBe(years * 12);
+    
+    // Dla zerowego oprocentowania, każda rata powinna być taka sama i równa kwocie kredytu podzielonej przez liczbę rat
+    const expectedPayment = principal / (years * 12);
+    
+    for (const payment of schedule) {
+      expect(payment.totalPayment).toBeCloseTo(expectedPayment, 2);
+      expect(payment.interestPayment).toBeCloseTo(0, 2);
+      expect(payment.principalPayment).toBeCloseTo(expectedPayment, 2);
+    }
+    
+    // Suma wszystkich płatności powinna być równa kwocie kredytu
+    const totalPaid = schedule.reduce((sum, payment) => sum + payment.totalPayment, 0);
+    expect(totalPaid).toBeCloseTo(principal, 0);
+  });
+  
+  test('should handle very short loan term (1 year)', () => {
+    const principal = 400000;
+    const annualRate = 7.6;
+    const years = 1;
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years);
+    
+    // Sprawdzenie poprawności harmonogramu dla krótkiego okresu
+    expect(schedule.length).toBe(12); // 1 rok = 12 miesięcy
+    
+    // Ostatnia rata
+    const lastPayment = schedule[schedule.length - 1];
+    expect(lastPayment.remainingPrincipal).toBe(0);
+    
+    // Suma wszystkich płatności kapitału powinna być równa kwocie kredytu
+    const totalPrincipal = schedule.reduce((sum, payment) => sum + payment.principalPayment, 0);
+    expect(totalPrincipal).toBeCloseTo(principal, 0);
+  });
+  
+  test('should handle very long loan term (50 years)', () => {
+    const principal = 400000;
+    const annualRate = 7.6;
+    const years = 50;
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years);
+    
+    // Sprawdzenie poprawności harmonogramu dla długiego okresu
+    expect(schedule.length).toBe(50 * 12); // 50 lat = 600 miesięcy
+    
+    // Ostatnia rata
+    const lastPayment = schedule[schedule.length - 1];
+    expect(lastPayment.remainingPrincipal).toBe(0);
+    
+    // Suma wszystkich płatności kapitału powinna być równa kwocie kredytu
+    const totalPrincipal = schedule.reduce((sum, payment) => sum + payment.principalPayment, 0);
+    expect(totalPrincipal).toBeCloseTo(principal, 0);
+    
+    // W przypadku długiego kredytu, suma odsetek powinna być znacznie większa niż kwota kredytu
+    const totalInterest = schedule.reduce((sum, payment) => sum + payment.interestPayment, 0);
+    expect(totalInterest).toBeGreaterThan(principal * 3); // Przy 50 latach i 7.6% odsetki będą kilkukrotnie większe od kwoty kredytu
+  });
+  
+  test('should correctly set date for each payment', () => {
+    const principal = 400000;
+    const annualRate = 7.6;
+    const years = 2;
+    const startDate = new Date(2023, 0, 15); // 15 stycznia 2023
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years, startDate);
+    
+    // Sprawdzenie poprawności dat płatności
+    expect(schedule[0].date).toBe('2023-01-15'); // Pierwsza rata (format YYYY-MM-DD)
+    expect(schedule[1].date).toBe('2023-02-15'); // Druga rata
+    expect(schedule[11].date).toBe('2023-12-15'); // 12-ta rata
+    expect(schedule[12].date).toBe('2024-01-15'); // 13-ta rata (drugi rok)
+    expect(schedule[schedule.length - 1].date).toBe('2024-12-15'); // Ostatnia rata (po 2 latach)
+  });
+  
+  test('should correctly update running totals in each payment', () => {
+    const principal = 400000;
+    const annualRate = 7.6;
+    const years = 3;
+    
+    const schedule = generateMortgageSchedule(principal, annualRate, years);
+    
+    // Sprawdzenie poprawności narastających sum
+    let totalPrincipalPaid = 0;
+    let totalInterestPaid = 0;
+    let totalPaid = 0;
+    
+    for (let i = 0; i < schedule.length; i++) {
+      const payment = schedule[i];
+      
+      totalPrincipalPaid += payment.principalPayment;
+      totalInterestPaid += payment.interestPayment;
+      totalPaid += payment.totalPayment;
+      
+      // Narastające sumy w każdej racie powinny być zgodne z obliczeniami
+      expect(payment.totalPrincipalPaid).toBeCloseTo(totalPrincipalPaid, 2);
+      expect(payment.totalInterestPaid).toBeCloseTo(totalInterestPaid, 2);
+      expect(payment.totalPaid).toBeCloseTo(totalPaid, 2);
+    }
   });
 }); 

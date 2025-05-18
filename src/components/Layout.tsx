@@ -11,9 +11,33 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
 
+  // Klasa dla aktywnego linku w menu
+  const activeLinkClass = "text-white bg-blue-600 px-3 py-2 rounded-md font-medium";
+  // Klasa dla nieaktywnego linku w menu
+  const inactiveLinkClass = "text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600/50 rounded-md transition duration-200";
+  // Klasa dla aktywnego linku w menu mobilnym
+  const activeMobileLinkClass = "block text-white bg-blue-600 px-3 py-2 rounded-md font-medium";
+  // Klasa dla nieaktywnego linku w menu mobilnym
+  const inactiveMobileLinkClass = "block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600/50 rounded-md transition duration-200";
+
+  // Struktura menu - ułatwia dodawanie nowych elementów i utrzymanie spójności
+  const menuItems = [
+    { path: "/", label: "Strona główna" },
+    { 
+      label: "Kalkulatory",
+      children: [
+        { path: "/kalkulator-roi", label: "Kalkulator ROI" },
+        { path: "/kalkulator-inwestycji", label: "Kalkulator Inwestycji" },
+        { path: "/kalkulator-wartosci-najmu", label: "Wartość z Najmu" }
+      ]
+    },
+    { path: "/ceny-nieruchomosci", label: "Ceny Nieruchomości" },
+    { path: "/o-nas", label: "O nas" }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-gradient-to-r from-indigo-800 to-blue-700 shadow-md">
+      <header className="bg-gradient-to-r from-indigo-800 to-blue-700 shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <Link to="/" className="text-white font-bold text-xl md:text-2xl hover:text-blue-100 transition-colors duration-200">
@@ -24,49 +48,60 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <button 
               className="md:hidden text-white focus:outline-none"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Zamknij menu" : "Otwórz menu"}
+              aria-expanded={isMenuOpen}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              {isMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-4">
-              <NavLink 
-                to="/" 
-                className={({ isActive }) => 
-                  isActive ? "text-white bg-blue-600 px-3 py-2 rounded-md" : "text-blue-100 hover:text-white px-3 py-2"
-                }
-              >
-                Strona główna
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-roi" 
-                className={({ isActive }) => 
-                  isActive ? "text-white bg-blue-600 px-3 py-2 rounded-md" : "text-blue-100 hover:text-white px-3 py-2"
-                }
-              >
-                Kalkulator ROI
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-inwestycji" 
-                className={({ isActive }) => 
-                  isActive ? "text-white bg-blue-600 px-3 py-2 rounded-md" : "text-blue-100 hover:text-white px-3 py-2"
-                }
-              >
-                Kalkulator Inwestycji
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-wartosci-najmu" 
-                className={({ isActive }) => 
-                  isActive ? "text-white bg-blue-600 px-3 py-2 rounded-md" : "text-blue-100 hover:text-white px-3 py-2"
-                }
-              >
-                Wartość z Najmu
-              </NavLink>
+            <nav className="hidden md:flex items-center space-x-1">
+              {menuItems.map((item, index) => 
+                item.children ? (
+                  <div key={index} className="relative group">
+                    <button className={`${inactiveLinkClass} flex items-center`}>
+                      {item.label}
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left">
+                      {item.children.map((subItem, subIndex) => (
+                        <NavLink 
+                          key={subIndex}
+                          to={subItem.path}
+                          className={({ isActive }) => 
+                            `block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 ${isActive ? 'bg-indigo-50 text-indigo-800 font-medium' : ''}`
+                          }
+                        >
+                          {subItem.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <NavLink 
+                    key={index}
+                    to={item.path} 
+                    className={({ isActive }) => 
+                      isActive ? activeLinkClass : inactiveLinkClass
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                )
+              )}
               <button 
                 onClick={() => setShowDonationModal(true)}
-                className="text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md ml-2 transition duration-200"
               >
                 Wesprzyj projekt
               </button>
@@ -74,55 +109,53 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           
           {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <nav className="mt-4 pb-4 space-y-2 md:hidden">
-              <NavLink 
-                to="/" 
-                className={({ isActive }) => 
-                  isActive ? "block text-white bg-blue-600 px-3 py-2 rounded-md" : "block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md"
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Strona główna
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-roi" 
-                className={({ isActive }) => 
-                  isActive ? "block text-white bg-blue-600 px-3 py-2 rounded-md" : "block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md"
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Kalkulator ROI
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-inwestycji" 
-                className={({ isActive }) => 
-                  isActive ? "block text-white bg-blue-600 px-3 py-2 rounded-md" : "block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md"
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Kalkulator Inwestycji
-              </NavLink>
-              <NavLink 
-                to="/kalkulator-wartosci-najmu" 
-                className={({ isActive }) => 
-                  isActive ? "block text-white bg-blue-600 px-3 py-2 rounded-md" : "block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md"
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Wartość z Najmu
-              </NavLink>
+          <div className={`mt-4 pb-2 md:hidden transform transition-all duration-300 ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <nav className="space-y-1">
+              {menuItems.map((item, index) => 
+                item.children ? (
+                  <div key={index} className="space-y-1">
+                    <div className="text-white font-medium px-3 py-2">
+                      {item.label}
+                    </div>
+                    <div className="pl-4 space-y-1 border-l-2 border-blue-500 ml-3">
+                      {item.children.map((subItem, subIndex) => (
+                        <NavLink 
+                          key={subIndex}
+                          to={subItem.path}
+                          className={({ isActive }) => 
+                            isActive ? activeMobileLinkClass : inactiveMobileLinkClass
+                          }
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {subItem.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <NavLink 
+                    key={index}
+                    to={item.path} 
+                    className={({ isActive }) => 
+                      isActive ? activeMobileLinkClass : inactiveMobileLinkClass
+                    }
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </NavLink>
+                )
+              )}
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setShowDonationModal(true);
                 }}
-                className="block text-blue-100 hover:text-white px-3 py-2 hover:bg-blue-600 rounded-md w-full text-left"
+                className="w-full text-left bg-blue-500 text-white px-3 py-2 rounded-md mt-2 hover:bg-blue-600 transition duration-200"
               >
                 Wesprzyj projekt
               </button>
             </nav>
-          )}
+          </div>
         </div>
       </header>
 
@@ -136,13 +169,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="mb-4 md:mb-0">
               <p className="text-sm">&copy; {new Date().getFullYear()} Kalkulator Finansowy Nieruchomości. Wszystkie prawa zastrzeżone.</p>
             </div>
-            <div className="flex space-x-4">
-              <Link to="/polityka-prywatnosci" className="text-sm hover:text-white">Polityka prywatności</Link>
-              <Link to="/regulamin" className="text-sm hover:text-white">Regulamin</Link>
-              <Link to="/o-nas" className="text-sm hover:text-white">O nas</Link>
+            <div className="flex flex-wrap justify-center space-x-4">
+              <Link to="/o-nas" className="text-sm hover:text-white transition duration-200">O nas</Link>
+              <Link to="/polityka-prywatnosci" className="text-sm hover:text-white transition duration-200">Polityka prywatności</Link>
+              <Link to="/regulamin" className="text-sm hover:text-white transition duration-200">Regulamin</Link>
               <button 
                 onClick={() => setShowDonationModal(true)}
-                className="text-sm hover:text-white"
+                className="text-sm hover:text-white transition duration-200"
               >
                 Wesprzyj projekt
               </button>

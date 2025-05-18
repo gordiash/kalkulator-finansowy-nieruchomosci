@@ -9,6 +9,8 @@ import InvestmentCalculatorPage from './pages/InvestmentCalculatorPage';
 import RentalValueCalculatorPage from './pages/RentalValueCalculatorPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+import AboutUs from './pages/AboutUs';
+import PropertyPricesPage from './pages/PropertyPricesPage';
 
 const App: React.FC = () => {
   return (
@@ -34,6 +36,8 @@ const App: React.FC = () => {
         <Route path="/kalkulator-wartosci-najmu" element={<RentalValueCalculatorPage />} />
         <Route path="/polityka-prywatnosci" element={<PrivacyPolicy />} />
         <Route path="/regulamin" element={<Terms />} />
+        <Route path="/o-nas" element={<AboutUs />} />
+        <Route path="/ceny-nieruchomosci" element={<PropertyPricesPage />} />
       </Routes>
     </Layout>
   );

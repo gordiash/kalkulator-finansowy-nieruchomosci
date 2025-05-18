@@ -3,6 +3,7 @@ import { CalculationResults } from '../types';
 import SummaryPDF from './SummaryPDF';
 import CostComparisonChart from './CostComparisonChart';
 import BreakEvenCalculator from './BreakEvenCalculator';
+import MortgageScheduleTable from './MortgageScheduleTable';
 
 
 interface ResultsDisplayProps {
@@ -97,6 +98,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Analiza punktu rentowności - tylko dla kalkulatora ROI */}
       {calculatorType === 'roi' && <BreakEvenCalculator results={results} />}
+
+      {/* Harmonogram spłaty kredytu - tylko dla kalkulatora ROI */}
+      {calculatorType === 'roi' && results.mortgageSchedule && (
+        <div className="mb-8">
+          <MortgageScheduleTable schedule={results.mortgageSchedule} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Podsumowanie zakupu/inwestycji */}

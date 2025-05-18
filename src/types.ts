@@ -32,6 +32,13 @@ export interface AnalysisOptions {
   inflation: number;
 }
 
+export interface PropertyPrice {
+  city: string;
+  price: number;
+  year: number;
+  quarter?: string;
+}
+
 export interface CalculationResults {
   buyingSummary: {
     monthlyMortgagePayment: number;
@@ -71,4 +78,18 @@ export interface CalculationResults {
     buying: number[];
     renting: number[];
   };
+  mortgageSchedule?: MortgagePayment[]; // Harmonogram spłaty kredytu hipotecznego
+}
+
+// Interfejs dla pojedynczej raty w harmonogramie spłaty kredytu
+export interface MortgagePayment {
+  paymentNumber: number;
+  date: string;
+  totalPayment: number;
+  principalPayment: number;
+  interestPayment: number;
+  remainingPrincipal: number;
+  totalPrincipalPaid: number;
+  totalInterestPaid: number;
+  totalPaid: number;
 }

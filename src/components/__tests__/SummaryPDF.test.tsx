@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../../test-utils';
 import SummaryPDF from '../SummaryPDF';
 import { CalculationResults } from '../../types';
+import '@testing-library/jest-dom';
 
 // Mock jsPDF i autoTable
 jest.mock('jspdf', () => {
@@ -33,7 +34,9 @@ describe('SummaryPDF Component', () => {
       totalMortgagePayments: 646624.8,
       totalOtherCosts: 600000,
       buyingTotal: 1246624.8,
-      propertyValue: 800000
+      propertyValue: 800000,
+      roe: 15.5,
+      dti: 33.33
     },
     rentingSummary: {
       monthlyRent: 2000,
@@ -71,7 +74,7 @@ describe('SummaryPDF Component', () => {
       />
     );
     
-    const button = screen.getByText(/Generuj PDF z analizą/i);
+    const button = screen.getByText(/Pobierz raport PDF/i);
     expect(button).toBeInTheDocument();
   });
 }); 

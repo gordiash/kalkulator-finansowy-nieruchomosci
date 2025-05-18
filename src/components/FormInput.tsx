@@ -28,8 +28,22 @@ const FormInput: React.FC<FormInputProps> = ({
   step = 1
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const val = type === 'number' ? parseFloat(e.target.value) : e.target.value;
-    onChange(val);
+    const rawValue = e.target.value;
+    
+    if (type === 'number') {
+      // Dla pól liczbowych zawsze konwertujemy do liczby
+      onChange(parseFloat(rawValue));
+    } else if (type === 'select') {
+      // Dla select sprawdzamy czy wartość to liczba i konwertujemy odpowiednio
+      if (!isNaN(Number(rawValue))) {
+        onChange(Number(rawValue));
+      } else {
+        onChange(rawValue);
+      }
+    } else {
+      // Dla pozostałych typów zostawiamy bez zmian
+      onChange(rawValue);
+    }
   };
 
   return (

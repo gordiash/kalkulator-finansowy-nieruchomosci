@@ -15,6 +15,18 @@ const AnalysisForm: React.FC<AnalysisFormProps> = ({
   onCalculate,
   inflationSource 
 }) => {
+  const handleAnalysisPeriodChange = (value: any) => {
+    // Jawna konwersja do liczby całkowitej
+    const periodAsNumber = parseInt(value, 10);
+    onChange({ analysisPeriod: periodAsNumber });
+  };
+
+  const handleInflationChange = (value: any) => {
+    // Jawna konwersja do liczby zmiennoprzecinkowej
+    const inflationAsNumber = parseFloat(value);
+    onChange({ inflation: inflationAsNumber });
+  };
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
       <h2 className="text-base font-semibold text-indigo-900 mb-3 border-b border-gray-200 pb-2">
@@ -31,7 +43,7 @@ const AnalysisForm: React.FC<AnalysisFormProps> = ({
             label="Okres analizy (lata)"
             type="select"
             value={options.analysisPeriod}
-            onChange={(value) => onChange({ analysisPeriod: value as 5 | 10 | 20 | 25 | 30 })}
+            onChange={handleAnalysisPeriodChange}
             tooltip="Okres, dla którego przeprowadzana jest analiza"
             options={[
               { value: 5, label: '5 lat' },
@@ -48,7 +60,7 @@ const AnalysisForm: React.FC<AnalysisFormProps> = ({
               label="Średnioroczna inflacja (%)"
               type="number"
               value={options.inflation}
-              onChange={(value) => onChange({ inflation: value })}
+              onChange={handleInflationChange}
               tooltip="Przewidywana średnia roczna stopa inflacji"
               required
               min={0}

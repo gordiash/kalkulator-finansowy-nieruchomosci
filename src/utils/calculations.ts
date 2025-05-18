@@ -12,6 +12,79 @@ export const calculateMortgagePayment = (principal: number, annualRate: number, 
   return monthlyPayment;
 };
 
+// Interfejs dla pojedynczej raty w harmonogramie spłaty kredytu
+export interface MortgagePayment {
+  paymentNumber: number;
+  date: string;
+  totalPayment: number;
+  principalPayment: number;
+  interestPayment: number;
+  remainingPrincipal: number;
+  totalPrincipalPaid: number;
+  totalInterestPaid: number;
+  totalPaid: number;
+}
+
+// Funkcja generująca harmonogram spłaty kredytu hipotecznego
+export const generateMortgageSchedule = (
+  principal: number,
+  annualRate: number, 
+  years: number,
+  startDate: Date = new Date()
+): MortgagePayment[] => {
+  const monthlyRate = annualRate / 12 / 100;
+  const numberOfPayments = years * 12;
+  const monthlyPayment = calculateMortgagePayment(principal, annualRate, years);
+  
+  const schedule: MortgagePayment[] = [];
+  let remainingPrincipal = principal;
+  let totalPrincipalPaid = 0;
+  let totalInterestPaid = 0;
+  let totalPaid = 0;
+  
+  // Kopiujemy datę startową, aby nie modyfikować oryginału
+  const startDateCopy = new Date(startDate.getTime());
+  
+  for (let i = 1; i <= numberOfPayments; i++) {
+    // Obliczanie odsetek dla bieżącej raty
+    const interestPayment = remainingPrincipal * monthlyRate;
+    
+    // Obliczanie części kapitałowej raty
+    const principalPayment = monthlyPayment - interestPayment;
+    
+    // Aktualizacja pozostałego kapitału
+    remainingPrincipal -= principalPayment;
+    
+    // W przypadku ostatniej raty, korygujemy ewentualne zaokrąglenia
+    if (i === numberOfPayments) {
+      remainingPrincipal = 0;
+    }
+    
+    // Aktualizacja sum
+    totalPrincipalPaid += principalPayment;
+    totalInterestPaid += interestPayment;
+    totalPaid += monthlyPayment;
+    
+    // Obliczanie daty płatności
+    const paymentDate = new Date(startDateCopy.getTime());
+    paymentDate.setMonth(startDateCopy.getMonth() + i - 1);
+    
+    schedule.push({
+      paymentNumber: i,
+      date: paymentDate.toISOString().split('T')[0], // Format YYYY-MM-DD
+      totalPayment: monthlyPayment,
+      principalPayment,
+      interestPayment,
+      remainingPrincipal,
+      totalPrincipalPaid,
+      totalInterestPaid,
+      totalPaid
+    });
+  }
+  
+  return schedule;
+};
+
 // Główna funkcja obliczeniowa
 export const calculateResults = (
   propertyData: PropertyFormData,
@@ -57,6 +130,9 @@ export const calculateResults = (
   let propertyValue = propertyData.propertyPrice;
   let totalMortgagePayments = 0;
   let totalOtherCosts = transactionCosts; // Zmiana: inicjalizacja z kosztami transakcyjnymi
+
+  // Generowanie harmonogramu spłaty kredytu
+  const mortgageSchedule = generateMortgageSchedule(loanAmount, totalAnnualRate, propertyData.loanTerm);
 
   // Obliczenia dla wynajmu
   let rentingTotal = rentData.securityDeposit;
@@ -163,6 +239,7 @@ export const calculateResults = (
         mortgageCostData,
         rentCostData
       }
-    }
+    },
+    mortgageSchedule // Dodajemy harmonogram spłaty kredytu
   };
 };
