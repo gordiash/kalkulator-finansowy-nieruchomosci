@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
               to="/kalkulator-inwestycji" 
               className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-colors duration-300 shadow-md w-full md:w-auto flex justify-center"
             >
-              Porównanie Zakupu i Wynajmu
+              Kalkulator inwestycji
             </Link>
             <Link 
               to="/kalkulator-wartosci-najmu" 
