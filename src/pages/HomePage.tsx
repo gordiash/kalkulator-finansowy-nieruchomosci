@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import AdComponent from '../components/AdComponent';
 
 const HomePage: React.FC = () => {
   return (
@@ -46,6 +47,11 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="container mx-auto py-12 px-4 max-w-7xl">
+        {/* Ad Banner - Top */}
+        <div className="mb-8">
+          <AdComponent adSlot="1234567890" adFormat="horizontal" />
+        </div>
+        
         {/* Features Section */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12 text-indigo-900">Kompleksowa analiza inwestycji w nieruchomości</h2>
@@ -72,6 +78,11 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Ad Banner - Middle */}
+        <div className="mb-16">
+          <AdComponent adSlot="0987654321" adFormat="fluid" />
+        </div>
 
         {/* Comparison Section (new) */}
         <section className="mb-16 bg-gray-50 p-8 rounded-xl">
@@ -173,6 +184,11 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
+        {/* Ad Banner - Before FAQ */}
+        <div className="mb-16">
+          <AdComponent adSlot="5678901234" adFormat="rectangle" />
+        </div>
+
         {/* FAQ Section */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8 text-indigo-900">Najczęściej zadawane pytania</h2>
@@ -217,6 +233,11 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Ad Banner - Bottom */}
+        <div className="mt-8">
+          <AdComponent adSlot="1357924680" adFormat="horizontal" />
+        </div>
       </main>
     </>
   );
