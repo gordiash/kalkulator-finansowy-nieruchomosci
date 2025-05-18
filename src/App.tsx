@@ -11,10 +11,14 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import AboutUs from './pages/AboutUs';
 import PropertyPricesPage from './pages/PropertyPricesPage';
+import GoogleAnalytics from './components/GoogleAnalytics';
+import GoogleAdsense from './components/GoogleAdsense';
 
 const App: React.FC = () => {
   return (
     <Layout>
+      <GoogleAnalytics />
+      <GoogleAdsense />
       <ToastContainer
         position="top-right"
         autoClose={3000}

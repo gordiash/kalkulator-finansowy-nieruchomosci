@@ -14,25 +14,24 @@ const AdComponent: React.FC<AdComponentProps> = ({ adSlot, adFormat = 'auto', st
     // Nie ładuj reklam na localhost/środowisku deweloperskim
     if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
       try {
-        const { adsbygoogle } = window as any;
-        
-        if (adsbygoogle && adContainerRef.current) {
-          // Czekaj aż skrypt AdSense zostanie załadowany
-          if (adsbygoogle.loaded) {
-            adsbygoogle.push({});
-          } else {
-            const adsByGoogleInterval = setInterval(() => {
-              if (adsbygoogle.loaded) {
-                adsbygoogle.push({});
-                clearInterval(adsByGoogleInterval);
-              }
-            }, 300);
-            
-            // Limit czasu - jeśli AdSense nie załaduje się w ciągu 5 sekund, przestań próbować
-            setTimeout(() => {
-              clearInterval(adsByGoogleInterval);
-            }, 5000);
-          }
+        // Sprawdzenie czy skrypt AdSense został już załadowany
+        if (typeof window.adsbygoogle !== 'undefined') {
+          // AdSense jest załadowany, możemy dodać reklamę
+          window.adsbygoogle = window.adsbygoogle || [];
+          window.adsbygoogle.push({});
+        } else {
+          // Czekaj na załadowanie skryptu AdSense
+          const waitForAdsense = setInterval(() => {
+            if (typeof window.adsbygoogle !== 'undefined') {
+              window.adsbygoogle.push({});
+              clearInterval(waitForAdsense);
+            }
+          }, 300);
+          
+          // Limit czasu oczekiwania - jeśli AdSense nie załaduje się w ciągu 5 sekund, przestań próbować
+          setTimeout(() => {
+            clearInterval(waitForAdsense);
+          }, 5000);
         }
       } catch (error) {
         console.error('Błąd podczas ładowania reklamy AdSense:', error);
