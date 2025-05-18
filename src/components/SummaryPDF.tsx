@@ -23,6 +23,7 @@ type TableCellObject = {
   alignment?: Alignment;
   style?: string;
   fillColor?: string;
+  colSpan?: number;
 };
 type TableRow = (string | TableCellObject)[];
 type TableBody = TableRow[];
@@ -193,6 +194,12 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
         }
       },
       
+      // Podział strony przed sekcją porównania
+      {
+        text: '',
+        pageBreak: 'before'
+      },
+      
       // Podsumowanie porównania
       {
         text: titles.comparisonSection,
@@ -208,6 +215,31 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
           body: getComparisonSectionBody()
         }
       },
+      
+      // Harmonogram spłaty kredytu hipotecznego (dodane)
+      // @ts-ignore
+      ...(calculatorType === 'roi' && results.mortgageSchedule && results.mortgageSchedule.length > 0 ? [
+        {
+          text: 'Harmonogram spłaty kredytu hipotecznego',
+          style: 'sectionHeader',
+          color: '#8E44AD',
+          margin: [0, 20, 0, 0]
+        },
+        {
+          margin: [0, 5, 0, 0],
+          table: {
+            headerRows: 1,
+            widths: [40, 70, 70, 70, 70, 90],
+            body: getMortgageScheduleBody()
+          }
+        },
+        {
+          text: 'Uwaga: Powyżej przedstawiono skrócony harmonogram spłaty kredytu (wybrane raty). Pełny harmonogram dostępny jest w aplikacji.',
+          style: 'small',
+          margin: [0, 5, 0, 10],
+          italics: true
+        }
+      ] : []),
       
       // Informacje dodatkowe i zastrzeżenia
       {
@@ -347,6 +379,96 @@ const SummaryPDF: React.FC<SummaryPDFProps> = ({
           ['Rentowność kapitału własnego (ROE)', { text: formatPercent(results.buyingSummary.roe), alignment: 'right' }]
         ] as TableRow[]);
       }
+
+      return body;
+    }
+
+    // Funkcja generująca tabelę dla harmonogramu spłaty kredytu
+    // @ts-ignore
+    function getMortgageScheduleBody(): TableBody {
+      if (!results.mortgageSchedule || results.mortgageSchedule.length === 0) {
+        return [[{ text: 'Brak danych harmonogramu', style: 'tableHeader', fillColor: '#8E44AD', colSpan: 6 }]];
+      }
+
+      const body: TableBody = [
+        [
+          { text: 'Rok', style: 'tableHeader', fillColor: '#8E44AD' },
+          { text: 'Data', style: 'tableHeader', fillColor: '#8E44AD' },
+          { text: 'Rata', style: 'tableHeader', fillColor: '#8E44AD' },
+          { text: 'Kapitał', style: 'tableHeader', fillColor: '#8E44AD' },
+          { text: 'Odsetki', style: 'tableHeader', fillColor: '#8E44AD' },
+          { text: 'Pozostały kapitał', style: 'tableHeader', fillColor: '#8E44AD' }
+        ]
+      ];
+
+      // Pobierz całkowitą liczbę lat kredytu
+      const totalYears = Math.ceil(results.mortgageSchedule.length / 12);
+      
+      // Przygotuj wybrane raty do wyświetlenia
+      let selectedPayments = Array<typeof results.mortgageSchedule[0]>();
+      
+      if (totalYears <= 10) {
+        // Dla krótszych kredytów (do 10 lat) pokazujemy raty co rok
+        for (let year = 1; year <= totalYears; year++) {
+          const paymentIndex = year * 12 - 1; // Ostatnia rata w roku
+          if (paymentIndex < results.mortgageSchedule.length) {
+            selectedPayments.push(results.mortgageSchedule[paymentIndex]);
+          }
+        }
+      } else {
+        // Dla dłuższych kredytów pokazujemy wybrane lata
+        // Pierwsze 5 lat
+        for (let year = 1; year <= 5; year++) {
+          const paymentIndex = year * 12 - 1;
+          if (paymentIndex < results.mortgageSchedule.length) {
+            selectedPayments.push(results.mortgageSchedule[paymentIndex]);
+          }
+        }
+        
+        // Środkowe lata (jeśli kredyt jest dłuższy niż 10 lat)
+        if (totalYears > 10) {
+          const middleYear = Math.floor(totalYears / 2);
+          const paymentIndex = middleYear * 12 - 1;
+          if (paymentIndex < results.mortgageSchedule.length && !selectedPayments.some(p => Math.ceil(p.paymentNumber / 12) === middleYear)) {
+            selectedPayments.push(results.mortgageSchedule[paymentIndex]);
+          }
+        }
+        
+        // Ostatnie 5 lat
+        for (let year = Math.max(6, totalYears - 4); year <= totalYears; year++) {
+          const paymentIndex = Math.min(year * 12 - 1, results.mortgageSchedule.length - 1);
+          if (!selectedPayments.some(p => Math.ceil(p.paymentNumber / 12) === year)) {
+            selectedPayments.push(results.mortgageSchedule[paymentIndex]);
+          }
+        }
+      }
+      
+      // Sortujemy raty według numeru płatności
+      selectedPayments.sort((a, b) => a.paymentNumber - b.paymentNumber);
+      
+      // Dodajemy raty do tabeli
+      let lastYear = 0;
+      selectedPayments.forEach(payment => {
+        const year = Math.ceil(payment.paymentNumber / 12);
+        const date = new Date(payment.date).toLocaleDateString('pl-PL');
+        
+        // Jeśli jest przeskok w latach, dodaj separator
+        if (lastYear > 0 && year > lastYear + 1) {
+          body.push([
+            { text: '...', alignment: 'center', colSpan: 6, fillColor: '#F3E5F5' }
+          ]);
+        }
+        lastYear = year;
+        
+        body.push([
+          { text: year.toString(), alignment: 'center' },
+          { text: date, alignment: 'center' },
+          { text: formatCurrency(payment.totalPayment), alignment: 'right' },
+          { text: formatCurrency(payment.principalPayment), alignment: 'right' },
+          { text: formatCurrency(payment.interestPayment), alignment: 'right' },
+          { text: formatCurrency(payment.remainingPrincipal), alignment: 'right' }
+        ] as TableRow);
+      });
 
       return body;
     }
