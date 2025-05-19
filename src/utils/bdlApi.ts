@@ -7,7 +7,7 @@ import { PropertyPrice } from '../types';
  */
 export async function fetchUnitIdByName(cityName: string): Promise<string | null> {
   // Najpierw szukaj na poziomie miasta (level 6)
-  let res = await fetch('/.netlify/functions/bdlApi', {
+  let res = await fetch('/api/bdlApi', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -18,7 +18,7 @@ export async function fetchUnitIdByName(cityName: string): Promise<string | null
   let data = await res.json();
   if (data.results && data.results.length > 0) return data.results[0].id;
   // Jeśli nie znaleziono, szukaj na poziomie powiatu (level 5)
-  res = await fetch('/.netlify/functions/bdlApi', {
+  res = await fetch('/api/bdlApi', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -55,7 +55,7 @@ export async function fetchPropertyPrices(cityName: string, years: number[], var
       lang: 'pl'
     };
 
-    const dataResponse = await fetch('/.netlify/functions/bdlApi', {
+    const dataResponse = await fetch('/api/bdlApi', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export async function fetchPropertyPrices(cityName: string, years: number[], var
  */
 export async function fetchAvailableYears(variableId: string): Promise<number[]> {
   try {
-    const response = await fetch('/.netlify/functions/bdlApi', {
+    const response = await fetch('/api/bdlApi', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

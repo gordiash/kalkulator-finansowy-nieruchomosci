@@ -51,7 +51,13 @@ const PropertyPricesPage: React.FC = () => {
     async function getAvailableYears() {
       try {
         setIsLoading(true);
-        const years = await fetchAvailableYears(variableId);
+        let idForYears = variableId;
+        if (variableId === 'P3786') {
+          idForYears = marketType === 'primary' ? '633697' : '633702';
+        } else if (variableId === 'P3788') {
+          idForYears = marketType === 'primary' ? '633667' : '633672';
+        }
+        const years = await fetchAvailableYears(idForYears);
         setAvailableYears(years);
         setStartYear(years[0]); // najstarszy rok
         setEndYear(years[years.length - 1]); // najnowszy rok
@@ -63,7 +69,7 @@ const PropertyPricesPage: React.FC = () => {
       }
     }
     getAvailableYears();
-  }, [variableId]);
+  }, [variableId, marketType]);
 
   // Nowa funkcja do wyszukiwania unitId po nazwie miasta/powiatu
   async function findUnitIdByName(name: string): Promise<string | null> {
