@@ -148,4 +148,52 @@ export async function fetchP3788Prices(cityName: string, years: number[], market
     throw new Error('Nieznany typ rynku. Dozwolone wartości: "primary", "secondary".');
   }
   return fetchPropertyPrices(cityName, years, variableId);
-} 
+}
+
+/**
+ * Wywołuje funkcję Netlify bdlApi z obsługą błędów i typowaniem
+ */
+export type BdlApiResponse = { results?: any[]; error?: string; [key: string]: any };
+
+export async function fetchBdlApi(data: Record<string, any>): Promise<BdlApiResponse | null> {
+  try {
+    const response = await fetch('/api/bdlApi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // Obsługa błędów z backendu
+      throw new Error(result.error || 'Wystąpił błąd serwera');
+    }
+
+    return result;
+  } catch (error) {
+    // Obsługa błędów sieciowych lub innych
+    const message = error instanceof Error ? error.message : 'Nie udało się połączyć z API';
+    // W utilu nie wywołujemy alertów, tylko zwracamy null
+    // alert(message); // jeśli chcesz, możesz obsłużyć to w komponencie
+    return null;
+  }
+}
+
+/**
+ * Waliduje odpowiedź z API GUS BDL
+ */
+export function isValidBdlApiResponse(data: any): data is BdlApiResponse {
+  return data && Array.isArray(data.results);
+}
+
+// Przykład użycia (do komponentu React, nie do utila):
+//
+// const data = await fetchBdlApi({ endpoint: 'Units', params: { name: 'powiat warszawski', level: '4' } });
+// if (!data || !isValidBdlApiResponse(data) || !data.results.length) {
+//   setError('Brak wyników dla podanych parametrów');
+//   setResults([]);
+// } else {
+//   setError(null);
+//   setResults(data.results);
+// } 
