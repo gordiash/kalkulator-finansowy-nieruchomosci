@@ -52,10 +52,17 @@ const PropertyPricesPage: React.FC = () => {
       try {
         setIsLoading(true);
         // Do fetchAvailableYears zawsze przekazuj variableId (np. 'P3786', 'P3788')
-        const years = await fetchAvailableYears(variableId);
-        setAvailableYears(years);
-        setStartYear(years[0]); // najstarszy rok
-        setEndYear(years[years.length - 1]); // najnowszy rok
+        const metadata = await fetchAvailableYears(variableId);
+        console.log('ODPOWIEDŹ Z API GUS:', metadata);
+        if (metadata.years && Array.isArray(metadata.years)) {
+          setAvailableYears(metadata.years);
+          setStartYear(metadata.years[0]); // najstarszy rok
+          setEndYear(metadata.years[metadata.years.length - 1]); // najnowszy rok
+        } else if (metadata.availableYears && Array.isArray(metadata.availableYears)) {
+          setAvailableYears(metadata.availableYears);
+          setStartYear(metadata.availableYears[0]); // najstarszy rok
+          setEndYear(metadata.availableYears[metadata.availableYears.length - 1]); // najnowszy rok
+        }
       } catch (err: any) {
         setError('Błąd podczas pobierania dostępnych lat: ' + (err.message || 'Nieznany błąd'));
         console.error(err);
