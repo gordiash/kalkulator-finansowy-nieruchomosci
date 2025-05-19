@@ -71,20 +71,25 @@ export async function fetchPropertyPrices(cityName: string, years: number[], var
       throw new Error('Nie udało się pobrać danych o cenach nieruchomości: ' + errorText);
     }
 
-    const priceData = await dataResponse.json();
-    if (!priceData.results || priceData.results.length === 0 || !priceData.results[0].values) {
-      return [];
+    // Logowanie odpowiedzi tekstowej
+    const text = await dataResponse.text();
+    try {
+      const priceData = JSON.parse(text);
+      if (!priceData.results || priceData.results.length === 0 || !priceData.results[0].values) {
+        return [];
+      }
+      // Przekształć dane z API na format PropertyPrice[]
+      const prices: PropertyPrice[] = priceData.results[0].values.map((item: any) => ({
+        city: cityName,
+        price: parseFloat(item.val),
+        year: item.year,
+        quarter: item.quarter || null,
+      }));
+      return prices;
+    } catch (e) {
+      console.error('Błąd parsowania JSON z API:', text);
+      throw new Error('Niepoprawny JSON z API: ' + text);
     }
-
-    // Przekształć dane z API na format PropertyPrice[]
-    const prices: PropertyPrice[] = priceData.results[0].values.map((item: any) => ({
-      city: cityName,
-      price: parseFloat(item.val),
-      year: item.year,
-      quarter: item.quarter || null,
-    }));
-
-    return prices;
   } catch (error: any) {
     throw new Error(error.message || 'Brak danych dla wybranej jednostki lub lat.');
   }
