@@ -23,7 +23,6 @@ const GoogleAdsenseLoader = () => {
       script.dataset.adClient = 'ca-pub-2543665837502840';
       
       script.onload = () => {
-        console.log('AdSense załadowany bezpośrednio');
         window.adsbygoogle = window.adsbygoogle || [];
       };
       
@@ -57,8 +56,6 @@ const GoogleAdsenseLoader = () => {
         script.async = true;
         
         script.onload = () => {
-          console.log('AdSense załadowany przez iframe');
-          
           // Synchronizacja z głównym oknem
           if (iframe.contentWindow && iframe.contentWindow.adsbygoogle) {
             window.adsbygoogle = iframe.contentWindow.adsbygoogle;

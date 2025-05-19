@@ -1,290 +1,218 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '../../test-utils';
-import { MemoryRouter } from 'react-router-dom';
-import PropertyPricesPage from '../PropertyPricesPage';
-import { toast } from 'react-toastify';
-import * as bdlApi from '../../utils/bdlApi';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import PropertyPricesPage from '../PropertyPricesPage';
+import { fetchPropertyPrices, fetchAvailableYears } from '../../utils/bdlApi';
 
-// Mock dla toastify
+// Mockowanie modułu bdlApi
+jest.mock('../../utils/bdlApi');
+
+// Mockowanie react-toastify
 jest.mock('react-toastify', () => ({
   toast: {
-    success: jest.fn(),
     error: jest.fn(),
+    success: jest.fn(),
+    info: jest.fn(),
   },
 }));
 
-// Mock dla API
-jest.mock('../../utils/bdlApi', () => ({
-  fetchPropertyPrices: jest.fn(),
-  fetchAvailableYears: jest.fn(),
-}));
-
-// Mock dla Chart.js
-jest.mock('react-chartjs-2', () => ({
-  Line: () => <div data-testid="line-chart" />,
-  Bar: () => <div data-testid="bar-chart" />,
-}));
-
-describe('PropertyPricesPage Component', () => {
+describe('PropertyPricesPage', () => {
   beforeEach(() => {
-    // Czyszczenie mocków przed każdym testem
+    // Czyszczenie wszystkich mocków przed każdym testem
     jest.clearAllMocks();
     
-    // Mockujemy domyślne lata do wyboru
-    const mockYears = [2023, 2022, 2021, 2020, 2019];
-    jest.spyOn(Array, 'from').mockImplementation(() => mockYears as any);
+    // Domyślne mocki dla API
+    (fetchAvailableYears as jest.Mock).mockResolvedValue([2023, 2022, 2021, 2020, 2019]);
+    (fetchPropertyPrices as jest.Mock).mockResolvedValue([
+      { city: 'Powiat Warszawski', price: 10000, year: 2023, quarter: 1 },
+      { city: 'Powiat Warszawski', price: 9800, year: 2023, quarter: 2 },
+    ]);
   });
 
-  test('renders page title and form elements', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
+  it('powinien wyrenderować się poprawnie', async () => {
+    render(<PropertyPricesPage />);
     
-    // Sprawdzamy czy tytuł strony jest widoczny
-    expect(screen.getByText(/Ceny nieruchomości za m² według miast/i)).toBeInTheDocument();
-    
-    // Sprawdzamy czy pola formularza są obecne
-    expect(screen.getByLabelText(/Nazwa miasta/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rok początkowy/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rok końcowy/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rodzaj rynku/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Typ wykresu/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Sprawdź ceny/i })).toBeInTheDocument();
-  });
+    expect(screen.getByText('Ceny nieruchomości za m² według powiatów')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nazwa powiatu')).toBeInTheDocument();
+    expect(screen.getByLabelText('Typ wykresu')).toBeInTheDocument();
 
-  test('button is disabled when city name is empty', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Przycisk powinien być wyłączony na początku (brak nazwy miasta)
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    expect(button).toBeDisabled();
-    
-    // Po wprowadzeniu nazwy miasta przycisk powinien być aktywny
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
-    expect(button).not.toBeDisabled();
-  });
-
-  test('shows error toast when search is attempted with empty city name', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Wprowadzamy nazwę miasta, a następnie ją usuwamy
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
-    fireEvent.change(cityInput, { target: { value: '' } });
-    
-    // Próbujemy wyszukać z pustą nazwą miasta
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Powinien zostać wyświetlony komunikat błędu
-    expect(toast.error).toHaveBeenCalledWith('Wprowadź nazwę miasta');
-  });
-
-  test('shows error toast when start year is greater than end year', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Wprowadzamy nazwę miasta
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
-    
-    // Ustawiamy nieprawidłowy zakres lat (początek > koniec)
-    const startYearSelect = screen.getByLabelText(/Rok początkowy/i);
-    const endYearSelect = screen.getByLabelText(/Rok końcowy/i);
-    
-    fireEvent.change(startYearSelect, { target: { value: '2023' } });
-    fireEvent.change(endYearSelect, { target: { value: '2019' } });
-    
-    // Próbujemy wyszukać z nieprawidłowym zakresem
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Powinien zostać wyświetlony komunikat błędu
-    expect(toast.error).toHaveBeenCalledWith('Rok początkowy nie może być późniejszy niż rok końcowy');
-  });
-
-  test('allows changing market type between primary and secondary', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Sprawdzamy czy domyślnie wybrano rynek pierwotny
-    const marketTypeSelect = screen.getByLabelText(/Rodzaj rynku/i);
-    expect(marketTypeSelect).toHaveValue('primary');
-    
-    // Zmieniamy na rynek wtórny
-    fireEvent.change(marketTypeSelect, { target: { value: 'secondary' } });
-    expect(marketTypeSelect).toHaveValue('secondary');
-  });
-
-  test('allows changing chart type between line and bar', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Sprawdzamy czy domyślnie wybrano wykres liniowy
-    const chartTypeSelect = screen.getByLabelText(/Typ wykresu/i);
-    expect(chartTypeSelect).toHaveValue('line');
-    
-    // Zmieniamy na wykres słupkowy
-    fireEvent.change(chartTypeSelect, { target: { value: 'bar' } });
-    expect(chartTypeSelect).toHaveValue('bar');
-  });
-
-  test('displays loading state when fetching data', async () => {
-    // Nadpisujemy implementację setTimeout, aby test nie musiał czekać
-    jest.useFakeTimers();
-    
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Wprowadzamy nazwę miasta
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
-    
-    // Klikamy przycisk wyszukiwania
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Sprawdzamy, czy przycisk pokazuje stan ładowania
-    expect(screen.getByText(/Pobieranie danych/i)).toBeInTheDocument();
-    
-    // Przywracamy prawdziwe timery
-    jest.useRealTimers();
-  });
-
-  test('fetches and displays property price data with line chart by default', async () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Wprowadzamy nazwę miasta
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
-    
-    // Klikamy przycisk wyszukiwania
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Czekamy na wyświetlenie wyników
+    // Czekamy na załadowanie lat
     await waitFor(() => {
-      expect(screen.getByText(/Wykres cen nieruchomości w mieście Warszawa/i)).toBeInTheDocument();
-    }, { timeout: 2000 });
+      expect(screen.getByLabelText('Rok początkowy')).toBeInTheDocument();
+      expect(screen.getByLabelText('Rok końcowy')).toBeInTheDocument();
+  });
+  });
+
+  it('powinien załadować dostępne lata przy montowaniu', async () => {
+    render(<PropertyPricesPage />);
     
-    // Sprawdzamy, czy tabela z wynikami jest widoczna
-    expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getAllByRole('row').length).toBeGreaterThan(1); // co najmniej nagłówek i jeden wiersz danych
-    
-    // Sprawdzamy, czy wykres liniowy jest wyświetlany
     await waitFor(() => {
-      expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+      expect(fetchAvailableYears).toHaveBeenCalled();
+  });
+
+    const startYearSelect = screen.getByLabelText('Rok początkowy');
+    const endYearSelect = screen.getByLabelText('Rok końcowy');
+
+    expect(startYearSelect).toBeInTheDocument();
+    expect(endYearSelect).toBeInTheDocument();
+  });
+
+  it('powinien wyświetlić błąd przy próbie wyszukania bez nazwy powiatu', async () => {
+    const { toast } = require('react-toastify');
+    render(<PropertyPricesPage />);
+    
+    // Czekamy na załadowanie komponentu
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Wprowadź nazwę powiatu');
+  });
+
+  it('powinien poprawnie pobrać i wyświetlić dane o cenach', async () => {
+    render(<PropertyPricesPage />);
+    
+    // Czekamy na załadowanie komponentu
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
     });
     
-    // Sprawdzamy, czy wyświetlono toast sukcesu
-    expect(toast.success).toHaveBeenCalledWith('Pobrano dane dla miasta Warszawa');
-  });
-
-  test('changes to bar chart when bar chart type is selected', async () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
+    // Wprowadzanie danych
+    const cityInput = screen.getByLabelText('Nazwa powiatu');
+    await act(async () => {
+      fireEvent.change(cityInput, { target: { value: 'powiat warszawski' } });
+    });
     
-    // Wprowadzamy nazwę miasta
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
+    // Kliknięcie przycisku wyszukiwania
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
     
-    // Zmieniamy typ wykresu na słupkowy
-    const chartTypeSelect = screen.getByLabelText(/Typ wykresu/i);
-    fireEvent.change(chartTypeSelect, { target: { value: 'bar' } });
-    
-    // Klikamy przycisk wyszukiwania
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Czekamy na wyświetlenie wyników
+    // Oczekiwanie na pobranie danych
     await waitFor(() => {
-      expect(screen.getByText(/Wykres cen nieruchomości w mieście Warszawa/i)).toBeInTheDocument();
-    }, { timeout: 2000 });
+      expect(fetchPropertyPrices).toHaveBeenCalled();
+    });
     
-    // Sprawdzamy, czy wykres słupkowy jest wyświetlany
+    // Sprawdzenie czy dane zostały wyświetlone
     await waitFor(() => {
-      expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
+      expect(screen.getByText('Szczegółowe dane')).toBeInTheDocument();
+      expect(screen.getByText(/10[\s\u00A0]000,00 zł/)).toBeInTheDocument();
+      expect(screen.getByText(/9[\s\u00A0]?800,00 zł/)).toBeInTheDocument();
     });
   });
 
-  test('renders help section with instructions', () => {
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
+  it('powinien obsłużyć błąd podczas pobierania danych', async () => {
+    const { toast } = require('react-toastify');
+    (fetchPropertyPrices as jest.Mock).mockRejectedValue(new Error('Błąd API'));
     
-    // Sprawdzamy, czy sekcja pomocy jest widoczna
-    expect(screen.getByText(/Jak korzystać z kalkulatora cen nieruchomości/i)).toBeInTheDocument();
+    render(<PropertyPricesPage />);
+
+    // Czekamy na załadowanie komponentu
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    // Wprowadzanie danych
+    const cityInput = screen.getByLabelText('Nazwa powiatu');
+    await act(async () => {
+      fireEvent.change(cityInput, { target: { value: 'powiat warszawski' } });
+    });
     
-    // Sprawdzamy, czy instrukcje są widoczne
-    const instructionItems = screen.getAllByRole('listitem');
-    expect(instructionItems.length).toBeGreaterThan(3); // teraz mamy więcej kroków instrukcji
+    // Kliknięcie przycisku wyszukiwania
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
     
-    // Sprawdzamy, czy opis typów rynku jest obecny
-    expect(screen.getByText(/Rodzaje rynków:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Rynek pierwotny/i)).toBeInTheDocument();
-    expect(screen.getByText(/Rynek wtórny/i)).toBeInTheDocument();
-  });
-  
-  test('displays error when API returns an error', async () => {
-    // Nadpisujemy implementację Promise, aby symulować błąd
-    global.Promise = jest.fn().mockImplementationOnce((executor) => {
-      return {
-        then: jest.fn().mockImplementationOnce(() => {
-          throw new Error('Nie znaleziono miasta o podanej nazwie');
-        })
-      };
-    }) as any;
-    
-    render(
-      <MemoryRouter>
-        <PropertyPricesPage />
-      </MemoryRouter>
-    );
-    
-    // Wprowadzamy nazwę miasta
-    const cityInput = screen.getByLabelText(/Nazwa miasta/i);
-    fireEvent.change(cityInput, { target: { value: 'NieistniejąceMiasto' } });
-    
-    // Klikamy przycisk wyszukiwania
-    const button = screen.getByRole('button', { name: /Sprawdź ceny/i });
-    fireEvent.click(button);
-    
-    // Czekamy na wyświetlenie błędu
+    // Oczekiwanie na obsługę błędu
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Nie udało się pobrać danych');
     });
+  });
+
+  it('powinien zmienić typ wykresu', async () => {
+    render(<PropertyPricesPage />);
+
+    // Czekamy na załadowanie komponentu
+    await waitFor(() => {
+      expect(screen.getByLabelText('Typ wykresu')).toBeInTheDocument();
+    });
+
+    const chartTypeSelect = screen.getByLabelText('Typ wykresu');
+    await act(async () => {
+      fireEvent.change(chartTypeSelect, { target: { value: 'bar' } });
+    });
+
+    expect(chartTypeSelect).toHaveValue('bar');
+  });
+
+  it('powinien wyświetlić błąd, jeśli nazwa powiatu nie zawiera słowa "powiat"', async () => {
+    const { toast } = require('react-toastify');
+    render(<PropertyPricesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    const cityInput = screen.getByLabelText('Nazwa powiatu');
+    await act(async () => {
+      fireEvent.change(cityInput, { target: { value: 'Warszawa' } });
+    });
+
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Wprowadź poprawną nazwę powiatu (np. "powiat warszawski")');
+  });
+
+  it('powinien zaakceptować poprawną nazwę powiatu', async () => {
+    render(<PropertyPricesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    const cityInput = screen.getByLabelText('Nazwa powiatu');
+    await act(async () => {
+      fireEvent.change(cityInput, { target: { value: 'powiat warszawski' } });
+    });
+
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
+
+    // Sprawdzamy, że nie pojawił się błąd walidacji
+    const { toast } = require('react-toastify');
+    expect(toast.error).not.toHaveBeenCalledWith('Wprowadź poprawną nazwę powiatu (np. "powiat warszawski")');
+  });
+
+  it('powinien wyświetlić błąd, jeśli nazwa powiatu zawiera niedozwolone znaki', async () => {
+    const { toast } = require('react-toastify');
+    render(<PropertyPricesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+
+    const cityInput = screen.getByLabelText('Nazwa powiatu');
+    await act(async () => {
+      fireEvent.change(cityInput, { target: { value: 'powiat warszawski123!' } });
+    });
+
+    const searchButton = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(searchButton);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Nazwa powiatu zawiera niedozwolone znaki');
   });
 }); 

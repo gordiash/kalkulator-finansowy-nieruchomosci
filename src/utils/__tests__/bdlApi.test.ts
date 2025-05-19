@@ -1,4 +1,5 @@
 import { fetchPropertyPrices } from '../bdlApi';
+import { fetchP3788Prices } from '../bdlApi';
 
 // Mock dla fetch API
 global.fetch = jest.fn();
@@ -155,5 +156,37 @@ describe('BDL API Utils', () => {
     });
 
     await expect(fetchPropertyPrices('Warszawa', 2023)).rejects.toThrow('Nie udało się znaleźć podanego miasta');
+  });
+
+  test('fetchP3788Prices returns properly formatted price data', async () => {
+    // Mock dla pierwszego fetch (wyszukiwanie jednostki)
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [{ id: '1465', name: 'Warszawa' }]
+      })
+    });
+
+    // Mock dla drugiego fetch (pobieranie danych o cenach)
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            values: [
+              { year: 2023, quarter: 'I', val: 12000.00 },
+              { year: 2023, quarter: 'II', val: 12100.00 }
+            ]
+          }
+        ]
+      })
+    });
+
+    const result = await fetchP3788Prices('Warszawa', 2023);
+
+    expect(result).toEqual([
+      { city: 'Warszawa', price: 12000.00, year: 2023, quarter: 'I' },
+      { city: 'Warszawa', price: 12100.00, year: 2023, quarter: 'II' }
+    ]);
   });
 }); 

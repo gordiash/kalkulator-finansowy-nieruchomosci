@@ -177,8 +177,6 @@ describe('Testy wydajnościowe dla funkcji generateMortgageSchedule', () => {
       });
     }
     
-    console.table(results);
-    
     // Sprawdzamy, czy liczba rat na milisekundę nie spada drastycznie dla dłuższych okresów
     // co wskazywałoby na problem ze skalowalnością algorytmu
     const shortPeriodEfficiency = results[0].paymentsPerMs;
@@ -187,7 +185,6 @@ describe('Testy wydajnościowe dla funkcji generateMortgageSchedule', () => {
     // Oczekujemy, że wydajność (raty/ms) dla długich okresów będzie co najmniej 
     // 50% wydajności dla krótkich okresów
     const efficiencyRatio = longPeriodEfficiency / shortPeriodEfficiency;
-    console.log(`Stosunek wydajności (długi okres / krótki okres): ${efficiencyRatio.toFixed(2)}`);
     
     // Ten test może być dostosowany do oczekiwań wydajnościowych
     expect(efficiencyRatio).toBeLessThan(1); // Oczekujemy pewnej degradacji, ale nie drastycznej

@@ -1,0 +1,2038 @@
+OPIS METOD
+API BDL
+
+WERSJA 1
+
+PARTNER w Projekcie
+GŁÓWNY URZĄD STATYSTYCZNY
+Al. Niepodległości 208, 00-925 Warszawa
+tel. (22) 608 31 00
+www.stat.gov.pl
+
+BENEFICJENT: Ministerstwo Cyfryzacji
+Oś priorytetowa: POPC II oś „E-administracja i otwarty rząd”
+Działanie: 2.3 Cyfrowa dostępność i użyteczność informacji sektora publicznego
+Tytuł projektu: Otwarte dane – dostęp, standard, edukacja
+Nr Umowy/Porozumienia o dofinansowanie:
+POPC.02.03.01-00-0028/17-00 z dnia 01.09.2017 r
+
+Spis treści
+1. PODSTAWOWE INFORMACJE O USŁUDZE ..........................................................................................3
+2. KOMUNIKACJA Z USŁUGĄ ...........................................................................................................................3
+2.1 Mechanizm uwierzytelniania klienta i obsługi sesji .................................................................3
+2.2 Rejestracja ..................................................................................................................................................3
+2.3 Limity ...........................................................................................................................................................4
+2.4 Zasoby ..........................................................................................................................................................4
+2.5 zasoby i ich metody ................................................................................................................................5
+2.5.1 Agregaty ..................................................................................................................... 6
+2.5.2 Atrybuty ...................................................................................................................... 8
+2.5.3 Dane.......................................................................................................................... 10
+2.5.4 poziomy .................................................................................................................... 16
+2.4.5 jednostki miary ......................................................................................................... 18
+2.5.6 tematy ...................................................................................................................... 20
+2.5.7 Jednostki ................................................................................................................... 23
+2.5.8 Zmienne .................................................................................................................... 29
+2.5.9 Lata ........................................................................................................................... 33
+2.5.10 wersja ..................................................................................................................... 35
+3 REGULAMIN korzystania z usługi .......................................................................................................... 36
+1. Definicje ...................................................................................................................................................... 36
+2. Zasady korzystania z Usługi ............................................................................................................... 36
+3. Odpowiedzialność................................................................................................................................... 37
+
+1. PODSTAWOWE INFORMACJE O USŁUDZE
+Bank Danych Lokalnych jest największą w Polsce bazą danych o gospodarce,
+społeczeństwie i środowisku. Oferuje ponad 40 tys. cech statystycznych pogrupowanych
+tematycznie. W usłudze API BDL dane udostępniane są poprzez interfejs programistyczny.
+Usługa API BDL dostępna jest pod adresem https://bdl.stat.gov.pl/api/v1/ .
+
+2. KOMUNIKACJA Z USŁUGĄ
+2.1 MECHANIZM UWIERZYTELNIANIA KLIENTA I OBSŁUGI SESJI
+API BDL jest ogólnodostępne dla wszystkich zainteresowanych, także anonimowych
+użytkowników. Ze względów wydajnościowych liczba żądań użytkownika jest limitowana.
+W celu skorzystania z wyższych limitów wymagany jest klucz API. Użytkownicy potrzebujący
+klucza mogą zarejestrować się podając adres mail, na który zostanie on przesłany.
+2.2 REJESTRACJA
+
+Rejestracja możliwa jest przy użyciu formularza :
+
+Uzyskany Klucz API należy podawać w żądaniu jako nagłówek HTTP o nazwie XClientId, np.:
+GET https://bdl.stat.gov.pl/api/v1/data/by-variable/3643?format=xml&year=2000&year=2010 HTTP/1.1
+Host: hostname
+X-ClientId: 1A6B2AB1-0DF0-4DAC-74A3-07D7C07FC3BE
+
+2.3 LIMITY
+W zakresie żądań obowiązują następujące limity dla użytkowników :
+
+Kategoria Użytkownik
+
+Użytkownik
+
+Okres
+
+anonimowy
+
+zarejestrowany
+
+1s
+
+5
+
+10
+
+15m
+
+100
+
+500
+
+12h
+
+1 000
+
+5 000
+
+7d
+
+10 000
+
+50 000
+
+2.4 ZASOBY
+
+Usługa API BDL udostępnia zasoby Banku Danych Lokalnych poprzez API typu REST
+za pomocą parametryzowanych metod „get”. Każdy zdefiniowany zasób oprócz
+specyficznych żądań o dane obsługuje żądanie dotyczące metadanych, czyli opisu
+zawartości zasobu.
+W aplikacji zdefiniowane i udostępniane są następujące zasoby:
+
+Agregaty / Aggregates - poziomy agregowania danych, dla których znajdują się
+dane, np. gminy miejskie lub gminy miejsko-wiejskie.
+Atrybuty / Attributes - opisy specyficznych sytuacji w danych, które powiązane są z
+każdą wartością liczbową, np. 'Wartość mniejsza niż przyjęty format prezentacji'.
+Dane/ Data - dane liczbowe w postaci trójki [liczba rzeczywista, identyfikator
+atrybutu, identyfikator roku], w postaci zbioru danych dla konkretnej zmiennej lub
+zbioru danych dla jednej jednostki (więcej informacji poniżej).
+Poziomy / Levels – poziomy dostępności danych, odpowiadające poziomowi
+jednostek terytorialnych, np. 2 – poziom województw.
+Jednostki miary / Measures - jednostki miary występujące w danych, związane z
+konkretnymi zmiennymi, np. 'tysiąc litrów'.
+Tematy / Subjects - hierarchicznie powiązane grupy zmiennych wg zakresu
+merytorycznego, np. 'Ludność', 'Ludność wg grup wieku i płci' (więcej informacji
+poniżej).
+
+Jednostki / Units - hierarchicznie powiązana lista jednostek terytorialnych (od
+Polski do gmin włącznie) i miejscowości statystycznych.
+Zmienne / Variables - to wielowymiarowe cechy reprezentujące określone
+zjawisko, z określonym obowiązywaniem w latach i na konkretnym poziomie
+jednostek, np. liczba pracujących dla wieku '20-26' i płci 'mężczyźni'.
+Lata/ Years - lata obowiązywania, dla których mogą występować dane, np. '2003',
+'2004'
+Version - Wersja aplikacji
+2.5 ZASOBY I ICH METODY
+
+Wszystkie metody oprócz wymienionych parametrów mają 4 dodatkowe:
+AcceptLanguage
+enum
+(header)
+Accept
+enum
+(header)
+If-NoneMatch
+
+Oczekiwany język odpowiedzi - opcjonalny (jeśli podano parametr "lang", nagłówek
+“Accept-Language” zostanie ignorowany) / Expected response conent language - optional
+(if “lang” parameter is specified, the “Accept-Language” header will be ignored)
+Available values : pl, en
+Oczekiwany format odpowiedzi - opcjonalny (jeśli podano parametr "format", nagłówek
+“Accept” zostanie zignorowany) / Expected response content type - optional (if the
+“format” parameter is specified, the “Accept” header will be ignored)
+Available values : application/json, application/vnd.api+json, application/xml
+Nagłówek warunkowego żadania If-None-Match (entity tag)/Conditional Requests
+header If-None-Match (entity tag)
+
+string
+(header)
+IfNagłówek warunkowego żadania If-Modified-Since/Conditional Requests header IfModified- Modified-Since
+Since
+string
+(header)
+
+2.5.1 AGREGATY
+Agregaty / Aggregates
+
+Metody:
+Typ
+
+Składnia
+
+GET
+
+Aggregates/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+Oczekiwany język odpowiedzi - opcjonalny (jeśli podano parametr,
+nagłówek “Accept-Language” jest ignorowany)
+
+enum
+(query)
+
+Expected response conent language - optional (if parameter
+specified, request header “Accept-Language” is ignored)
+Available values : pl, en
+
+format
+enum
+(query)
+
+Oczekiwany format odpowiedzi - opcjonalny (jeśli podano parametr,
+nagłówek “Accept” jest ignorowany) /
+Expected response content type - optional (if parameter specified,
+request header “Accept” is ignored)
+Available values : json, xml
+
+Przykład
+GET
+
+aggregates/metadata?lang=en&format=xml
+
+Aggregates/{id}
+Poziom agregacji o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id poziomu agregacji /
+
+integer($int32)
+
+Aggregation level Id
+
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+aggregates/3?format=xml
+Agregat z identyfikatorem Id=3
+
+GET
+
+Aggregates
+Lista poziomów agregacji
+Parametry
+
+Opis
+
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name,
+Name, -Name, Name,Id, Name,-Id, -Name,Id, -Name,-Id **
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+aggregates?format=xml
+Lista wszystkich agregatów
+
+* parametr wymagany
+
+** lista wszystkich możliwych kombinacji sortowania dla tego zasobu
+
+2.5.2 ATRYBUTY
+Atrybuty / Attributes
+
+Metody:
+Typ
+
+Składnia
+
+GET
+
+Attributes/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+(query)
+Przykład
+GET
+
+attributes/metadata?format=json
+
+Attributes /{id}
+Atrybut o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Atrybut o zadanym Id
+
+integer($int32)
+
+Atrribute with selected Id
+
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+attributes/3?format=json
+Atrybut z identyfikatorem Id=K3
+
+GET
+
+Attributes
+Lista atrybutów
+Parametry
+
+Opis
+
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Display, -Display, Display,Id, Display,-Id, -Display,Id,
+-Display,-Id, Display,Id,Symbol, Display,Id,-Symbol, Display,Id,Symbol, Display,-Id,-Symbol, -Display,Id,Symbol, -Display,Id,Symbol, -Display,-Id,Symbol, -Display,-Id,-Symbol, Display,Symbol,
+Display,-Symbol, -Display,Symbol, -Display,-Symbol,
+Display,Symbol,Id, Display,Symbol,-Id, Display,-Symbol,Id, Display,Symbol,-Id, -Display,Symbol,Id, -Display,Symbol,-Id, -Display,Symbol,Id, -Display,-Symbol,-Id, Id, -Id, Id,Display, Id,-Display, Id,Display, -Id,-Display, Id,Display,Symbol, Id,Display,-Symbol, Id,Display,Symbol, Id,-Display,-Symbol, -Id,Display,Symbol, -Id,Display,Symbol, -Id,-Display,Symbol, -Id,-Display,-Symbol, Id,Symbol, Id,Symbol, -Id,Symbol, -Id,-Symbol, Id,Symbol,Display, Id,Symbol,Display, Id,-Symbol,Display, Id,-Symbol,-Display, -Id,Symbol,Display, Id,Symbol,-Display, -Id,-Symbol,Display, -Id,-Symbol,-Display,
+Symbol, -Symbol, Symbol,Display, Symbol,-Display, -Symbol,Display,
+-Symbol,-Display, Symbol,Display,Id, Symbol,Display,-Id, Symbol,Display,Id, Symbol,-Display,-Id, -Symbol,Display,Id, -Symbol,Display,Id, -Symbol,-Display,Id, -Symbol,-Display,-Id, Symbol,Id, Symbol,-Id, Symbol,Id, -Symbol,-Id, Symbol,Id,Display, Symbol,Id,-Display,
+Symbol,-Id,Display, Symbol,-Id,-Display, -Symbol,Id,Display, Symbol,Id,-Display, -Symbol,-Id,Display, -Symbol,-Id,-Display
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+attributes?format=xml
+Lista atrybutów
+
+2.5.3 DANE
+
+Dane/ Data
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Data/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+data/metadata?format=json
+
+/Data/ByVariable/{var-Id}
+Dane dla jednej zmiennej
+Parametry
+
+Opis
+
+varId *
+
+Id zmiennej /
+
+integer($int
+32)
+
+Variable Id
+
+(path)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+unitParentId
+
+Identyfikator nadrzędnej jednostki terytorialnej /
+
+string
+
+Paren’s territorial units Id
+
+(query)
+unitLevel
+integer($int
+
+Poziom jednostek terytorialnych /
+
+32)
+
+Territorial units level
+
+(query)
+aggregateId
+
+Id poziomu agregacji /
+
+integer($int
+32)
+
+Aggregation level Id
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+data/ByVariable/3643?format=json&year=2000&year=2010
+Dane dla zmiennej z identyfikatorem Id=3643 za lata 2000,2010
+
+GET
+
+Data/ByUnit/{unit-Id}
+Dane dla jednej jednostki terytorialnej
+Parametry
+
+Opis
+
+unitId *
+
+Id jednostki terytorialnej /
+
+string
+
+Territorial unit id
+
+(path)
+varId
+
+Lista Id zmiennych /
+
+array[intege
+
+Variable Id list
+
+r]
+(query)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+aggregateId
+
+Id poziomu agregacji /
+
+integer($int
+32)
+
+Aggregation level Id
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+data/ByVariable/65809?format=json&year=2004&year=2005&year=2006
+Dane dla zmiennej z identyfikatorem Id=65809 za lata 2004-2006
+
+GET
+
+Data/Data/Localities/ByVariable/{var-Id}
+Dane dla miejscowości statystycznych dla jednej zmiennej
+Parametry
+
+Opis
+
+varId *
+
+Id zmiennej /
+
+integer($int
+32)
+
+Variable Id
+
+(path)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+unitParentId
+
+Identyfikator nadrzędnej jednostki terytorialnej /
+
+string
+
+Paren’s territorial units Id
+
+(query
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+data/Localities/ByVariable/420?format=xml&unitParentId=011200000000
+Dane dla zmiennej z identyfikatorem Id=420, dla miejscowości
+z województwa Małopolskiego
+
+GET
+
+Data/Localities/ByUnit/{unit-Id}
+Dane dla jednej miejscowości statystycznej
+
+Parametry
+
+Opis
+
+unitId *
+
+Id miejscowości statystycznej /
+
+string
+
+Statistical locality id
+
+(path)
+varId
+
+Lista Id zmiennych /
+
+array[intege
+r]
+
+Variable Id list
+
+(query)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+aggregateId
+
+Id poziomu agregacji /
+
+integer($int
+32)
+
+Aggregation level Id
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+
+Przykład
+
+data/ByUnit/012400000000?format=xml&varId=3643&year=2004&year=2005&yea
+r=2006
+Dane dla jednostki terytorialnej z Id=012400000000, dla zmiennej z Id=3643,
+za lata 2004-2006
+
+2.5.4 POZIOMY
+
+Poziomy / Levels
+Metody:
+Typ
+
+Składnia
+
+GET
+
+Levels/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+levels/metadata?format=json
+
+Levels/{id}
+Poziom dostępności danych o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id poziomu /
+
+integer($int
+32)
+
+Level Id
+
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+/levels/3?format=xml
+Poziom dostępności danych z identyfikatorem Id=3
+
+GET
+
+Levels
+Lista poziomów dostępności
+Parametry
+
+Opis
+
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name, Name, -Name,
+Name,Id, Name,-Id, -Name,Id, -Name,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+Levels?sort=id
+Lista wszystkich poziomów dostępności – sort wg kolumny ID
+
+2.4.5 JEDNOSTKI MIARY
+
+Jednostki miary / Measures
+Metody:
+Typ
+
+Składnia
+
+GET
+
+Measures/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+measures/metadata?format=json
+
+Measures/{id}
+Jednostka miary o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id jednostki miary /
+
+integer($int
+32)
+
+Measure unit Id
+
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+/measures/3?format=xml
+Jednostka miary z identyfikatorem Id=3
+
+GET
+
+Measures
+Lista jednostek miary
+Parametry
+
+Opis
+
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name, Name, -Name,
+Name,Id, Name,-Id, -Name,Id, -Name,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+Measures?sort=id
+Lista wszystkich jednostek miar – sort wg kolumny wg ID
+
+2.5.6 TEMATY
+
+Tematy / Subjects
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Subjects/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+Subjects/metadata
+
+Subjects
+Lista tematów
+Parametry
+
+Opis
+
+parentId
+
+Identyfikator tematu nadrzędnego /
+
+string
+
+Parent subject’s Id
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name, Name, -Name,
+Name,Id, Name,-Id, -Name,Id, -Name,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+subjects?format=xml
+Lista wszystkich tematów najwyższego poziomu
+
+GET
+
+Subjects/search
+Wyszukiwanie tematów wg nazwy
+Parametry
+
+Opis
+
+name
+
+Fragment nazwy tematu /
+
+string
+
+Subject’s name fragment
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name, Name, -Name,
+Name,Id, Name,-Id, -Name,Id, -Name,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+subjects/search?name=samochody
+Wyszukiwanie tematów ze słowem 'samochody' w nazwie
+
+GET
+
+Subjects/{id}
+Temat o zadanym ID
+Parametry
+
+Opis
+
+name
+
+Id tematu /
+
+string
+
+Subject Id
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+subjects/K3
+Temat z identyfikatorem Id=K3
+
+2.5.7 JEDNOSTKI
+
+Jednostki / Units
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Units/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+units /metadata
+
+Units/{id}
+Jednostka terytorialna (do poziomu gminy) o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id jednostki terytorialnej
+
+string
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+units/010000000000?format=xml
+Jednostka terytorialna z identyfikatorem Id=010000000000
+
+GET
+
+Units
+Lista jednostek terytorialnych
+Parametry
+
+Opis
+
+parentId
+
+Id nadrzędnej jednostki terytorialnej
+
+string
+(query)
+level
+
+Poziom
+
+array[intege
+r]
+
+0 – Polska, 1 – Makroregion, 2 – Województwo, 3 – Region, 4 – Podregion,
+5 – Powiat, 6 - Gmina
+
+(query)
+page
+
+j.w.
+
+integer($int
+32)
+(query)
+pageSize
+
+j.w.
+
+integer($int
+32)
+(query)
+sort
+
+Oczekiwana kolejność / Desired order
+
+string
+
+Available values : Id, -Id, Id,Name, Id,-Name, -Id,Name, -Id,-Name, Name, -Name,
+Name,Id, Name,-Id, -Name,Id, -Name,-Id
+
+(query)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+GET
+
+units
+
+Units/search
+Wyszukiwanie jednostek według nazwy
+
+Parametry
+
+Opis
+
+name
+
+Fragment nazwy jednostki
+
+string
+(query)
+level
+
+j.w.
+
+array[intege
+r]
+(query)
+year
+
+Lista lat
+
+array[intege
+r]
+(query)
+kind
+
+Rodzaj jednostki
+
+string
+(query)
+
+sort
+
+Oczekiwana kolejność
+
+string
+
+j.w.
+
+(query)
+
+page
+
+j.w.
+
+integer($int32)
+(query)
+
+pageSize
+
+j.w.
+
+integer($int32)
+(query)
+
+lang
+
+j.w.
+
+enum
+(query)
+
+format
+enum
+
+j.w.
+
+GET
+
+(query)
+
+Available values : json, jsonapi, xml
+
+Przykład
+
+units/search?level=1&year=2010&page=0&pageSize=10
+
+Units/localities
+Lista miejscowości statystycznych
+Parametry
+
+Opis
+
+parentId *
+
+Id nadrzędnej jednostki terytorialnej
+
+string
+(query)
+
+page
+
+j.w.
+
+integer($int32)
+(query)
+
+pageSize
+
+j.w.
+
+integer($int32)
+(query)
+
+sort
+
+j.w.
+
+string
+(query)
+
+lang
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+
+format
+
+j.w.
+
+enum
+(query)
+
+Przykład
+
+units/localities?parentId=011212001011&page=0&pageSize=10
+
+GET
+
+Units/localities/{id}
+Miejscowość statystyczna o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id miejscowości statystycznej
+
+string
+(path)
+
+lang
+
+j.w.
+
+enum
+(query)
+
+format
+
+j.w.
+
+enum
+(query)
+
+Przykład
+
+GET
+
+units/localities/011212001011-0981682
+
+Units/localities/search
+Wyszukiwanie miejscowości statystycznych według nazwy
+Parametry
+
+Opis
+
+name
+
+Fragment nazwy jednostki
+
+string
+(query)
+
+year
+
+Lista lat
+
+array[integer]
+(query)
+
+sort
+
+j.w.
+
+string
+(query)
+
+page
+
+j.w.
+
+integer($int32)
+(query)
+
+pageSize
+
+j.w.
+
+integer($int32)
+(query)
+
+lang
+
+j.w.
+
+enum
+(query)
+
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+
+Przykład
+
+units/localities/search?year=2007&sort=name&page=0&pageSize=10
+
+2.5.8 ZMIENNE
+
+Zmienne / Variables
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Variables/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+GET
+
+Variables /metadata
+
+Variables/{id}
+Zmienna o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id jednostki miary
+
+integer($int
+32)
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+variables/1688
+
+Zmienna z identyfikatorem Id=1688
+GET
+
+Variables
+Lista zmiennych
+Parametry
+
+Opis
+
+subjectId
+
+Id tematu /
+
+string
+
+Subject Id
+
+(query)
+level
+
+Poziom /
+
+integer($int
+32)
+
+Level
+
+(query)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,SubjectId, Id,-SubjectId, -Id,SubjectId, -Id,-SubjectId,
+SubjectId, -SubjectId, SubjectId,Id, SubjectId,-Id, -SubjectId,Id, -SubjectId,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+/variables?subjectId=P2137&year=2005&year=2006&format=xml
+Lista zmiennych dla tematu z Id=P2137, występujących w latach 2005,2006
+
+GET
+
+Variables/search
+Wyszukiwanie zmiennych wg warunków
+Parametry
+
+Opis
+
+subjectId
+
+Id tematu nadrzędnego /
+
+string
+
+Parent’s subject Id
+
+(query)
+name
+
+Tekst w polach N1…N5 /
+
+string
+
+Text in N1… N5 fields
+
+(query)
+level
+
+Poziom /
+
+integer($int
+32)
+
+Level
+
+(query)
+year
+
+Lista lat /
+
+array[intege
+r]
+
+Years list
+
+(query)
+page
+
+Indeks strony /
+
+integer($int
+32)
+
+Page index
+
+(query)
+pageSize
+
+Rozmiar strony /
+
+integer($int
+32)
+
+Page size
+
+(query)
+
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id, Id,SubjectId, Id,-SubjectId, -Id,SubjectId, -Id,-SubjectId,
+SubjectId, -SubjectId, SubjectId,Id, SubjectId,-Id, -SubjectId,Id, -SubjectId,-Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+/variables/search?name=samochody
+Wyszukiwanie zmiennych ze słowem 'samochody' w nazwach wymiarów
+
+2.5.9 LATA
+
+Lata/ Years
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Years/metadata
+Metadane
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, xml
+
+(query)
+Przykład
+GET
+
+Years /metadata
+
+Years /{id}
+Zmienna o zadanym Id
+Parametry
+
+Opis
+
+id *
+
+Id roku
+
+string
+(path)
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+Years /2003
+Rok z identyfikatorem Id=2003
+
+GET
+
+Years
+Lista lat obowiązywania danych
+Parametry
+
+Opis
+
+subjectId
+
+Id tematu /
+
+string
+
+Subject Id
+
+(query)
+sort
+
+Oczekiwana kolejność /
+
+string
+
+Desired order
+
+(query)
+
+Available values : Id, -Id
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+
+Available values : json, jsonapi, xml
+
+(query)
+Przykład
+
+/ Years?subjectId=P2137&year=2005&year=2006&format=xml
+Lista zmiennych dla tematu z Id=P2137, występujących w latach 2005,2006
+
+2.5.10 WERSJA
+Version
+
+Metody :
+Typ
+
+Składnia
+
+GET
+
+Version
+Wersja aplikacji
+Parametry
+
+Opis
+
+lang
+
+j.w.
+
+enum
+(query)
+format
+
+j.w.
+
+enum
+(query)
+Przykład
+
+Version
+
+3 REGULAMIN KORZYSTANIA Z USŁUGI
+
+1. DEFINICJE
+
+1. Usługodawca - Główny Urząd Statystyczny, z siedzibą przy al. Niepodległości 208,
+00-925 Warszawa.
+2. Usługobiorca – każdy Użytkownik (anonimowy lub nie) korzystający z zasobów
+Banku Danych Lokalnych (BDL) za pomocą interfejsu programistycznego API do
+Banku Danych Lokalnych.
+3. Usługa - Usługa udostępniania danych z zasobów Banku Danych Lokalnych
+(Usługa BDL API) - oprogramowanie, usługa sieciowa, pozwalająca na pobieranie
+danych z zasobów Banku Danych Lokalnych bezpośrednio z poziomu zewnętrznych
+systemów teleinformatycznych lub też za pomocą narzędzi udostępnianych na
+stronach Głównego Urzędu Statystycznego.
+4. Klucz użytkownika - trzydziestosześcioznakowy ciąg liter i cyfr umożliwiający
+Usługobiorcy korzystanie z Usługi ze zwiększonymi limitami zapytań.
+
+2. ZASADY KORZYSTANIA Z USŁUGI
+
+1. Korzystanie z Usługi BDL API udostępniania danych z zasobów Banku Danych Lokalnych
+zwanej dalej Usługą, wiąże się z akceptacją niniejszego regulaminu (wraz z późniejszymi
+zmianami).
+2. Dostęp do Usługi jest bezpłatny.
+3. Metody udostępniane przez Usługę mogą być implementowane w dowolnych systemach
+teleinformatycznych, używanych bądź wytwarzanych przez Usługobiorcę.
+4. Niedozwolone są działania mogące doprowadzić do przeciążenia systemu bądź jego
+nieprawidłowego działania.
+5. Zgłoszenia natury technicznej prosimy kierować na adres bdl.kontakt@stat.gov.pl
+(podając w temacie: API-Pomoc).
+
+3. ODPOWIEDZIALNOŚĆ
+1. Usługodawca zastrzega sobie prawo do wprowadzania modyfikacji do systemu,
+prowadzenia prac konserwacyjnych oraz innych działań mogących powodować czasową
+niedostępność lub utrudnienia w korzystaniu z Usługi.
+2. Usługodawca nie ponosi odpowiedzialności z tytułu utraconych korzyści poniesionych
+przez Usługobiorcę lub osoby trzecie korzystające z Usługi.
+3. Usługodawca nie ponosi odpowiedzialności za brak możliwości dostępu do usług
+wynikający z niezgodnego ze specyfikacją techniczną wykorzystywania Usługi BDL API.
+
+

@@ -7,6 +7,14 @@
   # Wyłączenie traktowania ostrzeżeń ESLint jako błędów
   CI = "false" 
 
+[dev]
+  command = "npm start"
+  port = 8888
+  targetPort = 3000
+  publish = "build"
+  framework = "#custom"
+  autoLaunch = true
+
 # Konfiguracja nagłówków bezpieczeństwa
 [[headers]]
   for = "/*"

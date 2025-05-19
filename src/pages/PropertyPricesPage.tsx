@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { PropertyPrice } from '../types';
-import { fetchPropertyPrices, fetchAvailableYears } from '../utils/bdlApi';
+import { fetchPropertyPrices, fetchAvailableYears, fetchP3788Prices } from '../utils/bdlApi';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,9 +28,6 @@ ChartJS.register(
   Legend
 );
 
-// Typ rynku nieruchomości
-type MarketType = 'primary' | 'secondary';
-
 // Typ wykresu
 type ChartType = 'line' | 'bar';
 
@@ -42,21 +39,22 @@ const PropertyPricesPage: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [startYear, setStartYear] = useState<number | null>(null);
   const [endYear, setEndYear] = useState<number | null>(null);
-  const [marketType, setMarketType] = useState<MarketType>('primary');
   const [chartType, setChartType] = useState<ChartType>('line');
-  
+  const [variableId, setVariableId] = useState<string>('P3788'); // domyślny wskaźnik
+  const [marketType, setMarketType] = useState<'primary' | 'secondary'>('primary');
+
   // Usuwamy niepotrzebną referencję, gdyż powoduje problemy z typami
   // const chartRef = useRef<ChartJS>(null);
 
-  // Pobranie dostępnych lat z API przy ładowaniu komponentu
+  // Pobranie dostępnych lat z API przy ładowaniu komponentu lub zmianie wskaźnika
   useEffect(() => {
     async function getAvailableYears() {
       try {
         setIsLoading(true);
-        const years = await fetchAvailableYears();
+        const years = await fetchAvailableYears(variableId);
         setAvailableYears(years);
-        setStartYear(years[years.length - 1]); // Najstarszy rok
-        setEndYear(years[0]); // Najnowszy rok
+        setStartYear(years[0]); // najstarszy rok
+        setEndYear(years[years.length - 1]); // najnowszy rok
       } catch (err: any) {
         setError('Błąd podczas pobierania dostępnych lat: ' + (err.message || 'Nieznany błąd'));
         console.error(err);
@@ -65,17 +63,48 @@ const PropertyPricesPage: React.FC = () => {
       }
     }
     getAvailableYears();
-  }, []);
+  }, [variableId]);
 
-  // ID wskaźnika GUS BDL zależne od wybranego typu rynku
-  const getMarketIndicatorId = (type: MarketType): string => {
-    // P2425 - rynek pierwotny, P2426 - rynek wtórny
-    return type === 'primary' ? 'P2425' : 'P2426';
-  };
+  // Nowa funkcja do wyszukiwania unitId po nazwie miasta/powiatu
+  async function findUnitIdByName(name: string): Promise<string | null> {
+    // Najpierw szukaj na poziomie miasta (level 6)
+    let res = await fetch('/.netlify/functions/bdlApi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: 'Units/search',
+        params: { name, level: '6', format: 'json', lang: 'pl', pageSize: '10' },
+      }),
+    });
+    let data = await res.json();
+    if (data.results && data.results.length > 0) return data.results[0].id;
+    // Jeśli nie znaleziono, szukaj na poziomie powiatu (level 5)
+    res = await fetch('/.netlify/functions/bdlApi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: 'Units/search',
+        params: { name, level: '5', format: 'json', lang: 'pl', pageSize: '10' },
+      }),
+    });
+    data = await res.json();
+    if (data.results && data.results.length > 0) return data.results[0].id;
+    return null;
+  }
 
   const handleFetchPrices = async () => {
     if (!cityName.trim()) {
-      toast.error('Wprowadź nazwę miasta');
+      toast.error('Wprowadź nazwę powiatu');
+      return;
+    }
+    if (!cityName.trim().toLowerCase().startsWith('powiat')) {
+      toast.error('Wprowadź poprawną nazwę powiatu (np. "powiat warszawski")');
+      return;
+    }
+    // Dodatkowa walidacja znaków
+    const allowed = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ.\-\s]+$/;
+    if (!allowed.test(cityName.trim())) {
+      toast.error('Nazwa powiatu zawiera niedozwolone znaki');
       return;
     }
     if (!startYear || !endYear) {
@@ -93,21 +122,25 @@ const PropertyPricesPage: React.FC = () => {
         { length: endYear - startYear + 1 },
         (_, i) => startYear + i
       );
-      // Produkcyjnie: pobieramy dane z API GUS BDL dla każdego roku
-      const allPrices = await Promise.all(
-        years.map(year => fetchPropertyPrices(cityName, year, getMarketIndicatorId(marketType)))
-      );
-      const propertyPrices = allPrices.flat();
+      let propertyPrices: PropertyPrice[] = [];
+      if (variableId === 'P3786') {
+        // 633697 - pierwotny, 633702 - wtórny
+        const varId = marketType === 'primary' ? '633697' : '633702';
+        propertyPrices = await fetchPropertyPrices(cityName.trim(), years, varId);
+      } else if (variableId === 'P3788') {
+        propertyPrices = await fetchP3788Prices(cityName.trim(), years, marketType);
+      } else {
+        propertyPrices = await fetchPropertyPrices(cityName.trim(), years, variableId);
+      }
       setPrices(propertyPrices);
       if (propertyPrices.length > 0) {
-        toast.success(`Pobrano dane dla miasta ${propertyPrices[0].city}`);
+        toast.success(`Pobrano dane dla wybranej jednostki`);
       } else {
-        toast.info('Brak danych dla wybranego miasta i lat');
+        toast.info('Brak danych dla wybranej jednostki i lat');
       }
     } catch (err: any) {
-      console.error('Błąd podczas pobierania danych:', err);
-      setError(err.message || 'Wystąpił błąd podczas pobierania danych. Spróbuj ponownie.');
-      toast.error('Nie udało się pobrać danych');
+      setError(err.message || 'Brak danych dla wybranej jednostki lub lat.');
+      toast.error(err.message || 'Brak danych dla wybranej jednostki lub lat.');
     } finally {
       setIsLoading(false);
     }
@@ -138,10 +171,10 @@ const PropertyPricesPage: React.FC = () => {
         labels: yearlyAverages.map(data => data.year.toString()),
         datasets: [
           {
-            label: `Średnia cena za m² (${marketType === 'primary' ? 'rynek pierwotny' : 'rynek wtórny'})`,
+            label: `Średnia cena za m²`,
             data: yearlyAverages.map(data => data.price),
-            borderColor: marketType === 'primary' ? 'rgb(99, 102, 241)' : 'rgb(14, 165, 233)',
-            backgroundColor: marketType === 'primary' ? 'rgba(99, 102, 241, 0.5)' : 'rgba(14, 165, 233, 0.5)',
+            borderColor: 'rgb(99, 102, 241)',
+            backgroundColor: 'rgba(99, 102, 241, 0.5)',
             tension: 0.3,
           },
         ],
@@ -150,9 +183,9 @@ const PropertyPricesPage: React.FC = () => {
         labels: quarterlyData.map(data => data.label),
         datasets: [
           {
-            label: `Cena za m² (${marketType === 'primary' ? 'rynek pierwotny' : 'rynek wtórny'})`,
+            label: `Cena za m²`,
             data: quarterlyData.map(data => data.price),
-            backgroundColor: marketType === 'primary' ? 'rgba(99, 102, 241, 0.8)' : 'rgba(14, 165, 233, 0.8)',
+            backgroundColor: 'rgba(99, 102, 241, 0.8)',
           },
         ],
       },
@@ -170,7 +203,7 @@ const PropertyPricesPage: React.FC = () => {
       },
       title: {
         display: true,
-        text: `Ceny nieruchomości w mieście ${cityName} (${startYear}-${endYear})`,
+        text: `Ceny nieruchomości w powiecie ${cityName} (${startYear}-${endYear})`,
         font: {
           size: 16,
         },
@@ -202,19 +235,19 @@ const PropertyPricesPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-indigo-800">
-        Ceny nieruchomości za m² według miast
+        Ceny nieruchomości według powiatów
       </h1>
 
       <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
         <p className="text-gray-700 mb-6">
           Ten kalkulator pozwala sprawdzić średnie ceny nieruchomości za metr kwadratowy
-          w wybranym mieście w Polsce. Dane pochodzą z Banku Danych Lokalnych GUS.
+          w wybranym powiecie w Polsce. Dane pochodzą z Banku Danych Lokalnych GUS.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <label htmlFor="cityName" className="block text-indigo-700 font-medium mb-1">
-              Nazwa miasta
+              Nazwa powiatu
             </label>
             <input
               id="cityName"
@@ -222,24 +255,55 @@ const PropertyPricesPage: React.FC = () => {
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={cityName}
               onChange={(e) => setCityName(e.target.value)}
-              placeholder="np. Warszawa, Kraków"
-              aria-label="Nazwa miasta"
+              placeholder="powiat m. Toruń, powiat olsztyński"
+              aria-label="Nazwa miasta lub powiatu"
             />
           </div>
 
           <div>
-            <label htmlFor="marketType" className="block text-indigo-700 font-medium mb-1">
-              Rodzaj rynku
+            <label htmlFor="variableId" className="block text-indigo-700 font-medium mb-1">
+              Rodzaj wskaźnika
             </label>
             <select
-              id="marketType"
+              id="variableId"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={marketType}
-              onChange={(e) => setMarketType(e.target.value as MarketType)}
-              aria-label="Rodzaj rynku"
+              value={variableId}
+              onChange={(e) => setVariableId(e.target.value)}
+              aria-label="Rodzaj wskaźnika"
             >
-              <option value="primary">Rynek pierwotny</option>
-              <option value="secondary">Rynek wtórny</option>
+              <option value="P3786">Cena transakcyjna m²</option>
+              <option value="P3788">Średnia cena lokali mieszkalnych sprzedanych w ramach transakcji rynkowych</option>
+            </select>
+          </div>
+
+          {(variableId === 'P3788' || variableId === 'P3786') && (
+            <div>
+              <label className="block text-indigo-700 font-medium mb-1">Rynek</label>
+              <select
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={marketType}
+                onChange={e => setMarketType(e.target.value as 'primary' | 'secondary')}
+                aria-label="Rynek nieruchomości"
+              >
+                <option value="primary">Pierwotny</option>
+                <option value="secondary">Wtórny</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="chartType" className="block text-indigo-700 font-medium mb-1">
+              Typ wykresu
+            </label>
+            <select
+              id="chartType"
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={chartType}
+              onChange={(e) => setChartType(e.target.value as ChartType)}
+              aria-label="Typ wykresu"
+            >
+              <option value="line">Liniowy</option>
+              <option value="bar">Słupkowy</option>
             </select>
           </div>
         </div>
@@ -278,28 +342,12 @@ const PropertyPricesPage: React.FC = () => {
               ))}
             </select>
           </div>
-
-          <div>
-            <label htmlFor="chartType" className="block text-indigo-700 font-medium mb-1">
-              Typ wykresu
-            </label>
-            <select
-              id="chartType"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={chartType}
-              onChange={(e) => setChartType(e.target.value as ChartType)}
-              aria-label="Typ wykresu"
-            >
-              <option value="line">Liniowy</option>
-              <option value="bar">Słupkowy</option>
-            </select>
-          </div>
         </div>
 
         <button
           className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition duration-200 mb-6 disabled:bg-indigo-300"
           onClick={handleFetchPrices}
-          disabled={isLoading || !cityName.trim() || !startYear || !endYear}
+          disabled={isLoading || !cityName || !startYear || !endYear}
         >
           {isLoading ? 'Pobieranie danych...' : 'Sprawdź ceny'}
         </button>
@@ -310,10 +358,24 @@ const PropertyPricesPage: React.FC = () => {
           </div>
         )}
 
+        {!isLoading && prices.length === 0 && !error && (
+          <div className="text-gray-600 mb-4 p-4 bg-gray-50 rounded-md text-center">
+            Brak danych dla wybranej jednostki lub lat.
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg text-xl font-semibold text-indigo-700 animate-pulse">
+              Pobieranie danych...
+            </div>
+          </div>
+        )}
+
         {chartData && prices.length > 0 && (
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-indigo-700 mb-4">
-              Wykres cen nieruchomości w mieście {prices[0].city}
+              Wykres cen nieruchomości w powiecie {cityName}
             </h2>
             
             <div className="bg-gray-50 p-4 rounded-lg mb-6" style={{ height: '400px' }}>
@@ -342,17 +404,15 @@ const PropertyPricesPage: React.FC = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 px-4 py-2 text-left">Rok</th>
-                    <th className="border border-gray-300 px-4 py-2 text-left">Kwartał</th>
-                    <th className="border border-gray-300 px-4 py-2 text-right">Cena za m²</th>
+                    <th className="border border-gray-300 px-4 py-2 text-center">Rok</th>
+                    <th className="border border-gray-300 px-4 py-2 text-center">Cena za m²</th>
                   </tr>
                 </thead>
                 <tbody>
                   {prices.map((price, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                      <td className="border border-gray-300 px-4 py-2">{price.year}</td>
-                      <td className="border border-gray-300 px-4 py-2">{price.quarter || '-'}</td>
-                      <td className="border border-gray-300 px-4 py-2 text-right">
+                      <td className="border border-gray-300 px-4 py-2 text-center">{price.year}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">
                         {price.price.toLocaleString('pl-PL', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -366,7 +426,7 @@ const PropertyPricesPage: React.FC = () => {
             
             <div className="mt-4 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
               <p>Dane pobrane z Banku Danych Lokalnych GUS. Ceny transakcyjne na 
-                {marketType === 'primary' ? ' rynku pierwotnym' : ' rynku wtórnym'}.</p>
+                rynku pierwotnym.</p>
               <p>Uwaga: Rzeczywiste ceny mogą różnić się od średnich wartości i zależą od wielu czynników.</p>
             </div>
           </div>
@@ -378,23 +438,15 @@ const PropertyPricesPage: React.FC = () => {
           Jak korzystać z kalkulatora cen nieruchomości?
         </h2>
         <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-          <li>Wpisz nazwę miasta, dla którego chcesz sprawdzić ceny nieruchomości.</li>
-          <li>Wybierz rodzaj rynku (pierwotny lub wtórny).</li>
+          <li>Wpisz nazwę powiatu, dla którego chcesz sprawdzić ceny nieruchomości (np. "powiat warszawski").</li>
           <li>Ustaw przedział lat, dla których chcesz zobaczyć dane.</li>
           <li>Wybierz typ wykresu (liniowy lub słupkowy).</li>
           <li>Kliknij przycisk "Sprawdź ceny" i poczekaj na wyniki.</li>
         </ol>
         <p className="mt-4 text-gray-700">
           Dane pochodzą z Banku Danych Lokalnych Głównego Urzędu Statystycznego.
-          Prezentowane ceny są średnimi cenami transakcyjnymi w danym mieście.
+          Prezentowane ceny są średnimi cenami transakcyjnymi w danym powiecie.
         </p>
-        <div className="mt-4 p-4 bg-blue-50 rounded-md text-blue-800">
-          <h3 className="font-medium mb-2">Rodzaje rynków:</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Rynek pierwotny</strong> - dotyczy nowych nieruchomości, sprzedawanych przez deweloperów.</li>
-            <li><strong>Rynek wtórny</strong> - dotyczy nieruchomości, które były już wcześniej użytkowane i są odsprzedawane.</li>
-          </ul>
-        </div>
       </div>
     </div>
   );

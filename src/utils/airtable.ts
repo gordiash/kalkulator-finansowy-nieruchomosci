@@ -89,13 +89,11 @@ function generateCSRFToken(): string {
 // Funkcja do zapisywania danych kalkulacji do Airtable (stub)
 export const saveCalculationToAirtable = async (data: any) => {
   // Implementacja do dodania w przyszłości
-  console.log('Zapisywanie danych kalkulacji:', data);
   return { success: true, id: 'mock-id-' + Date.now() };
 };
 
 // Funkcja do pobierania danych kalkulacji z Airtable (stub)
 export const getCalculationFromAirtable = async (id: string) => {
   // Implementacja do dodania w przyszłości
-  console.log('Pobieranie danych kalkulacji o ID:', id);
   return { success: true, data: {} };
 };

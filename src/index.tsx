@@ -20,6 +20,5 @@ root.render(
 reportWebVitals(process.env.NODE_ENV === 'production' ? 
   (metric) => {
     // W środowisku produkcyjnym metryki będą zbierane przez komponent GoogleAnalytics
-    console.log(metric);
   } : undefined
 ); 
