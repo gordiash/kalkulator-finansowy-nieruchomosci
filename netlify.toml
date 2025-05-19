@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "build"
+  functions = "netlify/functions"
 
 [build.environment]
   # Wyłączenie traktowania ostrzeżeń ESLint jako błędów
@@ -25,5 +26,9 @@
 
 # Funkcje Netlify
 [functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild" 
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 

@@ -53,30 +53,23 @@ const PropertyPricesPage: React.FC = () => {
     async function getAvailableYears() {
       try {
         setIsLoading(true);
-        // W środowisku produkcyjnym użyj rzeczywistego API
-        // const years = await fetchAvailableYears();
-        
-        // Dla celów demonstracyjnych używamy prostszej implementacji
-        const currentYear = new Date().getFullYear();
-        const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
-        
+        const years = await fetchAvailableYears();
         setAvailableYears(years);
         setStartYear(years[years.length - 1]); // Najstarszy rok
         setEndYear(years[0]); // Najnowszy rok
-      } catch (err) {
-        setError('Błąd podczas pobierania dostępnych lat');
+      } catch (err: any) {
+        setError('Błąd podczas pobierania dostępnych lat: ' + (err.message || 'Nieznany błąd'));
         console.error(err);
       } finally {
         setIsLoading(false);
       }
     }
-
     getAvailableYears();
   }, []);
 
   // ID wskaźnika GUS BDL zależne od wybranego typu rynku
   const getMarketIndicatorId = (type: MarketType): string => {
-    // W rzeczywistej implementacji należy użyć właściwych identyfikatorów z API GUS BDL
+    // P2425 - rynek pierwotny, P2426 - rynek wtórny
     return type === 'primary' ? 'P2425' : 'P2426';
   };
 
@@ -85,55 +78,32 @@ const PropertyPricesPage: React.FC = () => {
       toast.error('Wprowadź nazwę miasta');
       return;
     }
-
     if (!startYear || !endYear) {
       toast.error('Wybierz zakres lat');
       return;
     }
-
     if (startYear > endYear) {
       toast.error('Rok początkowy nie może być późniejszy niż rok końcowy');
       return;
     }
-
     try {
       setIsLoading(true);
       setError(null);
-
-      // Tworzenie tablicy z wszystkimi latami w zakresie
       const years = Array.from(
         { length: endYear - startYear + 1 },
         (_, i) => startYear + i
       );
-
-      // W środowisku produkcyjnym użyj rzeczywistego API
-      // const allPrices = await Promise.all(
-      //   years.map(year => fetchPropertyPrices(cityName, year, getMarketIndicatorId(marketType)))
-      // );
-      // const propertyPrices = allPrices.flat();
-      
-      // Dla celów demonstracyjnych używamy symulowanych danych
-      // Symulacja opóźnienia zapytania do API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Generowanie danych dla wszystkich lat w zakresie
-      const mockPrices: PropertyPrice[] = [];
-      
-      years.forEach(year => {
-        // Bazowa cena dla danego roku i typu rynku (pierwotny jest droższy)
-        const basePrice = marketType === 'primary' 
-          ? 8000 + (year - 2015) * 500 // Wzrost o 500 zł/m² rocznie dla rynku pierwotnego
-          : 6000 + (year - 2015) * 400; // Wzrost o 400 zł/m² rocznie dla rynku wtórnego
-          
-        // Dodanie losowych wahań dla każdego kwartału
-        mockPrices.push({ city: cityName, price: basePrice + Math.random() * 300, year, quarter: 'I' });
-        mockPrices.push({ city: cityName, price: basePrice + Math.random() * 300 + 100, year, quarter: 'II' });
-        mockPrices.push({ city: cityName, price: basePrice + Math.random() * 300 + 200, year, quarter: 'III' });
-        mockPrices.push({ city: cityName, price: basePrice + Math.random() * 300 + 300, year, quarter: 'IV' });
-      });
-
-      setPrices(mockPrices);
-      toast.success(`Pobrano dane dla miasta ${cityName}`);
+      // Produkcyjnie: pobieramy dane z API GUS BDL dla każdego roku
+      const allPrices = await Promise.all(
+        years.map(year => fetchPropertyPrices(cityName, year, getMarketIndicatorId(marketType)))
+      );
+      const propertyPrices = allPrices.flat();
+      setPrices(propertyPrices);
+      if (propertyPrices.length > 0) {
+        toast.success(`Pobrano dane dla miasta ${propertyPrices[0].city}`);
+      } else {
+        toast.info('Brak danych dla wybranego miasta i lat');
+      }
     } catch (err: any) {
       console.error('Błąd podczas pobierania danych:', err);
       setError(err.message || 'Wystąpił błąd podczas pobierania danych. Spróbuj ponownie.');
