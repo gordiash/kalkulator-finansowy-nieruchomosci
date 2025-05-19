@@ -31,7 +31,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!axios)/\"",
     "test:ci": "react-scripts test --ci --watchAll=false --transformIgnorePatterns \"node_modules/(?!axios)/\"",
     "eject": "react-scripts eject"

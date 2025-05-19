@@ -1,6 +1,6 @@
 [build]
   functions = "netlify/functions"
-  publish = "build"
+  publish = "kalkulator-finansowy-nieruchomosci/build"
 
 [build.environment]
   # Wyłączenie traktowania ostrzeżeń ESLint jako błędów
