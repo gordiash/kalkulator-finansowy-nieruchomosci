@@ -37,8 +37,6 @@ const PropertyPricesPage: React.FC = () => {
   const [prices, setPrices] = useState<PropertyPrice[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
-  const [startYear, setStartYear] = useState<number | null>(null);
-  const [endYear, setEndYear] = useState<number | null>(null);
   const [chartType, setChartType] = useState<ChartType>('line');
   const [variableId, setVariableId] = useState<string>('P3788'); // domyślny wskaźnik
   const [marketType, setMarketType] = useState<'primary' | 'secondary'>('primary');
@@ -53,8 +51,6 @@ const PropertyPricesPage: React.FC = () => {
         setIsLoading(true);
         const years = await fetchAvailableYears(variableId);
         setAvailableYears(years);
-        setStartYear(years[0]); // najstarszy rok
-        setEndYear(years[years.length - 1]); // najnowszy rok
       } catch (err: any) {
         setError('Błąd podczas pobierania dostępnych lat: ' + (err.message || 'Nieznany błąd'));
         console.error(err);
@@ -107,30 +103,18 @@ const PropertyPricesPage: React.FC = () => {
       toast.error('Nazwa powiatu zawiera niedozwolone znaki');
       return;
     }
-    if (!startYear || !endYear) {
-      toast.error('Wybierz zakres lat');
-      return;
-    }
-    if (startYear > endYear) {
-      toast.error('Rok początkowy nie może być późniejszy niż rok końcowy');
-      return;
-    }
     try {
       setIsLoading(true);
       setError(null);
-      const years = Array.from(
-        { length: endYear - startYear + 1 },
-        (_, i) => startYear + i
-      );
       let propertyPrices: PropertyPrice[] = [];
       if (variableId === 'P3786') {
         // 633697 - pierwotny, 633702 - wtórny
         const varId = marketType === 'primary' ? '633697' : '633702';
-        propertyPrices = await fetchPropertyPrices(cityName.trim(), years, varId);
+        propertyPrices = await fetchPropertyPrices(cityName.trim(), availableYears, varId);
       } else if (variableId === 'P3788') {
-        propertyPrices = await fetchP3788Prices(cityName.trim(), years, marketType);
+        propertyPrices = await fetchP3788Prices(cityName.trim(), availableYears, marketType);
       } else {
-        propertyPrices = await fetchPropertyPrices(cityName.trim(), years, variableId);
+        propertyPrices = await fetchPropertyPrices(cityName.trim(), availableYears, variableId);
       }
       setPrices(propertyPrices);
       if (propertyPrices.length > 0) {
@@ -203,7 +187,7 @@ const PropertyPricesPage: React.FC = () => {
       },
       title: {
         display: true,
-        text: `Ceny nieruchomości w powiecie ${cityName} (${startYear}-${endYear})`,
+        text: `Ceny nieruchomości w powiecie ${cityName} (${availableYears[0]}-${availableYears[availableYears.length - 1]})`,
         font: {
           size: 16,
         },
@@ -308,46 +292,10 @@ const PropertyPricesPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label htmlFor="startYear" className="block text-indigo-700 font-medium mb-1">
-              Rok początkowy
-            </label>
-            <select
-              id="startYear"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={startYear || ''}
-              onChange={(e) => setStartYear(parseInt(e.target.value))}
-              aria-label="Rok początkowy"
-            >
-              {availableYears.map(year => (
-                <option key={`start-${year}`} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="endYear" className="block text-indigo-700 font-medium mb-1">
-              Rok końcowy
-            </label>
-            <select
-              id="endYear"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={endYear || ''}
-              onChange={(e) => setEndYear(parseInt(e.target.value))}
-              aria-label="Rok końcowy"
-            >
-              {availableYears.map(year => (
-                <option key={`end-${year}`} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         <button
           className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition duration-200 mb-6 disabled:bg-indigo-300"
           onClick={handleFetchPrices}
-          disabled={isLoading || !cityName || !startYear || !endYear}
+          disabled={isLoading || !cityName}
         >
           {isLoading ? 'Pobieranie danych...' : 'Sprawdź ceny'}
         </button>
@@ -439,7 +387,6 @@ const PropertyPricesPage: React.FC = () => {
         </h2>
         <ol className="list-decimal pl-5 space-y-2 text-gray-700">
           <li>Wpisz nazwę powiatu, dla którego chcesz sprawdzić ceny nieruchomości (np. "powiat warszawski").</li>
-          <li>Ustaw przedział lat, dla których chcesz zobaczyć dane.</li>
           <li>Wybierz typ wykresu (liniowy lub słupkowy).</li>
           <li>Kliknij przycisk "Sprawdź ceny" i poczekaj na wyniki.</li>
         </ol>
