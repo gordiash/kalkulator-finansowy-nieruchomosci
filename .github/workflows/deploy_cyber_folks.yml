@@ -1,4 +1,4 @@
-name: FTP Deploy
+name: Deploy to Cyber_Folks
 
 on:
   push:
@@ -6,17 +6,24 @@ on:
       - main
 
 jobs:
-  ftp-deploy:
-    name: Upload to Cyber_Folks FTP
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: FTP Deploy
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build project
+      run: npm run build
+
+    - name: Deploy to FTP server
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        server: ftp.twojadomena.pl
+        server: ftp.kalkulatorynieruchomosci.pl
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: public_html/
+        server-dir: domains/kalkulatorynieruchomosci.pl/public_html/
+        local-dir: build/
