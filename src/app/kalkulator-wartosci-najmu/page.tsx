@@ -1,14 +1,17 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+// import type { Metadata } from 'next'; // Usunięto, jeśli nieużywane
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
-import ResultsDisplay from '../components/ResultsDisplay';
-import { CalculationResults } from '../types';
-import { sanitizeNumber } from '../utils/sanitizeUtils';
-import { Helmet } from 'react-helmet';
-import { gusInflationFetcher } from '../utils/gusInflationFetcher';
+
+import ResultsDisplay from '@/components/ResultsDisplay';
+import { CalculationResults } from '@/types.js';
+import { sanitizeNumber } from '@/utils/sanitizeUtils';
+import { gusInflationFetcher } from '@/utils/gusInflationFetcher';
 
 const RentalValueCalculatorPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [monthlyRent, setMonthlyRent] = useState<number>(0);
   const [roi, setRoi] = useState<number>(0);
@@ -26,9 +29,7 @@ const RentalValueCalculatorPage: React.FC = () => {
       
       try {
         const inflationValue = await gusInflationFetcher.getCurrentInflation();
-        
         setInflation(inflationValue);
-        
         console.log('Pobrano aktualną wartość inflacji z GUS:', inflationValue);
       } catch (error) {
         if (error instanceof Error) {
@@ -52,7 +53,7 @@ const RentalValueCalculatorPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const sharedData = searchParams.get('data');
+    const sharedData = searchParams ? searchParams.get('data') : null;
     if (sharedData) {
       try {
         const decodedData = JSON.parse(atob(sharedData));
@@ -66,7 +67,6 @@ const RentalValueCalculatorPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Bezpieczne metody aktualizacji stanu z walidacją
   const updateMonthlyRent = (value: string | number) => {
     setMonthlyRent(sanitizeNumber(value, 0, 0, null));
   };
@@ -81,36 +81,29 @@ const RentalValueCalculatorPage: React.FC = () => {
 
   const calculatePropertyValue = () => {
     if (monthlyRent <= 0 || roi <= 0 || rentalPeriod <= 0) {
-      alert('Wprowadź poprawne wartości dla wszystkich pól');
+      toast.error('Wprowadź poprawne wartości dla wszystkich pól'); // Zmieniono alert na toast.error
       return;
     }
 
-    // Ponowna sanityzacja wartości przed obliczeniami
     const sanitizedMonthlyRent = sanitizeNumber(monthlyRent, 0, 0, null);
     const sanitizedRoi = sanitizeNumber(roi, 0, 0.1, 100);
     const sanitizedRentalPeriod = sanitizeNumber(rentalPeriod, 0, 1, 100);
 
-    // Obliczanie rocznego zysku z najmu
     const yearlyRent = sanitizedMonthlyRent * 12;
-    
-    // Obliczanie wartości nieruchomości na podstawie ROI
-    // ROI = (Roczny zysk / Wartość nieruchomości) * 100
-    // Wartość nieruchomości = (Roczny zysk / ROI) * 100
     const calculatedValue = (yearlyRent / sanitizedRoi) * 100;
     
     setPropertyValue(calculatedValue);
     setIsCalculated(true);
     
-    // Generowanie danych dla ResultsDisplay
     const calculationResults: CalculationResults = {
       buyingSummary: {
         monthlyMortgagePayment: 0,
-        downPayment: calculatedValue * 0.2, // Zakładamy 20% wkładu własnego
-        loanAmount: calculatedValue * 0.8, // Zakładamy 80% kredytu
+        downPayment: calculatedValue * 0.2, 
+        loanAmount: calculatedValue * 0.8, 
         totalMortgagePayments: 0,
         totalOtherCosts: 0,
         buyingTotal: calculatedValue,
-        propertyValue: calculatedValue * (1 + (inflation / 100) * sanitizedRentalPeriod), // Wartość końcowa z uwzględnieniem inflacji
+        propertyValue: calculatedValue * (1 + (inflation / 100) * sanitizedRentalPeriod), 
         roe: sanitizedRoi,
         dti: 0
       },
@@ -143,13 +136,6 @@ const RentalValueCalculatorPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Kalkulator Wartości Najmu | Oblicz wartość nieruchomości na podstawie ROI</title>
-        <meta name="description" content="Kalkulator Wartości Najmu pomoże Ci określić wartość nieruchomości na podstawie zysku z najmu i oczekiwanego zwrotu z inwestycji. Sprawdź realną wartość inwestycji." />
-        <meta name="keywords" content="kalkulator wartości najmu, analiza wartości nieruchomości, ROI nieruchomości, wartość inwestycji mieszkaniowej" />
-        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl/kalkulator-wartosci-najmu" />
-      </Helmet>
-      
       <div className="container mx-auto px-4 py-8">
         <div className="container mx-auto py-12 px-4 max-w-7xl">
           <h1 className="text-3xl font-bold text-center mb-8 text-indigo-900">
@@ -182,17 +168,17 @@ const RentalValueCalculatorPage: React.FC = () => {
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="monthlyRentInput" className="block text-sm font-medium text-gray-700 mb-1">
                   Miesięczny czynsz najmu (PLN)
                 </label>
                 <input
+                  id="monthlyRentInput"
                   type="number"
                   value={monthlyRent || ''}
-                  onChange={(e) => updateMonthlyRent(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateMonthlyRent(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Np. 2500"
                   min="0"
-                  aria-labelledby="monthly-rent-label"
                   aria-describedby="monthly-rent-description"
                 />
                 <p id="monthly-rent-description" className="mt-1 text-sm text-gray-500">
@@ -201,19 +187,19 @@ const RentalValueCalculatorPage: React.FC = () => {
               </div>
 
               <div>
-                <label id="roi-label" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="roiInput" className="block text-sm font-medium text-gray-700 mb-1">
                   Oczekiwany ROI (%)
                 </label>
                 <input
+                  id="roiInput"
                   type="number"
                   value={roi || ''}
-                  onChange={(e) => updateRoi(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRoi(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Np. 5"
                   min="0"
                   max="100"
                   step="0.1"
-                  aria-labelledby="roi-label"
                   aria-describedby="roi-description"
                 />
                 <p id="roi-description" className="mt-1 text-sm text-gray-500">
@@ -222,17 +208,17 @@ const RentalValueCalculatorPage: React.FC = () => {
               </div>
 
               <div>
-                <label id="rental-period-label" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="rentalPeriodInput" className="block text-sm font-medium text-gray-700 mb-1">
                   Okres wynajmu (lata)
                 </label>
                 <input
+                  id="rentalPeriodInput"
                   type="number"
                   value={rentalPeriod || ''}
-                  onChange={(e) => updateRentalPeriod(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRentalPeriod(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Np. 10"
                   min="1"
-                  aria-labelledby="rental-period-label"
                   aria-describedby="rental-period-description"
                 />
                 <p id="rental-period-description" className="mt-1 text-sm text-gray-500">
@@ -249,41 +235,28 @@ const RentalValueCalculatorPage: React.FC = () => {
               </button>
             </div>
 
-            {isCalculated && !results && (
-              <div className="mt-8 p-6 bg-indigo-50 border border-indigo-100 rounded-lg">
-                <h2 className="text-xl font-semibold text-indigo-900 mb-2">Wynik kalkulacji</h2>
-                <div className="flex flex-col space-y-4">
-                  <div>
-                    <p className="text-gray-600">Szacowana wartość nieruchomości:</p>
-                    <p className="text-3xl font-bold text-indigo-700">
-                      {propertyValue.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Roczny zysk z najmu:</p>
-                    <p className="text-xl font-semibold text-indigo-700">
-                      {(monthlyRent * 12).toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Całkowity zysk w okresie {rentalPeriod} lat:</p>
-                    <p className="text-xl font-semibold text-indigo-700">
-                      {(monthlyRent * 12 * rentalPeriod).toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}
-                    </p>
-                  </div>
-                </div>
+            {isCalculated && propertyValue > 0 && (
+              <div className="mt-8 p-6 bg-indigo-50 rounded-lg">
+                <h3 className="text-xl font-semibold text-indigo-800 mb-3">Oszacowana wartość nieruchomości:</h3>
+                <p className="text-3xl font-bold text-indigo-600 mb-2">
+                  {propertyValue.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Na podstawie miesięcznego czynszu {monthlyRent.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}, ROI {roi}% i okresu {rentalPeriod} lat.
+                </p>
               </div>
             )}
           </div>
         </div>
-        
-        {results && (
-          <ResultsDisplay 
-            results={results} 
-            inflation={inflation}
-            calculatorType="rental-value"
-            propertyPrice={propertyValue}
-          />
+
+        {isCalculated && results && (
+          <div id="results-section" className="mt-12">
+            <ResultsDisplay 
+              results={results} 
+              inflation={inflation}
+              calculatorType="rental-value"
+            />
+          </div>
         )}
       </div>
     </>

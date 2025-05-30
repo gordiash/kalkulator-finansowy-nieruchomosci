@@ -1,14 +1,32 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
-import InvestmentCalculator from '../components/InvestmentCalculator';
-import ResultsDisplay from '../components/ResultsDisplay';
-import { CalculationResults } from '../types';
-import { Helmet } from 'react-helmet';
-import { gusInflationFetcher } from '../utils/gusInflationFetcher';
+
+import InvestmentCalculator from '@/components/InvestmentCalculator';
+import ResultsDisplay from '@/components/ResultsDisplay';
+import { CalculationResults } from '@/types';
+import { gusInflationFetcher } from '@/utils/gusInflationFetcher';
+
+// Tymczasowy typ dla wyniku z InvestmentCalculator
+// TODO: Zastąp bardziej szczegółowym typem, jeśli jest dostępny
+interface InvestmentCalculationResult {
+  investment: number;
+  totalReturn: number;
+  roi: number;
+  cashFlows: number[];
+  npv: number;
+  breakEvenYear?: number;
+  yearlyInvestmentCosts?: number[];
+  yearlyCashFlows?: number[];
+  cumulativeInvestmentCosts?: number[];
+  cumulativeCashFlows?: number[];
+  [key: string]: any; // Dla dodatkowych, nieprzewidzianych pól
+}
 
 const InvestmentCalculatorPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [inflation, setInflation] = useState<number>(2.5);
   const [isLoadingInflation, setIsLoadingInflation] = useState(false);
@@ -21,9 +39,7 @@ const InvestmentCalculatorPage: React.FC = () => {
       
       try {
         const inflationValue = await gusInflationFetcher.getCurrentInflation();
-        
         setInflation(inflationValue);
-        
         console.log('Pobrano aktualną wartość inflacji z GUS:', inflationValue);
       } catch (error) {
         if (error instanceof Error) {
@@ -47,7 +63,7 @@ const InvestmentCalculatorPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const sharedData = searchParams.get('data');
+    const sharedData = searchParams ? searchParams.get('data') : null;
     if (sharedData) {
       try {
         const decodedData = JSON.parse(atob(sharedData));
@@ -60,8 +76,7 @@ const InvestmentCalculatorPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const handleCalculate = (calculationResult: any) => {
-    // Przekształcamy wyniki kalkulacji do formatu oczekiwanego przez ResultsDisplay
+  const handleCalculate = (calculationResult: InvestmentCalculationResult) => {
     const formattedResults: CalculationResults = {
       buyingSummary: {
         monthlyMortgagePayment: 0,
@@ -103,13 +118,6 @@ const InvestmentCalculatorPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Kalkulator Inwestycji Nieruchomości | Porównanie Zakupu i Wynajmu</title>
-        <meta name="description" content="Kalkulator Inwestycji Nieruchomości pozwala porównać opłacalność zakupu i wynajmu mieszkania. Sprawdź co będzie bardziej korzystne w Twojej sytuacji." />
-        <meta name="keywords" content="kalkulator inwestycji nieruchomości, porównanie zakupu i wynajmu, opłacalność mieszkania, analiza inwestycji mieszkaniowej" />
-        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl/kalkulator-inwestycji" />
-      </Helmet>
-      
       <div className="container mx-auto py-12 px-4 max-w-7xl">
         <h2 className="text-2xl font-bold text-center mb-6 text-indigo-900">Kalkulator Inwestycji</h2>
         
@@ -136,7 +144,7 @@ const InvestmentCalculatorPage: React.FC = () => {
             investment={500000} 
             cashFlows={[20000, 25000, 30000, 35000, 40000]} 
             discountRate={5}
-            onCalculate={handleCalculate}
+            onCalculate={handleCalculate} // Upewnij się, że typ `onCalculate` w InvestmentCalculator akceptuje `any` lub odpowiednio typowany obiekt
           />
         </div>
         {results && (

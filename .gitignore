@@ -11,6 +11,10 @@
 # production
 /build
 
+# Next.js
+/.next/
+/out/
+
 # misc
 .DS_Store
 .env.local
@@ -29,3 +33,6 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# Turbopack
+.turbo

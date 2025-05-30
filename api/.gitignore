@@ -1,0 +1,10 @@
+# Konfiguracja zawierająca poufne dane
+config.php
+
+# Katalogi tymczasowe
+/cache/
+/logs/
+
+# Pliki tymczasowe systemu
+.DS_Store
+Thumbs.db 

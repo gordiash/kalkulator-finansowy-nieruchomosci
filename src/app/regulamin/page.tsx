@@ -1,28 +1,33 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 
-const Terms: React.FC = () => {
+export const metadata: Metadata = {
+  title: 'Regulamin | Kalkulator Finansowy Nieruchomości',
+  description: 'Regulamin serwisu Kalkulator Finansowy Nieruchomości. Zasady korzystania z naszych kalkulatorów ROI, porównania zakupu i wynajmu oraz analizy wartości nieruchomości.',
+  keywords: ['regulamin', 'zasady korzystania', 'kalkulator nieruchomości', 'RODO', 'ochrona danych osobowych', 'pliki cookies'],
+  alternates: {
+    canonical: 'https://kalkulatorynieruchomosci.pl/regulamin',
+  },
+  openGraph: {
+    title: 'Regulamin | Kalkulator Finansowy Nieruchomości',
+    description: 'Poznaj zasady korzystania z kalkulatorów i narzędzi finansowych do analizy inwestycji w nieruchomości.',
+    type: 'website',
+    url: 'https://kalkulatorynieruchomosci.pl/regulamin',
+  }
+};
+
+const TermsPage: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Regulamin | Kalkulator Finansowy Nieruchomości</title>
-        <meta name="description" content="Regulamin serwisu Kalkulator Finansowy Nieruchomości. Zasady korzystania z naszych kalkulatorów ROI, porównania zakupu i wynajmu oraz analizy wartości nieruchomości." />
-        <meta name="keywords" content="regulamin, zasady korzystania, kalkulator nieruchomości, RODO, ochrona danych osobowych, pliki cookies" />
-        <link rel="canonical" href="https://kalkulatorynieruchomosci.pl/regulamin" />
-        <meta property="og:title" content="Regulamin | Kalkulator Finansowy Nieruchomości" />
-        <meta property="og:description" content="Poznaj zasady korzystania z kalkulatorów i narzędzi finansowych do analizy inwestycji w nieruchomości." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://kalkulatorynieruchomosci.pl/regulamin" />
-      </Helmet>
-      
       <div className="container mx-auto py-12 px-4 max-w-4xl">
         <h1 className="text-3xl font-bold text-center mb-8 text-indigo-900">Regulamin Serwisu Kalkulator Finansowy Nieruchomości</h1>
         
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white rounded-lg shadow-md p-8 prose max-w-none">
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§1. Postanowienia ogólne</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Niniejszy regulamin (dalej "Regulamin") określa zasady korzystania z serwisu internetowego Kalkulator Finansowy Nieruchomości dostępnego pod adresem <span className="text-indigo-600">kalkulatorynieruchomosci.pl</span> (dalej "Serwis").</li>
               <li>Administratorem Serwisu jest Kalkulator Finansowy Nieruchomości z siedzibą w Warszawie (dalej "Administrator").</li>
               <li>Regulamin określa prawa i obowiązki Użytkowników Serwisu oraz prawa, obowiązki i zakres odpowiedzialności Administratora.</li>
@@ -34,7 +39,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§2. Definicje</h2>
             
-            <ul className="list-disc pl-6 space-y-3 text-gray-700">
+            <ul className="list-disc pl-6 space-y-3">
               <li><strong>Serwis</strong> – strona internetowa dostępna pod adresem kalkulator-finansowy-nieruchomosci.pl wraz z jej funkcjonalnościami.</li>
               <li><strong>Użytkownik</strong> – osoba fizyczna, prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, korzystająca z zasobów i funkcjonalności Serwisu.</li>
               <li><strong>Kalkulacja</strong> – proces obliczeniowy wykonywany przez Serwis na podstawie danych wprowadzonych przez Użytkownika.</li>
@@ -46,7 +51,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§3. Warunki korzystania z Serwisu</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Korzystanie z Serwisu jest dobrowolne i bezpłatne.</li>
               <li>Do korzystania z podstawowych funkcji Serwisu nie jest wymagane założenie konta lub rejestracja.</li>
               <li>Użytkownik zobowiązuje się do korzystania z Serwisu zgodnie z obowiązującymi przepisami prawa, postanowieniami Regulaminu oraz dobrymi obyczajami.</li>
@@ -65,7 +70,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§4. Funkcjonalności Serwisu</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Serwis umożliwia obliczanie i analizę finansową związaną z inwestycjami w nieruchomości, w tym:
                 <ul className="list-disc pl-6 mt-2">
                   <li>Kalkulację zwrotu z inwestycji (ROI) dla nieruchomości,</li>
@@ -82,10 +87,10 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§5. Ochrona danych osobowych</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Administratorem danych osobowych Użytkowników jest Administrator Serwisu.</li>
               <li>Administrator przetwarza dane osobowe Użytkowników zgodnie z przepisami RODO oraz ustawy o ochronie danych osobowych.</li>
-              <li>Szczegółowe informacje dotyczące przetwarzania danych osobowych zawarte są w Polityce Prywatności dostępnej pod adresem: <a href="/polityka-prywatnosci" className="text-indigo-600 hover:underline">Polityka Prywatności</a>.</li>
+              <li>Szczegółowe informacje dotyczące przetwarzania danych osobowych zawarte są w Polityce Prywatności dostępnej pod adresem: <Link href="/polityka-prywatnosci" className="text-indigo-600 hover:underline">Polityka Prywatności</Link>.</li>
               <li>Podstawą prawną przetwarzania danych osobowych Użytkowników jest:
                 <ul className="list-disc pl-6 mt-2">
                   <li>Zgoda Użytkownika (art. 6 ust. 1 lit. a RODO),</li>
@@ -109,7 +114,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§6. Pliki cookies i inne technologie</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Serwis wykorzystuje pliki cookies (ciasteczka) oraz podobne technologie do zapewnienia prawidłowego działania, personalizacji treści oraz analizy ruchu.</li>
               <li>Szczegółowe informacje dotyczące wykorzystania plików cookies znajdują się w Polityce Prywatności.</li>
               <li>Użytkownik może w każdej chwili zmienić ustawienia dotyczące plików cookies lub wyłączyć ich obsługę w ustawieniach przeglądarki internetowej.</li>
@@ -120,7 +125,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§7. Własność intelektualna</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Wszelkie prawa własności intelektualnej do Serwisu, w tym do jego nazwy, domeny internetowej, szaty graficznej, logotypów, treści, układu oraz oprogramowania należą do Administratora.</li>
               <li>Korzystanie z Serwisu nie oznacza nabycia jakichkolwiek praw do całości lub części Serwisu.</li>
               <li>Użytkownik może korzystać z Serwisu wyłącznie w zakresie dozwolonego użytku osobistego.</li>
@@ -131,7 +136,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§8. Odpowiedzialność</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Administrator dokłada wszelkich starań, aby Serwis funkcjonował prawidłowo, jednak nie gwarantuje ciągłej dostępności wszystkich funkcjonalności Serwisu.</li>
               <li>Administrator nie ponosi odpowiedzialności za:
                 <ul className="list-disc pl-6 mt-2">
@@ -148,7 +153,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-indigo-700">§9. Postanowienia końcowe</h2>
             
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-3">
               <li>Regulamin wchodzi w życie z dniem opublikowania na stronie Serwisu.</li>
               <li>Administrator zastrzega sobie prawo do zmiany Regulaminu w dowolnym czasie. Zmiany Regulaminu wchodzą w życie z chwilą ich opublikowania na stronie Serwisu.</li>
               <li>Korzystanie z Serwisu po wprowadzeniu zmian w Regulaminie oznacza ich akceptację.</li>
@@ -159,7 +164,7 @@ const Terms: React.FC = () => {
             </ol>
           </section>
 
-          <div className="mt-10 pt-6 border-t border-gray-200 text-gray-600">
+          <div className="mt-10 pt-6 border-t border-gray-200">
             <p>Data ostatniej aktualizacji Regulaminu: {new Date().toLocaleDateString('pl-PL')}</p>
           </div>
         </div>
@@ -168,4 +173,4 @@ const Terms: React.FC = () => {
   );
 };
 
-export default Terms; 
+export default TermsPage; 

@@ -1,21 +1,23 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { PropertyFormData, RentFormData, AnalysisOptions, CalculationResults } from '../types';
-import PropertyForm from '../components/PropertyForm';
-import RentForm from '../components/RentForm';
-import AnalysisForm from '../components/AnalysisForm';
-import ResultsDisplay from '../components/ResultsDisplay';
-import SubscriptionPopup from '../components/SubscriptionPopup';
-import SuccessMessage from '../components/SuccessMessage';
-import { calculateResults } from '../utils/calculations';
-import { sendSubscriberToAirtable } from '../utils/airtable';
-import { gusInflationFetcher } from '../utils/gusInflationFetcher';
-import { secureStorage } from '../utils/localStorageUtils';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { Helmet } from 'react-helmet';
+
+import { PropertyFormData, RentFormData, AnalysisOptions, CalculationResults } from '@/types';
+import PropertyForm from '@/components/PropertyForm';
+import RentForm from '@/components/RentForm';
+import AnalysisForm from '@/components/AnalysisForm';
+import ResultsDisplay from '@/components/ResultsDisplay';
+import SubscriptionPopup from '@/components/SubscriptionPopup';
+import SuccessMessage from '@/components/SuccessMessage';
+import { calculateResults } from '@/utils/calculations';
+import { sendSubscriberToAirtable } from '@/utils/airtable';
+import { gusInflationFetcher } from '@/utils/gusInflationFetcher';
+import { secureStorage } from '@/utils/localStorageUtils';
 
 const ROICalculatorPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [propertyData, setPropertyData] = useState<PropertyFormData>({
     propertyPrice: 500000,
     downPaymentType: 'amount',
@@ -29,10 +31,10 @@ const ROICalculatorPage: React.FC = () => {
     communityRent: 4800,
     appreciation: 3,
     transactionCosts: 10000,
-    notaryFee: 500000 * 0.01, // 1% of property price
-    pcc: 500000 * 0.02, // 2% of property price
-    courtFee: 200, // Fixed value
-    notarialActCopyCost: 100 // Fixed value
+    notaryFee: 500000 * 0.01, 
+    pcc: 500000 * 0.02, 
+    courtFee: 200, 
+    notarialActCopyCost: 100 
   });
 
   const [rentData, setRentData] = useState<RentFormData>({
@@ -46,7 +48,7 @@ const ROICalculatorPage: React.FC = () => {
 
   const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({
     analysisPeriod: 30,
-    inflation: 2.5 // Początkowo wartość domyślna, zostanie zaktualizowana danymi z GUS
+    inflation: 2.5 
   });
 
   const [results, setResults] = useState<CalculationResults | null>(null);
@@ -82,7 +84,7 @@ const ROICalculatorPage: React.FC = () => {
       try {
         const inflationValue = await gusInflationFetcher.getCurrentInflation();
         
-        setAnalysisOptions(prev => ({
+        setAnalysisOptions((prev: AnalysisOptions) => ({
           ...prev,
           inflation: inflationValue
         }));
@@ -101,32 +103,26 @@ const ROICalculatorPage: React.FC = () => {
     };
     
     fetchInflationData();
-    
-    const inflationCheckInterval = setInterval(fetchInflationData, 7 * 24 * 60 * 60 * 1000);
-    
-    return () => {
-      clearInterval(inflationCheckInterval);
-    };
   }, []);
 
   useEffect(() => {
-    setPropertyData((prev) => ({
+    setPropertyData((prev: PropertyFormData) => ({
       ...prev,
-      notaryFee: prev.propertyPrice * 0.01, // 1% of property price
-      pcc: prev.propertyPrice * 0.02, // 2% of property price
+      notaryFee: prev.propertyPrice * 0.01,
+      pcc: prev.propertyPrice * 0.02,
     }));
   }, [propertyData.propertyPrice]);
 
   const handlePropertyChange = (data: Partial<PropertyFormData>) => {
-    setPropertyData(prev => ({ ...prev, ...data }));
+    setPropertyData((prev: PropertyFormData) => ({ ...prev, ...data }));
   };
 
   const handleRentChange = (data: Partial<RentFormData>) => {
-    setRentData(prev => ({ ...prev, ...data }));
+    setRentData((prev: RentFormData) => ({ ...prev, ...data }));
   };
 
   const handleAnalysisOptionsChange = (data: Partial<AnalysisOptions>) => {
-    setAnalysisOptions(prev => ({ ...prev, ...data }));
+    setAnalysisOptions((prev: AnalysisOptions) => ({ ...prev, ...data }));
   };
 
   const handleCalculate = () => {
@@ -151,9 +147,9 @@ const ROICalculatorPage: React.FC = () => {
       }, 100);
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        toast.error(error.message);
       } else {
-        alert('Wystąpił błąd podczas obliczeń');
+        toast.error('Wystąpił błąd podczas obliczeń');
       }
     }
   };
@@ -171,12 +167,12 @@ const ROICalculatorPage: React.FC = () => {
       }, 4000);
     } catch (error) {
       console.error('Błąd podczas wysyłania danych do Airtable:', error);
-      alert('Wystąpił błąd podczas zapisywania subskrypcji. Spróbuj ponownie później.');
+      toast.error('Wystąpił błąd podczas zapisywania subskrypcji. Spróbuj ponownie później.');
     }
   };
 
   useEffect(() => {
-    const sharedData = searchParams.get('data');
+    const sharedData = searchParams ? searchParams.get('data') : null;
     if (sharedData) {
       try {
         const decodedData = JSON.parse(atob(sharedData));
@@ -192,13 +188,6 @@ const ROICalculatorPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Kalkulator ROI Nieruchomości | Oblicz zwrot z inwestycji</title>
-        <meta name="description" content="Kalkulator ROI Nieruchomości pozwala precyzyjnie obliczyć zwrot z inwestycji w nieruchomość uwzględniając wszystkie czynniki. Sprawdź opłacalność zakupu." />
-        <meta name="keywords" content="kalkulator ROI nieruchomości, zwrot z inwestycji w mieszkanie, opłacalność zakupu nieruchomości, ROI zakup mieszkania" />
-        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl/kalkulator-roi" />
-      </Helmet>
-      
       <div className="container mx-auto py-12 px-4 max-w-7xl">
         <h2 className="text-2xl font-bold text-center mb-6 text-indigo-900">Kalkulator ROI Nieruchomości</h2>
         

@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dodatkowe globalne style, jeśli są potrzebne */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Style dla react-toastify */
+/* Możesz je dostosować lub zaimportować domyślne, jeśli są w node_modules */
+/* Na przykład: @import 'react-toastify/dist/ReactToastify.css'; */
+/* Na razie zostawiam to jako placeholder, jeśli App.tsx importował specyficzne style */ 

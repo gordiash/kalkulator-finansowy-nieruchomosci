@@ -1,18 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import AdComponent from '../components/AdComponent';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+// import AdComponent from '@/components/AdComponent';
 
-const HomePage: React.FC = () => {
+// Metadane dla strony głównej
+export const metadata: Metadata = {
+  title: 'Kalkulator Finansowy Nieruchomości | Porównaj zakup i wynajem',
+  description: 'Kalkulator Finansowy Nieruchomości pomoże Ci porównać opłacalność zakupu i wynajmu mieszkania. Oblicz ROI, koszty kredytu, wartość nieruchomości i punkt rentowności.',
+  keywords: ['kalkulator nieruchomości', 'porównanie zakupu i wynajmu', 'kalkulator kredytu hipotecznego', 'inwestycje w nieruchomości', 'ROI nieruchomości', 'opłacalność zakupu mieszkania'],
+  alternates: {
+    canonical: 'https://kalkulator-finansowy-nieruchomosci.pl',
+  },
+};
+
+export default function HomePage() {
   return (
     <>
-      <Helmet>
-        <title>Kalkulator Finansowy Nieruchomości | Porównaj zakup i wynajem</title>
-        <meta name="description" content="Kalkulator Finansowy Nieruchomości pomoże Ci porównać opłacalność zakupu i wynajmu mieszkania. Oblicz ROI, koszty kredytu, wartość nieruchomości i punkt rentowności." />
-        <meta name="keywords" content="kalkulator nieruchomości, porównanie zakupu i wynajmu, kalkulator kredytu hipotecznego, inwestycje w nieruchomości, ROI nieruchomości, opłacalność zakupu mieszkania" />
-        <link rel="canonical" href="https://kalkulator-finansowy-nieruchomosci.pl" />
-      </Helmet>
-
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-indigo-800 to-blue-700 text-white py-16 shadow-lg">
         <div className="container mx-auto px-4">
@@ -25,19 +28,19 @@ const HomePage: React.FC = () => {
           </p>
           <div className="flex flex-wrap justify-center mt-8 space-x-0 space-y-4 md:space-x-4 md:space-y-0">
             <Link 
-              to="/kalkulator-roi" 
+              href="/kalkulator-roi"
               className="px-6 py-3 rounded-lg bg-white text-indigo-800 font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-md w-full md:w-auto flex justify-center"
             >
               Kalkulator ROI Nieruchomości
             </Link>
             <Link 
-              to="/kalkulator-inwestycji" 
+              href="/kalkulator-inwestycji"
               className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-colors duration-300 shadow-md w-full md:w-auto flex justify-center"
             >
               Kalkulator Inwestycji
             </Link>
             <Link 
-              to="/kalkulator-wartosci-najmu" 
+              href="/kalkulator-wartosci-najmu"
               className="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors duration-300 shadow-md w-full md:w-auto flex justify-center"
             >
               Analiza Wartości Najmu
@@ -47,10 +50,10 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="container mx-auto py-12 px-4 max-w-7xl">
-        {/* Ad Banner - Top */}
-        <div className="mb-8">
+        {/* Ad Banner - Top - Zakomentowane na razie */}
+        {/* <div className="mb-8">
           <AdComponent adSlot="1234567890" adFormat="horizontal" />
-        </div>
+        </div> */}
         
         {/* Features Section */}
         <section className="mb-16">
@@ -79,12 +82,12 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Ad Banner - Middle */}
-        <div className="mb-16">
+        {/* Ad Banner - Middle - Zakomentowane na razie */}
+        {/* <div className="mb-16">
           <AdComponent adSlot="0987654321" adFormat="fluid" />
-        </div>
+        </div> */}
 
-        {/* Comparison Section (new) */}
+        {/* Comparison Section */}
         <section className="mb-16 bg-gray-50 p-8 rounded-xl">
           <h2 className="text-3xl font-bold text-center mb-8 text-indigo-900">Zakup czy wynajem? Podejmij świadomą decyzję</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -141,7 +144,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="mt-8 text-center">
             <Link 
-              to="/kalkulator-roi" 
+              href="/kalkulator-roi"
               className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-colors duration-300 shadow-md inline-block"
             >
               Porównaj opłacalność zakupu i wynajmu
@@ -184,10 +187,10 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Ad Banner - Before FAQ */}
-        <div className="mb-16">
+        {/* Ad Banner - Before FAQ - Zakomentowane na razie */}
+        {/* <div className="mb-16">
           <AdComponent adSlot="5678901234" adFormat="rectangle" />
-        </div>
+        </div> */}
 
         {/* FAQ Section */}
         <section className="mb-16">
@@ -219,13 +222,13 @@ const HomePage: React.FC = () => {
             <p className="mb-6 max-w-3xl mx-auto">Wybierz jeden z naszych specjalistycznych kalkulatorów i dowiedz się, która opcja będzie dla Ciebie najkorzystniejsza finansowo w perspektywie długoterminowej.</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link 
-                to="/kalkulator-roi" 
+                href="/kalkulator-roi"
                 className="px-6 py-3 rounded-lg bg-white text-indigo-800 font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-md"
               >
                 Porównaj zakup i wynajem
               </Link>
               <Link 
-                to="/kalkulator-inwestycji" 
+                href="/kalkulator-inwestycji"
                 className="px-6 py-3 rounded-lg bg-indigo-500 text-white font-semibold hover:bg-indigo-400 border border-white transition-colors duration-300 shadow-md"
               >
                 Sprawdź zwrot z inwestycji
@@ -234,13 +237,11 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Ad Banner - Bottom */}
-        <div className="mt-8">
+        {/* Ad Banner - Bottom - Zakomentowane na razie */}
+        {/* <div className="mt-8">
           <AdComponent adSlot="1357924680" adFormat="horizontal" />
-        </div>
+        </div> */}
       </main>
     </>
   );
-};
-
-export default HomePage; 
+} 
