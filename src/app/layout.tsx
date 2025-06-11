@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import NewsletterPopup from "@/components/NewsletterPopup";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
+        <GoogleAnalytics />
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />
         <CookieConsent />
+        <NewsletterPopup />
       </body>
     </html>
   );

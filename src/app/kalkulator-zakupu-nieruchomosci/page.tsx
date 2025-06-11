@@ -1,13 +1,64 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { AlertTriangle } from "lucide-react";
+import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement } from 'chart.js';
+
+// Komponent pomocniczy dla inputs z walidacją
+const InputWithValidation = ({ 
+  id, 
+  name,
+  label, 
+  value, 
+  onChange, 
+  placeholder, 
+  type = "number",
+  step,
+  error,
+  disabled = false,
+  className = ""
+}: {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  type?: string;
+  step?: string;
+  error?: string;
+  disabled?: boolean;
+  className?: string;
+}) => (
+  <div>
+    <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
+    <Input
+      id={id}
+      name={name}
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      step={step}
+      disabled={disabled}
+      className={`${error ? "border-red-500 focus:border-red-500" : ""} ${className}`}
+    />
+    {error && (
+      <div className="flex items-center gap-1 text-sm text-red-600 mt-1">
+        <AlertTriangle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
 import { Line, Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -285,9 +336,74 @@ export default function RealEstateCalculatorPage() {
   const [downPaymentType, setDownPaymentType] = useState<'percentage' | 'amount'>('amount');
   const [downPaymentInput, setDownPaymentInput] = useState('100000');
 
+  // System walidacji
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
+    // Śledzenie wejścia na stronę
+    trackPageView('kalkulator_zakupu_nieruchomosci');
   }, []);
+
+  // Funkcja walidacji wszystkich pól
+  const validateAllFields = () => {
+    const errors: Record<string, string> = {};
+    const fieldDefinitions = FIELD_DEFINITIONS.PURCHASE;
+
+    const formDataToValidate = {
+      propertyValue: formData.propertyValue,
+      loanAmount: formData.loanAmount,
+      loanTerm: formData.loanTerm,
+      bankMargin: formData.bankMargin,
+      referenceRate: formData.referenceRate,
+      bankCommission: formData.bankCommission,
+      agencyCommission: formData.agencyCommission,
+      pccTaxRate: formData.pccTaxRate
+    };
+
+    // Walidacja każdego pola
+    Object.entries(formDataToValidate).forEach(([fieldName, value]) => {
+      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
+      if (rules) {
+        const result = validateField(value, fieldName, rules);
+        if (!result.isValid) {
+          errors[fieldName] = result.errors[0].message;
+        }
+      }
+    });
+
+    // Dodatkowa walidacja biznesowa
+    if (parseFloat(formData.loanAmount) > parseFloat(formData.propertyValue)) {
+      errors.loanAmount = 'Kwota kredytu nie może być wyższa niż wartość nieruchomości';
+    }
+
+    // Sprawdź czy wkład własny nie jest zbyt mały
+    const downPaymentPercent = ((parseFloat(formData.propertyValue) - parseFloat(formData.loanAmount)) / parseFloat(formData.propertyValue)) * 100;
+    if (downPaymentPercent < 10) {
+      errors.loanAmount = 'Zalecany wkład własny to minimum 10% wartości nieruchomości';
+    }
+
+    setValidationErrors(errors);
+    const isValid = Object.keys(errors).length === 0;
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  // Walidacja przy każdej zmianie
+  useEffect(() => {
+    validateAllFields();
+  }, [formData.propertyValue, formData.loanAmount, formData.loanTerm, 
+      formData.bankMargin, formData.referenceRate, formData.bankCommission, 
+      formData.agencyCommission, formData.pccTaxRate]);
+
+  // Funkcje pomocnicze do obsługi input-ów z sanityzacją
+  const handleNumericInput = (name: string, allowDecimals = true) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const sanitized = sanitizeInput(e.target.value, allowDecimals);
+      setFormData(prev => ({ ...prev, [name]: sanitized }));
+    };
+  };
 
   useEffect(() => {
     const propertyValueNum = parseFloat(formData.propertyValue) || 0;
@@ -360,21 +476,19 @@ export default function RealEstateCalculatorPage() {
     }));
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (parseFloat(formData.loanAmount) > parseFloat(formData.propertyValue)) {
-      newErrors.loanAmount = "Kwota kredytu nie może być wyższa niż wartość nieruchomości.";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
   const fetchData = async () => {
-    if (!validateForm()) {
+    // Sprawdź walidację przed rozpoczęciem obliczeń
+    if (!validateAllFields()) {
+      setErrors({ api: 'Proszę poprawić błędy w formularzu przed obliczeniem' });
+      trackError('validation_error', 'Błędy walidacji w kalkulatorze zakupu nieruchomości');
       return;
     }
     setIsLoading(true);
     setResults(null);
+    
+    // Śledzenie użycia kalkulatora
+    trackCalculatorUse('purchase');
+    
     try {
       const dataToSend = {
         ...formData,
@@ -382,9 +496,24 @@ export default function RealEstateCalculatorPage() {
       };
       const data = await service.calculate(dataToSend);
       setResults(data);
+      
+      // Śledzenie wyniku kalkulatora
+      trackCalculatorResult('purchase', data.totalRepayment || 0, {
+        property_value: parseFloat(formData.propertyValue),
+        loan_amount: parseFloat(formData.loanAmount),
+        loan_term: parseFloat(formData.loanTerm),
+        total_interest: data.totalInterest,
+        first_installment: data.firstInstallment
+      });
+      
     } catch (error) {
       console.error("Błąd podczas pobierania danych z API:", error);
-      setErrors({ api: "Nie udało się połączyć z serwisem obliczeniowym." });
+      const errorMessage = "Nie udało się połączyć z serwisem obliczeniowym.";
+      
+      // Śledzenie błędów
+      trackError('purchase_calculation_error', errorMessage);
+      
+      setErrors({ api: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -651,10 +780,15 @@ export default function RealEstateCalculatorPage() {
               {/* Sekcja Nieruchomość i Kredyt */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg border-b pb-2">Nieruchomość i Kredyt</h3>
-                <div>
-                  <Label htmlFor="propertyValue">Wartość nieruchomości (zł)</Label>
-                  <Input id="propertyValue" name="propertyValue" value={formData.propertyValue} onChange={handleInputChange} type="number" placeholder="np. 500000" />
-                </div>
+                <InputWithValidation
+                  id="propertyValue"
+                  name="propertyValue"
+                  label="Wartość nieruchomości (zł)"
+                  value={formData.propertyValue}
+                  onChange={handleNumericInput('propertyValue')}
+                  placeholder="np. 500000"
+                  error={validationErrors.propertyValue}
+                />
                 <div className="space-y-2">
                   <Label>Wkład własny</Label>
                   <div className="flex items-center space-x-2">
@@ -675,15 +809,26 @@ export default function RealEstateCalculatorPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="loanAmount">Kwota kredytu (zł)</Label>
-                  <Input id="loanAmount" name="loanAmount" value={formData.loanAmount} type="number" readOnly placeholder="np. 400000" className="bg-gray-100" />
-                   {errors.loanAmount && <p className="text-red-500 text-sm mt-1">{errors.loanAmount}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="loanTerm">Okres kredytowania (lata)</Label>
-                  <Input id="loanTerm" name="loanTerm" value={formData.loanTerm} onChange={handleInputChange} type="number" placeholder="np. 30" />
-                </div>
+                <InputWithValidation
+                  id="loanAmount"
+                  name="loanAmount"
+                  label="Kwota kredytu (zł)"
+                  value={formData.loanAmount}
+                  onChange={() => {}} // Read-only
+                  placeholder="np. 400000"
+                  disabled={true}
+                  className="bg-gray-100"
+                  error={validationErrors.loanAmount}
+                />
+                <InputWithValidation
+                  id="loanTerm"
+                  name="loanTerm"
+                  label="Okres kredytowania (lata)"
+                  value={formData.loanTerm}
+                  onChange={handleNumericInput('loanTerm', false)}
+                  placeholder="np. 30"
+                  error={validationErrors.loanTerm}
+                />
                 <div>
                   <Label>Rodzaj rat</Label>
                   <Select name="installmentType" onValueChange={(value) => handleSelectChange('installmentType', value)} defaultValue={formData.installmentType}>
@@ -699,14 +844,26 @@ export default function RealEstateCalculatorPage() {
               {/* Sekcja Oprocentowanie i Ubezpieczenia */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg border-b pb-2">Oprocentowanie i Ubezpieczenia</h3>
-                <div>
-                  <Label htmlFor="bankMargin">Marża banku (%)</Label>
-                  <Input id="bankMargin" name="bankMargin" value={formData.bankMargin} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2.1" />
-                </div>
-                <div>
-                  <Label htmlFor="referenceRate">Wskaźnik referencyjny (WIBOR/WIRON) (%)</Label>
-                  <Input id="referenceRate" name="referenceRate" value={formData.referenceRate} onChange={handleInputChange} type="number" step="0.01" placeholder="np. 5.85" />
-                </div>
+                <InputWithValidation
+                  id="bankMargin"
+                  name="bankMargin"
+                  label="Marża banku (%)"
+                  value={formData.bankMargin}
+                  onChange={handleNumericInput('bankMargin')}
+                  step="0.1"
+                  placeholder="np. 2.1"
+                  error={validationErrors.bankMargin}
+                />
+                <InputWithValidation
+                  id="referenceRate"
+                  name="referenceRate"
+                  label="Wskaźnik referencyjny (WIBOR/WIRON) (%)"
+                  value={formData.referenceRate}
+                  onChange={handleNumericInput('referenceRate')}
+                  step="0.01"
+                  placeholder="np. 5.85"
+                  error={validationErrors.referenceRate}
+                />
                 <div>
                   <Label htmlFor="bridgeInsuranceMonths">Ubezpieczenie pomostowe (liczba miesięcy)</Label>
                   <Input id="bridgeInsuranceMonths" name="bridgeInsuranceMonths" value={formData.bridgeInsuranceMonths} onChange={handleInputChange} type="number" placeholder="np. 6" />
@@ -720,14 +877,26 @@ export default function RealEstateCalculatorPage() {
               {/* Sekcja Koszty Transakcyjne */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg border-b pb-2">Koszty Transakcyjne</h3>
-                <div>
-                  <Label htmlFor="bankCommission">Prowizja banku za udzielenie kredytu (%)</Label>
-                  <Input id="bankCommission" name="bankCommission" value={formData.bankCommission} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2" />
-                </div>
-                <div>
-                  <Label htmlFor="agencyCommission">Prowizja agencji nieruchomości (%)</Label>
-                   <Input id="agencyCommission" name="agencyCommission" value={formData.agencyCommission} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 3" />
-                </div>
+                <InputWithValidation
+                  id="bankCommission"
+                  name="bankCommission"
+                  label="Prowizja banku za udzielenie kredytu (%)"
+                  value={formData.bankCommission}
+                  onChange={handleNumericInput('bankCommission')}
+                  step="0.1"
+                  placeholder="np. 2"
+                  error={validationErrors.bankCommission}
+                />
+                <InputWithValidation
+                  id="agencyCommission"
+                  name="agencyCommission"
+                  label="Prowizja agencji nieruchomości (%)"
+                  value={formData.agencyCommission}
+                  onChange={handleNumericInput('agencyCommission')}
+                  step="0.1"
+                  placeholder="np. 3"
+                  error={validationErrors.agencyCommission}
+                />
                 <div className="space-y-2 pt-2 border-t">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="isFirstPropertyPurchase" className="flex flex-col pr-2">
@@ -736,10 +905,17 @@ export default function RealEstateCalculatorPage() {
                         </Label>
                         <Switch id="isFirstPropertyPurchase" checked={isFirstPropertyPurchase} onCheckedChange={handleFirstPropertySwitch} />
                     </div>
-                    <div>
-                        <Label htmlFor="pccTaxRate">Podatek PCC (%)</Label>
-                        <Input id="pccTaxRate" name="pccTaxRate" value={formData.pccTaxRate} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2" disabled={isFirstPropertyPurchase} />
-                    </div>
+                    <InputWithValidation
+                      id="pccTaxRate"
+                      name="pccTaxRate"
+                      label="Podatek PCC (%)"
+                      value={formData.pccTaxRate}
+                      onChange={handleNumericInput('pccTaxRate')}
+                      step="0.1"
+                      placeholder="np. 2"
+                      disabled={isFirstPropertyPurchase}
+                      error={validationErrors.pccTaxRate}
+                    />
                 </div>
                  <div className="space-y-2 pt-2 border-t">
                     <Label>Opłata notarialna</Label>
@@ -841,11 +1017,29 @@ export default function RealEstateCalculatorPage() {
       </Card>
 
       <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 mt-6">
-        <Button onClick={handleCalculateClick} disabled={isLoading} className="w-full md:w-auto">
+        <Button 
+          onClick={handleCalculateClick} 
+          disabled={isLoading || !isFormValid} 
+          className={`w-full md:w-auto ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           {isLoading ? 'Obliczanie...' : 'Oblicz'}
         </Button>
         <Button onClick={clearForm} variant="outline" className="w-full md:w-auto">Wyczyść</Button>
       </div>
+
+      {!isFormValid && Object.keys(validationErrors).length > 0 && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span>Formularz zawiera błędy:</span>
+          </div>
+          <ul className="text-red-700 text-sm space-y-1">
+            {Object.entries(validationErrors).map(([field, message]) => (
+              <li key={field}>• {message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {isClient && !results && !isLoading && (
         <div className="text-center py-12 text-gray-500">

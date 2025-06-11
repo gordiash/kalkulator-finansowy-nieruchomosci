@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import {
   Card,
   CardContent,
@@ -30,6 +31,48 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { AlertTriangle } from "lucide-react";
+import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+
+// Komponent pomocniczy dla inputs z walidacją
+const InputWithValidation = ({ 
+  id, 
+  label, 
+  value, 
+  onChange, 
+  placeholder, 
+  type = "number",
+  error,
+  helperText
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  error?: string;
+  helperText?: string;
+}) => (
+  <div className="space-y-2">
+    <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
+    <Input
+      id={id}
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={error ? "border-red-500 focus:border-red-500" : ""}
+    />
+    {helperText && <p className="text-xs text-gray-500">{helperText}</p>}
+    {error && (
+      <div className="flex items-center gap-1 text-sm text-red-600">
+        <AlertTriangle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
 
 const RentalProfitabilityCalculatorPage = () => {
   // Kolory dla wykresów
@@ -85,9 +128,95 @@ const RentalProfitabilityCalculatorPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // System walidacji
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Śledzenie wejścia na stronę
+  useEffect(() => {
+    trackPageView('kalkulator_wynajmu');
+  }, []);
+
+  // Funkcja walidacji wszystkich pól
+  const validateAllFields = () => {
+    const errors: Record<string, string> = {};
+    const fieldDefinitions = FIELD_DEFINITIONS.RENTAL;
+
+    const formData = {
+      purchasePrice,
+      monthlyRent,
+      transactionCosts,
+      renovationCosts,
+      adminFees,
+      utilities,
+      insurance,
+      otherCosts,
+      vacancyPeriod,
+      downPayment,
+      interestRate,
+      loanYears,
+      propertyAppreciation,
+      rentGrowth
+    };
+
+    // Walidacja każdego pola
+    Object.entries(formData).forEach(([fieldName, value]) => {
+      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
+      if (rules) {
+        const result = validateField(value, fieldName, rules);
+        if (!result.isValid) {
+          errors[fieldName] = result.errors[0].message;
+        }
+      }
+    });
+
+    // Dodatkowa walidacja biznesowa dla kalkulatora wynajmu
+    if (parseFloat(purchasePrice) && parseFloat(monthlyRent)) {
+      const yearlyRent = parseFloat(monthlyRent) * 12;
+      const rentToPrice = (yearlyRent / parseFloat(purchasePrice)) * 100;
+      
+      if (rentToPrice < 2) {
+        errors.monthlyRent = 'Czynsz wydaje się zbyt niski w stosunku do ceny (poniżej 2% rocznie)';
+      }
+      if (rentToPrice > 15) {
+        errors.monthlyRent = 'Czynsz wydaje się zbyt wysoki w stosunku do ceny (powyżej 15% rocznie)';
+      }
+    }
+
+    setValidationErrors(errors);
+    const isValid = Object.keys(errors).length === 0;
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  // Walidacja przy każdej zmianie
+  useEffect(() => {
+    validateAllFields();
+  }, [purchasePrice, monthlyRent, transactionCosts, renovationCosts, 
+      adminFees, utilities, insurance, otherCosts, vacancyPeriod, 
+      downPayment, interestRate, loanYears, propertyAppreciation, rentGrowth]);
+
+  // Funkcje pomocnicze do obsługi input-ów z sanityzacją
+  const handleNumericInput = (setValue: (value: string) => void, allowDecimals = true) => {
+    return (value: string) => {
+      const sanitized = sanitizeInput(value, allowDecimals);
+      setValue(sanitized);
+    };
+  };
+
   const calculateProfitability = async () => {
+    // Sprawdź walidację przed rozpoczęciem obliczeń
+    if (!validateAllFields()) {
+      setError('Proszę poprawić błędy w formularzu przed obliczeniem');
+      trackError('validation_error', 'Błędy walidacji w kalkulatorze wynajmu');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    
+    // Śledzenie użycia kalkulatora
+    trackCalculatorUse('rental');
     
     try {
       const requestData = {
@@ -125,8 +254,22 @@ const RentalProfitabilityCalculatorPage = () => {
 
       const data = await response.json();
       setResults(data);
+      
+      // Śledzenie wyniku kalkulatora
+      trackCalculatorResult('rental', data.roi, {
+        purchase_price: parseFloat(purchasePrice),
+        monthly_rent: parseFloat(monthlyRent),
+        annual_income: data.annualIncome,
+        net_cash_flow: data.netCashFlow
+      });
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nieoczekiwany błąd');
+      const errorMessage = err instanceof Error ? err.message : 'Nieoczekiwany błąd';
+      
+      // Śledzenie błędów
+      trackError('rental_calculation_error', errorMessage);
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -145,122 +288,103 @@ const RentalProfitabilityCalculatorPage = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            <div className="space-y-2">
-              <Label htmlFor="purchasePrice">Cena zakupu (zł)</Label>
-              <Input
-                id="purchasePrice"
-                type="number"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-                placeholder="np. 450000"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="monthlyRent">Mies. przychód z najmu (zł)</Label>
-              <Input
-                id="monthlyRent"
-                type="number"
-                value={monthlyRent}
-                onChange={(e) => setMonthlyRent(e.target.value)}
-                placeholder="np. 2500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="transactionCosts">Koszty transakcyjne (zł)</Label>
-              <Input
-                id="transactionCosts"
-                type="number"
-                value={transactionCosts}
-                onChange={(e) => setTransactionCosts(e.target.value)}
-                placeholder="np. 15000"
-              />
-              <p className="text-xs text-gray-500">PCC, taksa notarialna, prowizja agencji</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="renovationCosts">Koszt remontu (zł)</Label>
-              <Input
-                id="renovationCosts"
-                type="number"
-                value={renovationCosts}
-                onChange={(e) => setRenovationCosts(e.target.value)}
-                placeholder="np. 25000"
-              />
-              <p className="text-xs text-gray-500">Remont i wyposażenie mieszkania</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="adminFees">Czynsz administracyjny (zł/mies.)</Label>
-              <Input
-                id="adminFees"
-                type="number"
-                value={adminFees}
-                onChange={(e) => setAdminFees(e.target.value)}
-                placeholder="np. 300"
-              />
-              <p className="text-xs text-gray-500">Do spółdzielni/wspólnoty</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="utilities">Opłaty za media (zł/mies.)</Label>
-              <Input
-                id="utilities"
-                type="number"
-                value={utilities}
-                onChange={(e) => setUtilities(e.target.value)}
-                placeholder="np. 200"
-              />
-              <p className="text-xs text-gray-500">Prąd, woda, gaz, internet</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="insurance">Ubezpieczenie (zł/rok)</Label>
-              <Input
-                id="insurance"
-                type="number"
-                value={insurance}
-                onChange={(e) => setInsurance(e.target.value)}
-                placeholder="np. 600"
-              />
-              <p className="text-xs text-gray-500">Roczna składka ubezpieczeniowa</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="otherCosts">Inne koszty (zł/mies.)</Label>
-              <Input
-                id="otherCosts"
-                type="number"
-                value={otherCosts}
-                onChange={(e) => setOtherCosts(e.target.value)}
-                placeholder="np. 100"
-              />
-              <p className="text-xs text-gray-500">Podatek od nieruchomości, itp.</p>
-            </div>
+            <InputWithValidation
+              id="purchasePrice"
+              label="Cena zakupu (zł)"
+              value={purchasePrice}
+              onChange={handleNumericInput(setPurchasePrice)}
+              placeholder="np. 450000"
+              error={validationErrors.purchasePrice}
+            />
+            <InputWithValidation
+              id="monthlyRent"
+              label="Mies. przychód z najmu (zł)"
+              value={monthlyRent}
+              onChange={handleNumericInput(setMonthlyRent)}
+              placeholder="np. 2500"
+              error={validationErrors.monthlyRent}
+            />
+            <InputWithValidation
+              id="transactionCosts"
+              label="Koszty transakcyjne (zł)"
+              value={transactionCosts}
+              onChange={handleNumericInput(setTransactionCosts)}
+              placeholder="np. 15000"
+              error={validationErrors.transactionCosts}
+              helperText="PCC, taksa notarialna, prowizja agencji"
+            />
+            <InputWithValidation
+              id="renovationCosts"
+              label="Koszt remontu (zł)"
+              value={renovationCosts}
+              onChange={handleNumericInput(setRenovationCosts)}
+              placeholder="np. 25000"
+              error={validationErrors.renovationCosts}
+              helperText="Remont i wyposażenie mieszkania"
+            />
+            <InputWithValidation
+              id="adminFees"
+              label="Czynsz administracyjny (zł/mies.)"
+              value={adminFees}
+              onChange={handleNumericInput(setAdminFees)}
+              placeholder="np. 300"
+              error={validationErrors.adminFees}
+              helperText="Do spółdzielni/wspólnoty"
+            />
+            <InputWithValidation
+              id="utilities"
+              label="Opłaty za media (zł/mies.)"
+              value={utilities}
+              onChange={handleNumericInput(setUtilities)}
+              placeholder="np. 200"
+              error={validationErrors.utilities}
+              helperText="Prąd, woda, gaz, internet"
+            />
+            <InputWithValidation
+              id="insurance"
+              label="Ubezpieczenie (zł/rok)"
+              value={insurance}  
+              onChange={handleNumericInput(setInsurance)}
+              placeholder="np. 600"
+              error={validationErrors.insurance}
+              helperText="Roczna składka ubezpieczeniowa"
+            />
+            <InputWithValidation
+              id="otherCosts"
+              label="Inne koszty (zł/mies.)"
+              value={otherCosts}
+              onChange={handleNumericInput(setOtherCosts)}
+              placeholder="np. 100"
+              error={validationErrors.otherCosts}
+              helperText="Podatek od nieruchomości, itp."
+            />
           </div>
           
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <div className="space-y-2">
-              <Label htmlFor="vacancyPeriod">Okres pustostanów (mies./rok)</Label>
-              <Input
-                id="vacancyPeriod"
-                type="number"
-                min="0"
-                max="12"
-                value={vacancyPeriod}
-                onChange={(e) => setVacancyPeriod(e.target.value)}
-                placeholder="1"
-              />
-              <p className="text-xs text-gray-500">Średni czas w roku kiedy mieszkanie pozostaje puste (0-12 miesięcy)</p>
-            </div>
+            <InputWithValidation
+              id="vacancyPeriod"
+              label="Okres pustostanów (mies./rok)"
+              value={vacancyPeriod}
+              onChange={handleNumericInput(setVacancyPeriod)}
+              placeholder="1"
+              error={validationErrors.vacancyPeriod}
+              helperText="Średni czas w roku kiedy mieszkanie pozostaje puste (0-12 miesięcy)"
+            />
           </div>
 
           <div className="mb-6 p-4 bg-green-50 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Finansowanie Kredytem</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="downPayment">Wkład własny</Label>
+                <Label htmlFor="downPayment" className={validationErrors.downPayment ? "text-red-600" : ""}>Wkład własny</Label>
                 <div className="flex gap-2">
                   <Input
                     id="downPayment"
                     type="number"
                     value={downPayment}
-                    onChange={(e) => setDownPayment(e.target.value)}
+                    onChange={(e) => handleNumericInput(setDownPayment)(e.target.value)}
                     placeholder="np. 150000"
+                    className={validationErrors.downPayment ? "border-red-500 focus:border-red-500" : ""}
                   />
                   <Select value={downPaymentType} onValueChange={setDownPaymentType}>
                     <SelectTrigger className="w-20">
@@ -272,28 +396,29 @@ const RentalProfitabilityCalculatorPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                {validationErrors.downPayment && (
+                  <div className="flex items-center gap-1 text-sm text-red-600">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>{validationErrors.downPayment}</span>
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="interestRate">Oprocentowanie (%)</Label>
-                <Input
-                  id="interestRate"
-                  type="number"
-                  step="0.01"
-                  value={interestRate}
-                  onChange={(e) => setInterestRate(e.target.value)}
-                  placeholder="np. 6.5"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="loanYears">Okres kredytowania (lata)</Label>
-                <Input
-                  id="loanYears"
-                  type="number"
-                  value={loanYears}
-                  onChange={(e) => setLoanYears(e.target.value)}
-                  placeholder="np. 25"
-                />
-              </div>
+              <InputWithValidation
+                id="interestRate"
+                label="Oprocentowanie (%)"
+                value={interestRate}
+                onChange={handleNumericInput(setInterestRate)}
+                placeholder="np. 6.5"
+                error={validationErrors.interestRate}
+              />
+              <InputWithValidation
+                id="loanYears"
+                label="Okres kredytowania (lata)"
+                value={loanYears}
+                onChange={handleNumericInput(setLoanYears, false)}
+                placeholder="np. 25"
+                error={validationErrors.loanYears}
+              />
             </div>
           </div>
 
@@ -342,12 +467,26 @@ const RentalProfitabilityCalculatorPage = () => {
             <Button 
               onClick={calculateProfitability} 
               size="lg" 
-              className="w-full sm:w-auto"
-              disabled={isLoading}
+              className={`w-full sm:w-auto ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={isLoading || !isFormValid}
             >
               {isLoading ? 'Obliczanie...' : 'Oblicz opłacalność'}
             </Button>
           </div>
+
+          {!isFormValid && Object.keys(validationErrors).length > 0 && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Formularz zawiera błędy:</span>
+              </div>
+              <ul className="text-red-700 text-sm space-y-1">
+                {Object.entries(validationErrors).map(([field, message]) => (
+                  <li key={field}>• {message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-center">
@@ -531,28 +670,22 @@ const RentalProfitabilityCalculatorPage = () => {
                  {/* Ustawienia projekcji */}
                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                       <Label htmlFor="propertyAppreciation">Wzrost wartości nieruchomości (%/rok)</Label>
-                       <Input
-                         id="propertyAppreciation"
-                         type="number"
-                         step="0.1"
-                         value={propertyAppreciation}
-                         onChange={(e) => setPropertyAppreciation(e.target.value)}
-                         placeholder="3"
-                       />
-                     </div>
-                     <div className="space-y-2">
-                       <Label htmlFor="rentGrowth">Wzrost czynszu (%/rok)</Label>
-                       <Input
-                         id="rentGrowth"
-                         type="number"
-                         step="0.1"
-                         value={rentGrowth}
-                         onChange={(e) => setRentGrowth(e.target.value)}
-                         placeholder="2"
-                       />
-                     </div>
+                     <InputWithValidation
+                       id="propertyAppreciation"
+                       label="Wzrost wartości nieruchomości (%/rok)"
+                       value={propertyAppreciation}
+                       onChange={handleNumericInput(setPropertyAppreciation)}
+                       placeholder="3"
+                       error={validationErrors.propertyAppreciation}
+                     />
+                     <InputWithValidation
+                       id="rentGrowth"
+                       label="Wzrost czynszu (%/rok)"
+                       value={rentGrowth}
+                       onChange={handleNumericInput(setRentGrowth)}
+                       placeholder="2"
+                       error={validationErrors.rentGrowth}
+                     />
                    </div>
                  </div>
 

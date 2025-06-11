@@ -1,9 +1,14 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { FiHome, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
+import { trackPageView, trackEvent } from '@/lib/analytics';
 
 const Card = ({ icon, title, description, href }: { icon: React.ReactNode, title: string, description: string, href: string }) => (
   <Link 
     href={href} 
+    onClick={() => trackEvent('calculator_link_click', { calculator_type: href.replace('/kalkulator-', '').replace('-', '_') })}
     className="group block p-8 bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ease-in-out"
   >
     <div className="flex items-center justify-center w-16 h-16 mb-6 bg-blue-100 rounded-xl group-hover:bg-blue-500 transition-colors duration-300">
@@ -17,6 +22,11 @@ const Card = ({ icon, title, description, href }: { icon: React.ReactNode, title
 );
 
 export default function HomePage() {
+  // Śledzenie wejścia na stronę główną
+  useEffect(() => {
+    trackPageView('homepage');
+  }, []);
+
   return (
     <div className="bg-gray-50">
       <section className="text-center py-20 md:py-28 bg-white">

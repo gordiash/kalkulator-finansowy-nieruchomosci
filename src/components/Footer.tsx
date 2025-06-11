@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import CookieSettings from './CookieSettings';
+import NewsletterFooterForm from './NewsletterFooterForm';
 
 const Footer = () => {
   const [isCookieSettingsOpen, setIsCookieSettingsOpen] = useState(false);
@@ -10,7 +11,7 @@ const Footer = () => {
     <footer className="bg-gray-100 mt-12 py-8">
       <div className="container mx-auto px-4">
         {/* Główna zawartość stopki */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-6">
           {/* O projekcie */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Kalkulatory Nieruchomości</h3>
@@ -40,6 +41,15 @@ const Footer = () => {
                 </Link>
               </li>
             </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Newsletter</h3>
+            <p className="text-gray-600 text-sm mb-3">
+              Otrzymuj najnowsze analizy rynku i porady ekspertów
+            </p>
+            <NewsletterFooterForm />
           </div>
 
           {/* Wsparcie */}

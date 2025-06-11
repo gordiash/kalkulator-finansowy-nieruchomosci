@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, AlertTriangle } from "lucide-react";
+import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
 
 // Komponent pomocniczy dla pól z tooltipami - POZA głównym komponentem
 const InputWithTooltip = ({ 
@@ -19,7 +21,8 @@ const InputWithTooltip = ({
   onChange, 
   type = "number", 
   placeholder, 
-  step 
+  step,
+  error
 }: {
   id: string;
   label: string;
@@ -29,10 +32,11 @@ const InputWithTooltip = ({
   type?: string;
   placeholder?: string;
   step?: string;
+  error?: string;
 }) => (
   <div className="space-y-2">
     <div className="flex items-center gap-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
       <Tooltip>
         <TooltipTrigger asChild>
           <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
@@ -49,7 +53,14 @@ const InputWithTooltip = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       step={step}
+      className={error ? "border-red-500 focus:border-red-500" : ""}
     />
+    {error && (
+      <div className="flex items-center gap-1 text-sm text-red-600">
+        <AlertTriangle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+    )}
   </div>
 );
 
@@ -61,7 +72,8 @@ const SelectWithTooltip = ({
   value, 
   onValueChange, 
   placeholder,
-  children 
+  children,
+  error
 }: {
   id: string;
   label: string;
@@ -70,10 +82,11 @@ const SelectWithTooltip = ({
   onValueChange: (value: string) => void;
   placeholder?: string;
   children: React.ReactNode;
+  error?: string;
 }) => (
   <div className="space-y-2">
     <div className="flex items-center gap-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
       <Tooltip>
         <TooltipTrigger asChild>
           <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
@@ -84,13 +97,19 @@ const SelectWithTooltip = ({
       </Tooltip>
     </div>
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
+      <SelectTrigger className={error ? "border-red-500" : ""}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
         {children}
       </SelectContent>
     </Select>
+    {error && (
+      <div className="flex items-center gap-1 text-sm text-red-600">
+        <AlertTriangle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+    )}
   </div>
 );
 
@@ -131,9 +150,83 @@ const CreditScoreCalculatorPage = () => {
     dstiUsed?: number;
   } | null>(null);
 
+  // System walidacji
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Śledzenie wejścia na stronę
+  useEffect(() => {
+    trackPageView('kalkulator_zdolnosci_kredytowej');
+  }, []);
+
+  // Funkcja walidacji wszystkich pól
+  const validateAllFields = () => {
+    const errors: Record<string, string> = {};
+    const fieldDefinitions = FIELD_DEFINITIONS.CREDIT_SCORE;
+
+    const formData = {
+      monthlyIncome,
+      secondBorrowerIncome,
+      monthlyExpenses,
+      otherLoans,
+      creditCardLimits,
+      accountOverdrafts,
+      householdSize,
+      loanTerm,
+      interestRate,
+      dstiRatio
+    };
+
+    // Walidacja każdego pola
+    Object.entries(formData).forEach(([fieldName, value]) => {
+      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
+      if (rules) {
+        const result = validateField(value, fieldName, rules);
+        if (!result.isValid) {
+          errors[fieldName] = result.errors[0].message;
+        }
+      }
+    });
+
+    // Dodatkowa walidacja biznesowa
+    if (parseFloat(monthlyIncome) < 3000 && parseFloat(dstiRatio) > 40) {
+      errors.dstiRatio = 'Dla niskich dochodów zaleca się DSTI maksymalnie 40%';
+    }
+
+    setValidationErrors(errors);
+    const isValid = Object.keys(errors).length === 0;
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  // Walidacja przy każdej zmianie
+  useEffect(() => {
+    validateAllFields();
+  }, [monthlyIncome, secondBorrowerIncome, monthlyExpenses, otherLoans, 
+      creditCardLimits, accountOverdrafts, householdSize, loanTerm, 
+      interestRate, dstiRatio]);
+
+  // Funkcje pomocnicze do obsługi input-ów z sanityzacją
+  const handleNumericInput = (setValue: (value: string) => void, allowDecimals = true) => {
+    return (value: string) => {
+      const sanitized = sanitizeInput(value, allowDecimals);
+      setValue(sanitized);
+    };
+  };
+
   const calculateCreditScore = async () => {
+    // Sprawdź walidację przed rozpoczęciem obliczeń
+    if (!validateAllFields()) {
+      setError('Proszę poprawić błędy w formularzu przed obliczeniem');
+      trackError('validation_error', 'Błędy walidacji w kalkulatorze zdolności kredytowej');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    
+    // Śledzenie użycia kalkulatora
+    trackCalculatorUse('credit-score');
     
     try {
       const requestData = {
@@ -184,9 +277,22 @@ const CreditScoreCalculatorPage = () => {
         dstiUsed: result.dstiUsed
       });
 
+      // Śledzenie wyniku kalkulatora
+      trackCalculatorResult('credit-score', result.maxLoanAmount, {
+        credit_capacity: result.creditCapacity,
+        total_income: result.totalIncome,
+        dsti_limit: result.effectiveDstiLimit,
+        stressed_rate: result.stressedInterestRate
+      });
+
     } catch (err) {
       console.error('Błąd podczas obliczeń:', err);
-      setError(err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd');
+      const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd';
+      
+      // Śledzenie błędów
+      trackError('calculation_error', errorMessage);
+      
+      setError(errorMessage);
       setCreditCapacity(null);
       setMaxLoanAmount(null);
       setChartData([]);
@@ -222,8 +328,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Miesięczny dochód netto - główny kredytobiorca (zł)"
                     tooltip="Wprowadź miesięczny dochód netto głównego kredytobiorcy po odliczeniu podatków i składek ZUS. To kwota, którą faktycznie otrzymujesz na konto."
                     value={monthlyIncome}
-                    onChange={setMonthlyIncome}
+                    onChange={handleNumericInput(setMonthlyIncome)}
                     placeholder="np. 6000"
+                    error={validationErrors.monthlyIncome}
                   />
                   
                   <InputWithTooltip
@@ -231,8 +338,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Miesięczny dochód netto - drugi kredytobiorca (zł)"
                     tooltip="Miesięczny dochód netto drugiego kredytobiorcy (np. współmałżonka). Pole opcjonalne - pozostaw puste jeśli kreduyt będzie zaciągany samodzielnie."
                     value={secondBorrowerIncome}
-                    onChange={setSecondBorrowerIncome}
+                    onChange={handleNumericInput(setSecondBorrowerIncome)}
                     placeholder="np. 4000"
+                    error={validationErrors.secondBorrowerIncome}
                   />
                   
                   <SelectWithTooltip
@@ -259,8 +367,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Miesięczne stałe opłaty (zł)"
                     tooltip="Suma stałych miesięcznych wydatków takich jak: czynsz, media, telefon, internet, ubezpieczenia. Nie wliczaj kosztów żywności i rozrywki - są one uwzględnione w kosztach utrzymania."
                     value={monthlyExpenses}
-                    onChange={setMonthlyExpenses}
+                    onChange={handleNumericInput(setMonthlyExpenses)}
                     placeholder="np. 1500"
+                    error={validationErrors.monthlyExpenses}
                   />
                   
                   <InputWithTooltip
@@ -268,8 +377,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Raty innych kredytów (zł)"
                     tooltip="Suma wszystkich miesięcznych rat kredytów, które już spłacasz (kredyt samochodowy, konsumpcyjny, inne kredyty hipoteczne, karty kredytowe w ratach)."
                     value={otherLoans}
-                    onChange={setOtherLoans}
+                    onChange={handleNumericInput(setOtherLoans)}
                     placeholder="np. 500"
+                    error={validationErrors.otherLoans}
                   />
                   
                   <InputWithTooltip
@@ -277,8 +387,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Suma limitów na kartach kredytowych (zł)"
                     tooltip="Łączna suma wszystkich przyznanych limitów na kartach kredytowych. Bank zakłada, że możesz wykorzystać 3% tych limitów miesięcznie, co obciąża Twoją zdolność kredytową."
                     value={creditCardLimits}
-                    onChange={setCreditCardLimits}
+                    onChange={handleNumericInput(setCreditCardLimits)}
                     placeholder="np. 10000"
+                    error={validationErrors.creditCardLimits}
                   />
                   
                   <InputWithTooltip
@@ -286,8 +397,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Suma limitów w koncie - debet (zł)"
                     tooltip="Łączna suma przyznanych debetów w koncie (możliwość przejścia na minus). Podobnie jak karty kredytowe, bank zakłada 3% miesięczne wykorzystanie."
                     value={accountOverdrafts}
-                    onChange={setAccountOverdrafts}
+                    onChange={handleNumericInput(setAccountOverdrafts)}
                     placeholder="np. 5000"
+                    error={validationErrors.accountOverdrafts}
                   />
                   
                   <InputWithTooltip
@@ -295,8 +407,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Liczba osób w gospodarstwie domowym"
                     tooltip="Liczba osób w gospodarstwie domowym. Kalkulator używa dynamicznego modelu kosztów życia: bazowa kwota dla liczby osób + 10% całkowitego dochodu netto (osoby z wyższymi dochodami mają wyższe koszty życia)."
                     value={householdSize}
-                    onChange={setHouseholdSize}
+                    onChange={handleNumericInput(setHouseholdSize, false)}
                     placeholder="np. 2"
+                    error={validationErrors.householdSize}
                   />
 
                   <SelectWithTooltip
@@ -306,6 +419,7 @@ const CreditScoreCalculatorPage = () => {
                     value={dstiRatio}
                     onValueChange={setDstiRatio}
                     placeholder="Wybierz poziom DSTI"
+                    error={validationErrors.dstiRatio}
                   >
                     <SelectItem value="40">40% - konserwatywnie</SelectItem>
                     <SelectItem value="50">50% - standardowo</SelectItem>
@@ -323,8 +437,9 @@ const CreditScoreCalculatorPage = () => {
                     label="Okres kredytowania (lata)"
                     tooltip="Okres na jaki chcesz zaciągnąć kredyt. UWAGA: Do obliczeń jest używany maksymalnie 30-letni okres niezależnie od wprowadzonej wartości, zgodnie z praktyką banków ograniczających ryzyko."
                     value={loanTerm}
-                    onChange={setLoanTerm}
+                    onChange={handleNumericInput(setLoanTerm, false)}
                     placeholder="30"
+                    error={validationErrors.loanTerm}
                   />
                   
                   <InputWithTooltip
@@ -332,9 +447,10 @@ const CreditScoreCalculatorPage = () => {
                     label="Oprocentowanie kredytu (%)"
                     tooltip="Szacowane roczne oprocentowanie kredytu. UWAGA: Kalkulator automatycznie dodaje bufor +2.5 p.p. (stress test) do wprowadzonej wartości, zgodnie z wymogami KNF dotyczącymi scenariusza wzrostu stóp procentowych."
                     value={interestRate}
-                    onChange={setInterestRate}
+                    onChange={handleNumericInput(setInterestRate)}
                     placeholder="7.5"
                     step="0.1"
+                    error={validationErrors.interestRate}
                   />
                   
                   <SelectWithTooltip
@@ -353,10 +469,29 @@ const CreditScoreCalculatorPage = () => {
             </div>
             
             <div className="flex justify-center mt-8">
-              <Button onClick={calculateCreditScore} size="lg" disabled={isLoading}>
+              <Button 
+                onClick={calculateCreditScore} 
+                size="lg" 
+                disabled={isLoading || !isFormValid}
+                className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+              >
                 {isLoading ? 'Obliczanie...' : 'Oblicz zdolność kredytową'}
               </Button>
             </div>
+            
+            {!isFormValid && Object.keys(validationErrors).length > 0 && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Formularz zawiera błędy:</span>
+                </div>
+                <ul className="text-red-700 text-sm space-y-1">
+                  {Object.entries(validationErrors).map(([field, message]) => (
+                    <li key={field}>• {message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {error && (
               <div className="mt-6">
