@@ -195,6 +195,9 @@ Implementacja bardziej zaawansowanego i realistycznego algorytmu oceny zdolnośc
 - ✅ Zaktualizowane tooltips wyjaśniające nowe cechy
 - ✅ Informacje o stress teście i ograniczeniach
 - ✅ Wyjaśnienie dynamicznego modelu kosztów życia
+- ✅ **NOWA SEKCJA "Szczegóły obliczeń"** - transparentne wyjaśnienie wyników
+- ✅ Kolorowe karty ze wszystkimi kluczowymi parametrami
+- ✅ Edukacyjna sekcja z wyjaśnieniem mechanizmów banków
 
 ### 🔄 **DZIAŁAJĄCY ALGORYTM:**
 
@@ -209,7 +212,9 @@ Nowy kalkulator implementuje **4 kluczowe ulepszenia**:
 - **Bardziej realistyczne wyniki** zgodne z praktykami banków
 - **Większe bezpieczeństwo** dzięki stress testowi
 - **Inteligentne dostosowanie** do poziomu dochodów
-- **Transparentność** - użytkownik wie jakie ograniczenia są stosowane
+- **Pełna transparentność** - użytkownik widzi każdy krok obliczeń
+- **Wartość edukacyjna** - wyjaśnienie mechanizmów bankowych
+- **Profesjonalny wygląd** - przejrzysta prezentacja szczegółów
 
 ### 🧪 **REZULTATY TESTOWANIA (ZADANIE 8):**
 
@@ -232,5 +237,20 @@ Nowy kalkulator implementuje **4 kluczowe ulepszenia**:
 - ✅ Interfejs intuicyjnie wyjaśnia nowe mechanizmy
 
 **Werdykt:** 🎯 **WSZYSTKIE TESTY ZALICZONE** - algorytm działa zgodnie z założeniami!
+
+### 🎨 **ULEPSZENIE INTERFEJSU (DODATKOWE):**
+
+**Nowa sekcja "Szczegóły obliczeń":**
+- ✅ 6 kolorowych kart z kluczowymi parametrami
+- ✅ Transparentne wyjaśnienie każdego kroku obliczeń
+- ✅ Edukacyjny opis mechanizmów bankowych
+- ✅ Informacja o automatycznych ograniczeniach
+- ✅ Profesjonalna prezentacja wyników
+
+**Korzyści:**
+- **Transparentność:** Użytkownik widzi dokładnie jak powstał wynik
+- **Edukacja:** Wyjaśnienie mechanizmów stress testu, DSTI, itp.
+- **Wiarygodność:** Kalkulator przestaje być "czarną skrzynką"
+- **Wartość:** Użytkownik otrzymuje więcej niż tylko liczbę
 
 ---

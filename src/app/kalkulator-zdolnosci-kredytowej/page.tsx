@@ -120,6 +120,16 @@ const CreditScoreCalculatorPage = () => {
   const [creditCapacity, setCreditCapacity] = useState<number | null>(null);
   const [maxLoanAmount, setMaxLoanAmount] = useState<number | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  
+  // Rozszerzone dane z zaawansowanego algorytmu
+  const [calculationDetails, setCalculationDetails] = useState<{
+    totalIncome?: number;
+    costOfLiving?: number;
+    totalCommitments?: number;
+    stressedInterestRate?: number;
+    effectiveDstiLimit?: number;
+    dstiUsed?: number;
+  } | null>(null);
 
   const calculateCreditScore = async () => {
     setIsLoading(true);
@@ -163,6 +173,16 @@ const CreditScoreCalculatorPage = () => {
       setCreditCapacity(result.creditCapacity);
       setMaxLoanAmount(result.maxLoanAmount);
       setChartData(result.chartData || []);
+      
+      // Zapisz szczegółowe dane z zaawansowanego algorytmu
+      setCalculationDetails({
+        totalIncome: result.totalIncome,
+        costOfLiving: result.costOfLiving,
+        totalCommitments: result.totalCommitments,
+        stressedInterestRate: result.stressedInterestRate,
+        effectiveDstiLimit: result.effectiveDstiLimit,
+        dstiUsed: result.dstiUsed
+      });
 
     } catch (err) {
       console.error('Błąd podczas obliczeń:', err);
@@ -170,6 +190,7 @@ const CreditScoreCalculatorPage = () => {
       setCreditCapacity(null);
       setMaxLoanAmount(null);
       setChartData([]);
+      setCalculationDetails(null);
     } finally {
       setIsLoading(false);
     }
@@ -402,7 +423,120 @@ const CreditScoreCalculatorPage = () => {
                     </Card>
                   )}
                 </div>
+
+                {/* Szczegóły obliczeń */}
+                {calculationDetails && (
+                  <div className="mt-8">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-xl">📊 Szczegóły obliczeń</CardTitle>
+                        <CardDescription>
+                          Transparentne wyjaśnienie jak kalkulator doszedł do Twojego wyniku
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-blue-900 mb-2">💰 Całkowity dochód netto</h4>
+                            <p className="text-2xl font-bold text-blue-700">
+                              {calculationDetails.totalIncome?.toFixed(0)} zł
+                            </p>
+                            <p className="text-sm text-blue-600 mt-1">
+                              Po uwzględnieniu wag dla typu umowy
+                            </p>
+                          </div>
+
+                          <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                            <h4 className="font-semibold text-orange-900 mb-2">🏠 Koszty utrzymania</h4>
+                            <p className="text-2xl font-bold text-orange-700">
+                              {calculationDetails.costOfLiving?.toFixed(0)} zł
+                            </p>
+                            <p className="text-sm text-orange-600 mt-1">
+                              Dynamiczny model: baza + 10% dochodu
+                            </p>
+                          </div>
+
+                          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <h4 className="font-semibold text-red-900 mb-2">📋 Suma zobowiązań</h4>
+                            <p className="text-2xl font-bold text-red-700">
+                              {calculationDetails.totalCommitments?.toFixed(0)} zł
+                            </p>
+                            <p className="text-sm text-red-600 mt-1">
+                              Opłaty + kredyty + 3% limitów kart
+                            </p>
+                          </div>
+
+                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                            <h4 className="font-semibold text-purple-900 mb-2">📈 Oprocentowanie (stress test)</h4>
+                            <p className="text-2xl font-bold text-purple-700">
+                              {calculationDetails.stressedInterestRate?.toFixed(1)}%
+                            </p>
+                            <p className="text-sm text-purple-600 mt-1">
+                              Twoje {interestRate}% + bufor 2.5 p.p.
+                            </p>
+                          </div>
+
+                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h4 className="font-semibold text-green-900 mb-2">🎯 Zastosowany limit DSTI</h4>
+                            <p className="text-2xl font-bold text-green-700">
+                              {calculationDetails.effectiveDstiLimit?.toFixed(0)}%
+                            </p>
+                            <p className="text-sm text-green-600 mt-1">
+                              {calculationDetails.effectiveDstiLimit !== parseFloat(dstiRatio) ? 
+                                'Automatycznie ograniczony' : 'Zgodnie z Twoim wyborem'}
+                            </p>
+                          </div>
+
+                          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                            <h4 className="font-semibold text-indigo-900 mb-2">⚖️ Wykorzystane DSTI</h4>
+                            <p className="text-2xl font-bold text-indigo-700">
+                              {calculationDetails.dstiUsed?.toFixed(1)}%
+                            </p>
+                            <p className="text-sm text-indigo-600 mt-1">
+                              Rzeczywiste obciążenie dochodów
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-2">🔍 Jak działają ograniczenia?</h4>
+                          <div className="text-sm text-gray-700 space-y-1">
+                            <p><strong>Limity DSTI:</strong> Dochód &lt;7500zł → max 40%, 7500-12000zł → max 50%, &gt;12000zł → do 60%</p>
+                            <p><strong>Stress test:</strong> Automatyczny bufor +2.5 p.p. do oprocentowania (wymóg KNF)</p>
+                            <p><strong>Okresy:</strong> Maksymalnie 30 lat niezależnie od wprowadzonej wartości</p>
+                            <p><strong>Koszty życia:</strong> Realistyczny model uwzględniający poziom Twoich dochodów</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
                 
+                {/* Dodatkowe informacje o zaawansowanym algorytmie */}
+                {calculationDetails && (
+                  <div className="mt-6">
+                    <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-4">
+                          <div className="text-2xl">🚀</div>
+                          <div>
+                            <h4 className="font-semibold text-green-900 mb-2">Zaawansowany algorytm bankowy</h4>
+                            <p className="text-sm text-green-800 mb-2">
+                              Ten kalkulator wykorzystuje rzeczywiste mechanizmy stosowane przez banki:
+                            </p>
+                            <ul className="text-xs text-green-700 space-y-1">
+                              <li>• <strong>Stress test</strong> - automatyczny bufor stóp procentowych (+2.5 p.p.)</li>
+                              <li>• <strong>Dynamiczne DSTI</strong> - ograniczenia w zależności od wysokości dochodu</li>
+                              <li>• <strong>Realistyczne koszty życia</strong> - model uwzględniający poziom zarobków</li>
+                              <li>• <strong>Pełna transparentność</strong> - widzisz każdy krok obliczeń</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
                 <p className="text-sm text-gray-500 mt-6 text-center">
                   Powyższe obliczenia są jedynie symulacją i nie stanowią oferty w rozumieniu przepisów prawa. 
                   Rzeczywista zdolność kredytowa zależy od wielu czynników i jest oceniana indywidualnie przez bank.
