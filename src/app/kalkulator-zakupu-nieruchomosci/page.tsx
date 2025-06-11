@@ -640,11 +640,11 @@ export default function RealEstateCalculatorPage() {
   const totalCreditCost = results ? (results.totalInterest ?? 0) + (results.bankCommissionAmount ?? 0) : 0;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 bg-gray-50">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Kalkulator Zakupu Nieruchomości</CardTitle>
-        </CardHeader>
+    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+              <Card className="mb-6 sm:mb-8">
+          <CardHeader className="pb-4 sm:pb-6">
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-center font-bold">Kalkulator Zakupu Nieruchomości</CardTitle>
+          </CardHeader>
         <CardContent>
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -815,15 +815,24 @@ export default function RealEstateCalculatorPage() {
                   )}
               </div>
              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-lg mb-2">Symulacja Zmiany Stóp Procentowych</h3>
-                <div className="flex items-center space-x-4">
+                <h3 className="font-semibold text-lg mb-4">Symulacja Zmiany Stóp Procentowych</h3>
+                <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Switch id="useSimulationRate" checked={useSimulationRate} onCheckedChange={setUseSimulationRate} />
-                    <Label htmlFor="useSimulationRate">Uwzględnij w głównych wynikach</Label>
+                    <Label htmlFor="useSimulationRate" className="text-sm md:text-base">Uwzględnij w głównych wynikach</Label>
                   </div>
-                  <div>
-                      <Label htmlFor="referenceRateChange">Zmiana wskaźnika referencyjnego (p.p.)</Label>
-                      <Input id="referenceRateChange" name="referenceRateChange" value={formData.referenceRateChange} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 1.5 lub -0.5" className="w-48"/>
+                  <div className="w-full sm:w-auto">
+                      <Label htmlFor="referenceRateChange" className="text-sm md:text-base">Zmiana wskaźnika referencyjnego (p.p.)</Label>
+                      <Input 
+                        id="referenceRateChange" 
+                        name="referenceRateChange" 
+                        value={formData.referenceRateChange} 
+                        onChange={handleInputChange} 
+                        type="number" 
+                        step="0.1" 
+                        placeholder="np. 1.5 lub -0.5" 
+                        className="w-full sm:w-48 mt-1"
+                      />
                   </div>
                 </div>
             </div>
@@ -853,52 +862,52 @@ export default function RealEstateCalculatorPage() {
           <div className="mt-8 space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>Koszty Początkowe</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Koszty Początkowe</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg">
-                    <p className="text-md text-gray-600">Wkład własny</p>
-                    <p className="text-2xl font-bold">{formatCurrency(downPayment)}</p>
+                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-gray-100 rounded-lg">
+                    <p className="text-sm md:text-base text-gray-600 mb-2 sm:mb-0">Wkład własny</p>
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(downPayment)}</p>
                 </div>
-                <div className="p-4 bg-gray-100 rounded-lg">
-                    <p className="text-md text-gray-600 mb-2">Koszty okołozakupowe</p>
-                    <div className="space-y-2 text-sm text-left">
-                        {(results.pccTax ?? 0) > 0 && <div className="flex justify-between"><span>Podatek PCC:</span> <span>{formatCurrency(results.pccTax)}</span></div>}
-                        {isFirstPropertyPurchase && (results.pccTax === 0) && <div className="flex justify-between"><span>Podatek PCC:</span> <span>Zwolnienie (pierwsza nieruchomość)</span></div>}
-                        {(results.notaryFee ?? 0) > 0 && <div className="flex justify-between"><span>Taksa notarialna:</span> <span>{formatCurrency(results.notaryFee)}</span></div>}
-                        {(results.bankCommissionAmount ?? 0) > 0 && <div className="flex justify-between"><span>Prowizja bankowa:</span> <span>{formatCurrency(results.bankCommissionAmount)}</span></div>}
-                        {(results.courtFees ?? 0) > 0 && <div className="flex justify-between"><span>Opłaty sądowe:</span> <span>{formatCurrency(results.courtFees)}</span></div>}
-                        {(results.agencyCommissionAmount ?? 0) > 0 && <div className="flex justify-between"><span>Prowizja agencji:</span> <span>{formatCurrency(results.agencyCommissionAmount)}</span></div>}
-                        <div className="flex justify-between font-bold border-t pt-2 mt-2"><span>Suma kosztów okołozakupowych:</span> <span>{formatCurrency(ancillaryCosts)}</span></div>
+                <div className="p-4 md:p-6 bg-gray-100 rounded-lg">
+                    <p className="text-sm md:text-base text-gray-600 mb-4 font-semibold">Koszty okołozakupowe</p>
+                    <div className="space-y-3 text-sm md:text-base">
+                        {(results.pccTax ?? 0) > 0 && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold">{formatCurrency(results.pccTax)}</span></div>}
+                        {isFirstPropertyPurchase && (results.pccTax === 0) && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold text-green-600">Zwolnienie (pierwsza nieruchomość)</span></div>}
+                        {(results.notaryFee ?? 0) > 0 && <div className="flex justify-between items-center"><span>Taksa notarialna:</span> <span className="font-semibold">{formatCurrency(results.notaryFee)}</span></div>}
+                        {(results.bankCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja bankowa:</span> <span className="font-semibold">{formatCurrency(results.bankCommissionAmount)}</span></div>}
+                        {(results.courtFees ?? 0) > 0 && <div className="flex justify-between items-center"><span>Opłaty sądowe:</span> <span className="font-semibold">{formatCurrency(results.courtFees)}</span></div>}
+                        {(results.agencyCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja agencji:</span> <span className="font-semibold">{formatCurrency(results.agencyCommissionAmount)}</span></div>}
+                        <div className="flex justify-between items-center font-bold border-t pt-3 mt-3 text-base md:text-lg"><span>Suma kosztów okołozakupowych:</span> <span>{formatCurrency(ancillaryCosts)}</span></div>
                     </div>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-blue-100 rounded-lg">
-                  <p className="text-md font-semibold text-gray-700">RAZEM (gotówka na start)</p>
-                  <p className="text-2xl font-bold text-blue-800">{formatCurrency(totalInitialOutlay)}</p>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-blue-100 rounded-lg">
+                  <p className="text-sm md:text-base font-semibold text-gray-700 mb-2 sm:mb-0">RAZEM (gotówka na start)</p>
+                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-800">{formatCurrency(totalInitialOutlay)}</p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Podsumowanie Płatności Kredytu</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Podsumowanie Płatności Kredytu</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="p-4 bg-gray-100 rounded-lg">
-                      <p className="text-sm text-gray-600">Pierwsza Rata</p>
-                      <p className="text-2xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
                   </div>
-                  <div className="p-4 bg-gray-100 rounded-lg">
-                      <p className="text-sm text-gray-600">Ostatnia Rata</p>
-                      <p className="text-2xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
+                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
                   </div>
-                  <div className="p-4 bg-gray-100 rounded-lg">
-                      <p className="text-sm text-gray-600">Suma Odsetek</p>
-                      <p className="text-2xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
+                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
                   </div>
-                  <div className="p-4 bg-red-100 rounded-lg">
-                      <p className="text-sm text-gray-700">Całkowity Koszt Kredytu</p>
-                      <p className="text-2xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
+                  <div className="p-4 md:p-6 bg-red-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-gray-700 mb-2">Całkowity Koszt Kredytu</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
                   </div>
               </CardContent>
             </Card>
@@ -906,16 +915,16 @@ export default function RealEstateCalculatorPage() {
             {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Wyniki Nadpłaty</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Wyniki Nadpłaty</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                  <div className="p-4 bg-green-100 rounded-lg">
-                    <p className="text-sm text-green-800">Zaoszczędzone odsetki</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(results.overpaymentResults.savedInterest)}</p>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
+                    <p className="text-sm md:text-base text-green-800 mb-2">Zaoszczędzone odsetki</p>
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{formatCurrency(results.overpaymentResults.savedInterest)}</p>
                   </div>
-                  <div className="p-4 bg-green-100 rounded-lg">
-                    <p className="text-sm text-green-800">Kredyt spłacisz szybciej o</p>
-                    <p className="text-2xl font-bold text-green-600">{formatLoanTerm(parseInt(formData.loanTerm) * 12 - results.overpaymentResults.newLoanTerm)}</p>
+                  <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
+                    <p className="text-sm md:text-base text-green-800 mb-2">Kredyt spłacisz szybciej o</p>
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{formatLoanTerm(parseInt(formData.loanTerm) * 12 - results.overpaymentResults.newLoanTerm)}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -924,26 +933,34 @@ export default function RealEstateCalculatorPage() {
             {useSimulationRate && results.simulationResults && (
                  <Card>
                     <CardHeader>
-                        <CardTitle>Wynik Symulacji Zmiany Stóp Procentowych</CardTitle>
+                        <CardTitle className="text-lg md:text-xl">Wynik Symulacji Zmiany Stóp Procentowych</CardTitle>
                     </CardHeader>
-                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                         <div className="p-4 bg-yellow-100 rounded-lg">
-                             <p className="text-sm text-yellow-800">Nowa pierwsza rata</p>
-                             <p className="text-2xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newFirstInstallment)}</p>
+                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
+                             <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa pierwsza rata</p>
+                             <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newFirstInstallment)}</p>
                          </div>
-                         <div className="p-4 bg-yellow-100 rounded-lg">
-                            <p className="text-sm text-yellow-800">Nowa ostatnia rata</p>
-                            <p className="text-2xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newLastInstallment)}</p>
+                         <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
+                            <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa ostatnia rata</p>
+                            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newLastInstallment)}</p>
                          </div>
                      </CardContent>
                  </Card>
             )}
 
-            <div className="flex justify-center items-center space-x-4 mt-6">
-              <Button onClick={() => setShowSchedule(!showSchedule)} variant="secondary">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+              <Button 
+                onClick={() => setShowSchedule(!showSchedule)} 
+                variant="secondary"
+                className="w-full sm:w-auto text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
+              >
                 {showSchedule ? 'Ukryj' : 'Pokaż'} Harmonogram Spłat
               </Button>
-              <Button onClick={generatePdfReport} disabled={!results?.schedule}>
+              <Button 
+                onClick={generatePdfReport} 
+                disabled={!results?.schedule}
+                className="w-full sm:w-auto text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
+              >
                 Pobierz raport PDF
               </Button>
             </div>
@@ -975,36 +992,48 @@ export default function RealEstateCalculatorPage() {
                         ))}
                       </tbody>
                     </table>
-                    <div className="flex justify-center items-center space-x-2 mt-4">
-                        <Button
-                            onClick={() => setCurrentPage(1)}
-                            disabled={currentPage === 1}
-                            variant="outline"
-                        >
-                            Pierwsza
-                        </Button>
-                        <Button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                        >
-                            Poprzednia
-                        </Button>
-                        <span className="px-4 text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-4">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                            <Button
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3"
+                            >
+                                Pierwsza
+                            </Button>
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3"
+                            >
+                                Poprzednia
+                            </Button>
+                        </div>
+                        <span className="px-2 sm:px-4 text-xs sm:text-sm text-gray-600 text-center">
                             Strona {currentPage} z {Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
                         </span>
-                        <Button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)))}
-                            disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
-                        >
-                            Następna
-                        </Button>
-                        <Button
-                            onClick={() => setCurrentPage(Math.ceil((results.schedule?.length ?? 0) / itemsPerPage))}
-                            disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
-                            variant="outline"
-                        >
-                            Ostatnia
-                        </Button>
+                        <div className="flex items-center gap-1 sm:gap-2">
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)))}
+                                disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
+                                size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3"
+                            >
+                                Następna
+                            </Button>
+                            <Button
+                                onClick={() => setCurrentPage(Math.ceil((results.schedule?.length ?? 0) / itemsPerPage))}
+                                disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3"
+                            >
+                                Ostatnia
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
               </Card>
