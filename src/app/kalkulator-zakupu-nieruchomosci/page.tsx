@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement } from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { CalculationService } from '@/lib/CalculationService';
 import { formatCurrency, normalizeText } from '@/lib/utils';
 import { AmortizationChart } from '@/components/charts/AmortizationChart';
@@ -17,6 +18,184 @@ import { InstallmentStructureChart } from '@/components/charts/InstallmentStruct
 import { OverpaymentImpactChart } from '@/components/charts/OverpaymentImpactChart';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
+
+// Definicja nowego komponentu wykresu bezpośrednio w pliku
+const OverpaymentComparisonChart: React.FC<{
+    scheduleWithoutOverpayment: ScheduleItem[];
+    scheduleWithOverpayment: ScheduleItem[];
+}> = ({ scheduleWithoutOverpayment, scheduleWithOverpayment }) => {
+    
+    const maxLength = Math.max(scheduleWithoutOverpayment.length, scheduleWithOverpayment.length);
+    const labels = Array.from({ length: maxLength }, (_, i) => i + 1);
+
+    const data = {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Saldo bez nadpłat',
+                data: scheduleWithoutOverpayment.map(item => item.remainingBalance),
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1,
+                pointRadius: 0,
+                fill: false,
+            },
+            {
+                label: 'Saldo z nadpłatami',
+                data: scheduleWithOverpayment.map(item => item.remainingBalance),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                pointRadius: 0,
+                fill: false,
+            },
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: 'Porównanie salda zadłużenia w czasie',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += formatCurrency(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Miesiąc'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Pozostałe saldo (zł)'
+                },
+                ticks: {
+                    callback: function(value: any) {
+                        return formatCurrency(value);
+                    }
+                }
+            }
+        }
+    };
+
+    return <Line options={options} data={data} />;
+};
+
+// Komponent wykresu nadpłat
+const OverpaymentTimelineChart: React.FC<{
+    schedule: ScheduleItem[];
+}> = ({ schedule }) => {
+    
+    const overpaymentMonths = schedule
+        .map((item, index) => ({ month: item.month, overpayment: item.overpayment }))
+        .filter(item => item.overpayment > 0);
+
+    if (overpaymentMonths.length === 0) {
+        return <div className="text-center text-gray-500 py-8">Brak nadpłat w harmonogramie</div>;
+    }
+
+    const data = {
+        labels: overpaymentMonths.map(item => `Miesiąc ${item.month}`),
+        datasets: [
+            {
+                label: 'Kwota nadpłaty',
+                data: overpaymentMonths.map(item => item.overpayment),
+                backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: 'Harmonogram nadpłat',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        return `Nadpłata: ${formatCurrency(context.parsed.y)}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Okresy nadpłat'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Kwota nadpłaty (zł)'
+                },
+                ticks: {
+                    callback: function(value: any) {
+                        return formatCurrency(value);
+                    }
+                }
+            }
+        }
+    };
+
+    return (
+        <div>
+            <div className="mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="bg-yellow-100 p-3 rounded-lg text-center">
+                        <div className="font-semibold text-yellow-800">Łączna kwota nadpłat</div>
+                        <div className="text-lg font-bold text-yellow-600">
+                            {formatCurrency(overpaymentMonths.reduce((sum, item) => sum + item.overpayment, 0))}
+                        </div>
+                    </div>
+                    <div className="bg-blue-100 p-3 rounded-lg text-center">
+                        <div className="font-semibold text-blue-800">Liczba nadpłat</div>
+                        <div className="text-lg font-bold text-blue-600">{overpaymentMonths.length}</div>
+                    </div>
+                    <div className="bg-green-100 p-3 rounded-lg text-center">
+                        <div className="font-semibold text-green-800">Pierwsza nadpłata</div>
+                        <div className="text-lg font-bold text-green-600">Miesiąc {overpaymentMonths[0].month}</div>
+                    </div>
+                    <div className="bg-purple-100 p-3 rounded-lg text-center">
+                        <div className="font-semibold text-purple-800">Ostatnia nadpłata</div>
+                        <div className="text-lg font-bold text-purple-600">
+                            Miesiąc {overpaymentMonths[overpaymentMonths.length - 1].month}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <Bar options={options} data={data} />
+        </div>
+    );
+};
 
 type ScheduleItem = {
   month: number;
@@ -46,6 +225,7 @@ type FormData = {
   overpaymentFrequency: 'one-time' | 'monthly' | 'yearly';
   overpaymentStartMonth: string;
   overpaymentTarget: 'lower-installment' | 'shorten-period';
+  overpaymentInterval: string;
 };
 
 type CalculationResults = {
@@ -61,6 +241,7 @@ type CalculationResults = {
   totalInterest: number | null;
   overpaymentResults: { savedInterest: number; newLoanTerm: number; } | null;
   simulationResults?: SimulationResults;
+  baseSchedule?: ScheduleItem[] | null;
 };
 
 type SimulationResults = {
@@ -88,6 +269,7 @@ export default function RealEstateCalculatorPage() {
     overpaymentFrequency: 'one-time',
     overpaymentStartMonth: '1',
     overpaymentTarget: 'shorten-period',
+    overpaymentInterval: '1',
   });
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -97,11 +279,35 @@ export default function RealEstateCalculatorPage() {
   const itemsPerPage = 12;
   const scheduleRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
-  const [useSimulationRate, setUseSimulationRate] = useState(false); 
+  const [useSimulationRate, setUseSimulationRate] = useState(false);
+  const [isFirstPropertyPurchase, setIsFirstPropertyPurchase] = useState(false);
+  const [showOverpayment, setShowOverpayment] = useState(false);
+  const [downPaymentType, setDownPaymentType] = useState<'percentage' | 'amount'>('amount');
+  const [downPaymentInput, setDownPaymentInput] = useState('100000');
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    const propertyValueNum = parseFloat(formData.propertyValue) || 0;
+    const downPaymentInputNum = parseFloat(downPaymentInput) || 0;
+    let newLoanAmount = 0;
+
+    if (propertyValueNum > 0) {
+        if (downPaymentType === 'amount') {
+            newLoanAmount = propertyValueNum - downPaymentInputNum;
+        } else { // percentage
+            const downPaymentAmount = propertyValueNum * (downPaymentInputNum / 100);
+            newLoanAmount = propertyValueNum - downPaymentAmount;
+        }
+    }
+
+    setFormData(prev => ({
+        ...prev,
+        loanAmount: String(Math.max(0, Math.round(newLoanAmount)))
+    }));
+  }, [formData.propertyValue, downPaymentInput, downPaymentType]);
 
   const service = new CalculationService();
 
@@ -126,6 +332,32 @@ export default function RealEstateCalculatorPage() {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value as any }));
+  };
+
+  const handleDownPaymentTypeChange = (newType: 'percentage' | 'amount') => {
+    if (downPaymentType === newType) return;
+
+    const propertyValueNum = parseFloat(formData.propertyValue) || 0;
+    const downPaymentInputNum = parseFloat(downPaymentInput) || 0;
+
+    if (propertyValueNum > 0 && downPaymentInputNum > 0) {
+        if (newType === 'percentage' && downPaymentType === 'amount') {
+            const percentage = (downPaymentInputNum / propertyValueNum) * 100;
+            setDownPaymentInput(percentage.toFixed(2));
+        } else if (newType === 'amount' && downPaymentType === 'percentage') {
+            const amount = propertyValueNum * (downPaymentInputNum / 100);
+            setDownPaymentInput(String(Math.round(amount)));
+        }
+    }
+    setDownPaymentType(newType);
+  };
+
+  const handleFirstPropertySwitch = (checked: boolean) => {
+    setIsFirstPropertyPurchase(checked);
+    setFormData(prev => ({
+        ...prev,
+        pccTaxRate: checked ? '0' : '2'
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -182,11 +414,16 @@ export default function RealEstateCalculatorPage() {
         overpaymentFrequency: 'one-time',
         overpaymentStartMonth: '1',
         overpaymentTarget: 'shorten-period',
+        overpaymentInterval: '1',
     });
     setResults(null);
     setErrors({});
     setShowSchedule(false);
     setCurrentPage(1);
+    setIsFirstPropertyPurchase(false);
+    setShowOverpayment(false);
+    setDownPaymentType('amount');
+    setDownPaymentInput('100000');
   };
   
   const generatePdfReport = async () => {
@@ -198,86 +435,197 @@ export default function RealEstateCalculatorPage() {
     const doc = new jsPDF();
     const chartElements = document.querySelectorAll('.chart-container-pdf');
     const html2canvas = (await import('html2canvas')).default;
-    const chartImages = await Promise.all(
-        Array.from(chartElements).map(async (chart) => {
-            const canvas = await html2canvas(chart as HTMLElement);
-            return { img: canvas.toDataURL('image/png') };
-        })
-    );
     
     const ancillaryCosts = (results?.notaryFee ?? 0) + (results?.pccTax ?? 0) + (results?.bankCommissionAmount ?? 0) + (results?.courtFees ?? 0) + (results?.agencyCommissionAmount ?? 0);
     const totalCreditCost = (results?.totalInterest ?? 0) + (results?.bankCommissionAmount ?? 0);
+    const totalInitialOutlay = (parseFloat(formData.propertyValue) - parseFloat(formData.loanAmount)) + ancillaryCosts;
 
-    // Title
-    doc.setFontSize(22);
-    doc.text(normalizeText("Raport Kredytowy"), 105, 20, { align: 'center' });
+    // === STRONA 1: PODSUMOWANIE WYKONAWCZE ===
+    doc.setFontSize(24);
+    doc.text(normalizeText("RAPORT KREDYTOWY"), 105, 25, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(normalizeText(`Data wygenerowania: ${new Date().toLocaleDateString('pl-PL')}`), 105, 35, { align: 'center' });
 
-    // Summary Table
+    // Sekcja parametrów kredytu
+    doc.setFontSize(16);
+    doc.text(normalizeText("Parametry kredytu"), 15, 50);
+    
+    const loanData = [
+        ['Wartość nieruchomości', formatCurrency(parseFloat(formData.propertyValue))],
+        ['Kwota kredytu', formatCurrency(parseFloat(formData.loanAmount))],
+        ['Wkład własny', formatCurrency(parseFloat(formData.propertyValue) - parseFloat(formData.loanAmount))],
+        ['Okres kredytowania', `${formData.loanTerm} lat`],
+        ['Oprocentowanie', `${(parseFloat(formData.bankMargin) + parseFloat(formData.referenceRate)).toFixed(2)}% (marża: ${formData.bankMargin}% + wskaźnik: ${formData.referenceRate}%)`],
+        ['Rodzaj rat', formData.installmentType === 'equal' ? 'Równe' : 'Malejące'],
+    ];
+
+    autoTable(doc, {
+        startY: 55,
+        head: [['Parametr', 'Wartość']],
+        body: loanData.map(row => [normalizeText(row[0]), normalizeText(row[1])]),
+        theme: 'grid',
+        headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255], font: 'helvetica', fontStyle: 'bold' },
+        bodyStyles: { font: 'helvetica' },
+        columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 100 } }
+    });
+
+    // Sekcja kosztów
+    let yPos = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(16);
+    doc.text(normalizeText("Koszty początkowe"), 15, yPos);
+    yPos += 5;
+
+    const costsData = [
+        ['Wkład własny', formatCurrency(parseFloat(formData.propertyValue) - parseFloat(formData.loanAmount))],
+        ...(results.pccTax && results.pccTax > 0 ? [['Podatek PCC', formatCurrency(results.pccTax)]] : [['Podatek PCC', 'Zwolnienie (pierwsza nieruchomość)']]),
+        ['Taksa notarialna', formatCurrency(results.notaryFee)],
+        ['Prowizja bankowa', formatCurrency(results.bankCommissionAmount)],
+        ['Opłaty sądowe', formatCurrency(results.courtFees)],
+        ['Prowizja agencji', formatCurrency(results.agencyCommissionAmount)],
+        ['RAZEM koszty okołozakupowe', formatCurrency(ancillaryCosts)],
+        ['CAŁKOWITA gotówka na start', formatCurrency(totalInitialOutlay)],
+    ];
+
+    autoTable(doc, {
+        startY: yPos,
+        body: costsData.map(row => [normalizeText(row[0]), normalizeText(row[1])]),
+        theme: 'striped',
+        bodyStyles: { font: 'helvetica' },
+        columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 70, halign: 'right', fontStyle: 'bold' } }
+    });
+
+    // === STRONA 2: PODSUMOWANIE KREDYTU ===
+    doc.addPage();
+    doc.setFontSize(18);
+    doc.text(normalizeText("Podsumowanie spłaty kredytu"), 105, 25, { align: 'center' });
+
     const summaryData = [
         ['Pierwsza rata', formatCurrency(results.firstInstallment)],
         ['Ostatnia rata', formatCurrency(results.lastInstallment)],
         ['Suma odsetek', formatCurrency(results.totalInterest)],
         ['Całkowity koszt kredytu (z prowizją)', formatCurrency(totalCreditCost)],
-        ['Koszty okołozakupowe', formatCurrency(ancillaryCosts)],
         ['Całkowita kwota do spłaty', formatCurrency(results.totalRepayment)],
     ];
+
     if (results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0) {
-        summaryData.push(['Zaoszczędzone odsetki (nadpłata)', formatCurrency(results.overpaymentResults.savedInterest)]);
-        summaryData.push(['Nowy okres kredytowania', formatLoanTerm(results.overpaymentResults.newLoanTerm)]);
+        summaryData.push(['', '']); // Pusty wiersz
+        summaryData.push(['=== WYNIKI NADPŁATY ===', '']);
+        summaryData.push(['Kwota nadpłaty', formatCurrency(parseFloat(formData.overpaymentAmount))]);
+        summaryData.push(['Częstotliwość', formData.overpaymentFrequency === 'one-time' ? 'Jednorazowa' : formData.overpaymentFrequency === 'monthly' ? 'Miesięczna' : 'Roczna']);
+        summaryData.push(['Zaoszczędzone odsetki', formatCurrency(results.overpaymentResults.savedInterest)]);
+        summaryData.push(['Skrócenie o', formatLoanTerm(parseInt(formData.loanTerm) * 12 - results.overpaymentResults.newLoanTerm)]);
     }
 
-    (doc as any).autoTable({
-        startY: 30,
-        head: [['Kategoria', 'Wartość']],
+    autoTable(doc, {
+        startY: 35,
         body: summaryData.map(row => [normalizeText(row[0]), normalizeText(row[1])]),
         theme: 'striped',
-        headStyles: { fillColor: [41, 128, 185], font: 'helvetica' },
-        bodyStyles: { font: 'helvetica' }
+        bodyStyles: { font: 'helvetica', fontSize: 11 },
+        columnStyles: { 
+            0: { cellWidth: 120, fontStyle: 'bold' }, 
+            1: { cellWidth: 70, halign: 'right', fontStyle: 'bold' } 
+        }
     });
 
-    // Charts
-    let yPos = (doc as any).lastAutoTable.finalY + 15;
-    const chartWidth = 90;
-    const chartHeight = 70;
-    chartImages.forEach(({ img }, i) => {
-        const xPos = (i % 2 === 0) ? 15 : 110;
-        if (i > 0 && i % 2 === 0) {
-            yPos += chartHeight + 10;
-        }
-        if (yPos + chartHeight > 280) {
-            doc.addPage();
-            yPos = 20;
-        }
-        doc.addImage(img, 'PNG', xPos, yPos, chartWidth, chartHeight);
-    });
+    // === STRONA 3+: WYKRESY ===
+    const chartImages = await Promise.all(
+        Array.from(chartElements).map(async (chart) => {
+            const canvas = await html2canvas(chart as HTMLElement, { scale: 1.5 });
+            return { img: canvas.toDataURL('image/png') };
+        })
+    );
 
-    // Schedule Table
+    if (chartImages.length > 0) {
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.text(normalizeText("Analiza graficzna"), 105, 20, { align: 'center' });
+        
+        let chartYPos = 30;
+        const chartWidth = 170;
+        const chartHeight = 120;
+
+        for (let i = 0; i < chartImages.length; i++) {
+            if (chartYPos + chartHeight > 270) {
+                doc.addPage();
+                chartYPos = 20;
+            }
+            doc.addImage(chartImages[i].img, 'PNG', 20, chartYPos, chartWidth, chartHeight);
+            chartYPos += chartHeight + 15;
+        }
+    }
+
+    // === OSTATNIA STRONA: SKRÓCONY HARMONOGRAM ===
     if (results.schedule && results.schedule.length > 0) {
         doc.addPage();
         doc.setFontSize(18);
-        doc.text(normalizeText("Harmonogram Spłat"), 105, 20, { align: 'center' });
+        doc.text(normalizeText("Harmonogram spłat (skrócony)"), 105, 20, { align: 'center' });
 
-        const scheduleHead = [['Miesiąc', 'Rata', 'Część kap.', 'Część ods.', 'Nadpłata', 'Saldo']];
-        const scheduleBody = results.schedule.map(item => [
-            item.month,
-            formatCurrency(item.totalPayment),
-            formatCurrency(item.principalPart),
-            formatCurrency(item.interestPart),
-            formatCurrency(item.overpayment),
-            formatCurrency(item.remainingBalance),
-        ].map(cell => normalizeText(String(cell))));
+        const schedule = results.schedule;
+        const firstMonths = schedule.slice(0, 12); // Pierwsze 12 miesięcy
+        const lastMonths = schedule.length > 24 ? schedule.slice(-12) : []; // Ostatnie 12 miesięcy (jeśli kredyt > 24 miesiące)
+        
+        // Funkcja do tworzenia tabeli harmonogramu
+        const createScheduleTable = (scheduleData: ScheduleItem[], title: string, startY: number) => {
+            if (scheduleData.length === 0) return startY;
+            
+            doc.setFontSize(14);
+            doc.text(normalizeText(title), 15, startY);
+            
+            const scheduleHead = [['Miesiąc', 'Rata', 'Kapitał', 'Odsetki', 'Nadpłata', 'Saldo']];
+            const scheduleBody = scheduleData.map(item => [
+                item.month.toString(),
+                formatCurrency(item.totalPayment),
+                formatCurrency(item.principalPart),
+                formatCurrency(item.interestPart),
+                formatCurrency(item.overpayment),
+                formatCurrency(item.remainingBalance),
+            ].map(cell => normalizeText(String(cell))));
 
-        (doc as any).autoTable({
-            startY: 30,
-            head: scheduleHead,
-            body: scheduleBody,
-            theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185], font: 'helvetica' },
-            bodyStyles: { font: 'helvetica' },
-            didDrawPage: (data: any) => {
-                // You can add headers/footers for each page here if needed
+            autoTable(doc, {
+                startY: startY + 5,
+                head: scheduleHead,
+                body: scheduleBody,
+                theme: 'striped',
+                headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255], font: 'helvetica', fontSize: 9 },
+                bodyStyles: { font: 'helvetica', fontSize: 8 },
+                columnStyles: {
+                    0: { cellWidth: 20, halign: 'center' },
+                    1: { cellWidth: 30, halign: 'right' },
+                    2: { cellWidth: 30, halign: 'right' },
+                    3: { cellWidth: 30, halign: 'right' },
+                    4: { cellWidth: 25, halign: 'right' },
+                    5: { cellWidth: 35, halign: 'right' }
+                }
+            });
+            
+            return (doc as any).lastAutoTable.finalY + 10;
+        };
+
+        let currentY = 30;
+        currentY = createScheduleTable(firstMonths, "Pierwsze 12 miesięcy:", currentY);
+        
+        if (lastMonths.length > 0) {
+            if (currentY > 200) {
+                doc.addPage();
+                currentY = 30;
             }
-        });
+            
+            if (schedule.length > 24) {
+                doc.setFontSize(12);
+                doc.text(normalizeText(`... pominięto ${schedule.length - 24} miesięcy ...`), 105, currentY, { align: 'center' });
+                currentY += 15;
+            }
+            
+            createScheduleTable(lastMonths, "Ostatnie 12 miesięcy:", currentY);
+        }
+
+        // Podsumowanie harmonogramu
+        const totalOverpayments = schedule.reduce((sum, item) => sum + item.overpayment, 0);
+        if (totalOverpayments > 0) {
+            doc.setFontSize(10);
+            doc.text(normalizeText(`Łączna kwota nadpłat: ${formatCurrency(totalOverpayments)}`), 15, doc.internal.pageSize.height - 15);
+        }
     }
 
     doc.save(normalizeText('Raport_Kredytowy.pdf'));
@@ -307,9 +655,29 @@ export default function RealEstateCalculatorPage() {
                   <Label htmlFor="propertyValue">Wartość nieruchomości (zł)</Label>
                   <Input id="propertyValue" name="propertyValue" value={formData.propertyValue} onChange={handleInputChange} type="number" placeholder="np. 500000" />
                 </div>
+                <div className="space-y-2">
+                  <Label>Wkład własny</Label>
+                  <div className="flex items-center space-x-2">
+                    <Select value={downPaymentType} onValueChange={(v) => handleDownPaymentTypeChange(v as 'percentage' | 'amount')}>
+                      <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="amount">Kwotowo (PLN)</SelectItem>
+                        <SelectItem value="percentage">Procentowo (%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="downPaymentInput"
+                      value={downPaymentInput}
+                      onChange={(e) => setDownPaymentInput(e.target.value)}
+                      type="number"
+                      placeholder={downPaymentType === 'amount' ? 'np. 100000' : 'np. 20'}
+                      step={downPaymentType === 'percentage' ? "0.1" : "1000"}
+                    />
+                  </div>
+                </div>
                 <div>
                   <Label htmlFor="loanAmount">Kwota kredytu (zł)</Label>
-                  <Input id="loanAmount" name="loanAmount" value={formData.loanAmount} onChange={handleInputChange} type="number" placeholder="np. 400000" />
+                  <Input id="loanAmount" name="loanAmount" value={formData.loanAmount} type="number" readOnly placeholder="np. 400000" className="bg-gray-100" />
                    {errors.loanAmount && <p className="text-red-500 text-sm mt-1">{errors.loanAmount}</p>}
                 </div>
                 <div>
@@ -328,9 +696,9 @@ export default function RealEstateCalculatorPage() {
                 </div>
               </div>
 
-              {/* Sekcja Oprocentowanie i Prowizje */}
+              {/* Sekcja Oprocentowanie i Ubezpieczenia */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Oprocentowanie i Prowizje</h3>
+                <h3 className="font-semibold text-lg border-b pb-2">Oprocentowanie i Ubezpieczenia</h3>
                 <div>
                   <Label htmlFor="bankMargin">Marża banku (%)</Label>
                   <Input id="bankMargin" name="bankMargin" value={formData.bankMargin} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2.1" />
@@ -339,7 +707,20 @@ export default function RealEstateCalculatorPage() {
                   <Label htmlFor="referenceRate">Wskaźnik referencyjny (WIBOR/WIRON) (%)</Label>
                   <Input id="referenceRate" name="referenceRate" value={formData.referenceRate} onChange={handleInputChange} type="number" step="0.01" placeholder="np. 5.85" />
                 </div>
-                 <div>
+                <div>
+                  <Label htmlFor="bridgeInsuranceMonths">Ubezpieczenie pomostowe (liczba miesięcy)</Label>
+                  <Input id="bridgeInsuranceMonths" name="bridgeInsuranceMonths" value={formData.bridgeInsuranceMonths} onChange={handleInputChange} type="number" placeholder="np. 6" />
+                </div>
+                <div>
+                  <Label htmlFor="bridgeInsuranceMarginIncrease">Podwyższenie marży w okresie ubezp. (%)</Label>
+                  <Input id="bridgeInsuranceMarginIncrease" name="bridgeInsuranceMarginIncrease" value={formData.bridgeInsuranceMarginIncrease} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 1.0" />
+                </div>
+              </div>
+              
+              {/* Sekcja Koszty Transakcyjne */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg border-b pb-2">Koszty Transakcyjne</h3>
+                <div>
                   <Label htmlFor="bankCommission">Prowizja banku za udzielenie kredytu (%)</Label>
                   <Input id="bankCommission" name="bankCommission" value={formData.bankCommission} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2" />
                 </div>
@@ -347,54 +728,92 @@ export default function RealEstateCalculatorPage() {
                   <Label htmlFor="agencyCommission">Prowizja agencji nieruchomości (%)</Label>
                    <Input id="agencyCommission" name="agencyCommission" value={formData.agencyCommission} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 3" />
                 </div>
-              </div>
-
-              {/* Sekcja Ubezpieczenie i Nadpłata */}
-              <div className="space-y-4">
-                  <h3 className="font-semibold text-lg border-b pb-2">Ubezpieczenie i Nadpłata</h3>
-                  <div>
-                    <Label htmlFor="bridgeInsuranceMonths">Ubezpieczenie pomostowe (liczba miesięcy)</Label>
-                    <Input id="bridgeInsuranceMonths" name="bridgeInsuranceMonths" value={formData.bridgeInsuranceMonths} onChange={handleInputChange} type="number" placeholder="np. 6" />
-                  </div>
-                  <div>
-                    <Label htmlFor="bridgeInsuranceMarginIncrease">Podwyższenie marży w okresie ubezp. (%)</Label>
-                    <Input id="bridgeInsuranceMarginIncrease" name="bridgeInsuranceMarginIncrease" value={formData.bridgeInsuranceMarginIncrease} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 1.0" />
-                  </div>
-                  <div>
-                    <Label htmlFor="overpaymentAmount">Kwota nadpłaty (zł)</Label>
-                    <Input id="overpaymentAmount" name="overpaymentAmount" value={formData.overpaymentAmount} onChange={handleInputChange} type="number" placeholder="np. 10000" />
-                  </div>
-                  {parseFloat(formData.overpaymentAmount) > 0 && (
-                    <>
-                       <div>
-                         <Label>Częstotliwość nadpłat</Label>
-                         <Select onValueChange={(v) => handleSelectChange('overpaymentFrequency', v)} defaultValue={formData.overpaymentFrequency}>
-                           <SelectTrigger><SelectValue/></SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="one-time">Jednorazowa</SelectItem>
-                             <SelectItem value="monthly">Miesięczna</SelectItem>
-                             <SelectItem value="yearly">Roczna</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                       <div>
-                         <Label htmlFor="overpaymentStartMonth">Nadpłata od miesiąca</Label>
-                         <Input id="overpaymentStartMonth" name="overpaymentStartMonth" value={formData.overpaymentStartMonth} onChange={handleInputChange} type="number"/>
-                       </div>
-                       <div>
-                         <Label>Cel nadpłaty</Label>
-                         <Select onValueChange={(v) => handleSelectChange('overpaymentTarget', v)} defaultValue={formData.overpaymentTarget}>
-                           <SelectTrigger><SelectValue/></SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="shorten-period">Skrócenie okresu</SelectItem>
-                             <SelectItem value="lower-installment">Zmniejszenie raty</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                    </>
-                  )}
+                <div className="space-y-2 pt-2 border-t">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="isFirstPropertyPurchase" className="flex flex-col pr-2">
+                            <span>Zwolnienie z PCC</span>
+                            <span className="text-xs text-gray-500">zakup pierwszej nieruchomości</span>
+                        </Label>
+                        <Switch id="isFirstPropertyPurchase" checked={isFirstPropertyPurchase} onCheckedChange={handleFirstPropertySwitch} />
+                    </div>
+                    <div>
+                        <Label htmlFor="pccTaxRate">Podatek PCC (%)</Label>
+                        <Input id="pccTaxRate" name="pccTaxRate" value={formData.pccTaxRate} onChange={handleInputChange} type="number" step="0.1" placeholder="np. 2" disabled={isFirstPropertyPurchase} />
+                    </div>
+                </div>
+                 <div className="space-y-2 pt-2 border-t">
+                    <Label>Opłata notarialna</Label>
+                    <Select name="notaryFeeType" onValueChange={(value) => handleSelectChange('notaryFeeType', value)} defaultValue={formData.notaryFeeType}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="max">Maksymalna stawka</SelectItem>
+                            <SelectItem value="custom">Własna kwota</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {formData.notaryFeeType === 'custom' && (
+                    <div>
+                        <Label htmlFor="customNotaryFee">Własna kwota opłaty (zł)</Label>
+                        <Input id="customNotaryFee" name="customNotaryFee" value={formData.customNotaryFee} onChange={handleInputChange} type="number" placeholder="np. 3000" />
+                    </div>
+                    )}
+                </div>
               </div>
             </div>
+             <div className="pt-4 border-t">
+                  <button type="button" onClick={() => setShowOverpayment(!showOverpayment)} className="font-semibold text-lg w-full text-left flex justify-between items-center">
+                      <span>Nadpłata Kredytu</span>
+                      <span className="text-xl">{showOverpayment ? '▲' : '▼'}</span>
+                  </button>
+                  {showOverpayment && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                      <div>
+                        <Label htmlFor="overpaymentAmount">Kwota nadpłaty (zł)</Label>
+                        <Input id="overpaymentAmount" name="overpaymentAmount" value={formData.overpaymentAmount} onChange={handleInputChange} type="number" placeholder="np. 10000" />
+                      </div>
+                      {parseFloat(formData.overpaymentAmount) > 0 && (
+                        <>
+                          <div>
+                            <Label>Częstotliwość nadpłat</Label>
+                            <Select onValueChange={(v) => handleSelectChange('overpaymentFrequency', v)} defaultValue={formData.overpaymentFrequency}>
+                              <SelectTrigger><SelectValue/></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="one-time">Jednorazowa</SelectItem>
+                                <SelectItem value="monthly">Miesięczna</SelectItem>
+                                <SelectItem value="yearly">Roczna</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {(formData.overpaymentFrequency === 'monthly' || formData.overpaymentFrequency === 'yearly') && (
+                            <div>
+                                <Label>Co ile {formData.overpaymentFrequency === 'monthly' ? 'miesięcy' : 'lat'}</Label>
+                                <Input 
+                                  name="overpaymentInterval" 
+                                  value={formData.overpaymentInterval} 
+                                  onChange={handleInputChange} 
+                                  type="number"
+                                  min="1"
+                                />
+                            </div>
+                          )}
+                          <div>
+                            <Label htmlFor="overpaymentStartMonth">Nadpłata od miesiąca</Label>
+                            <Input id="overpaymentStartMonth" name="overpaymentStartMonth" value={formData.overpaymentStartMonth} onChange={handleInputChange} type="number"/>
+                          </div>
+                          <div className="md:col-span-3">
+                            <Label>Cel nadpłaty</Label>
+                            <Select onValueChange={(v) => handleSelectChange('overpaymentTarget', v)} defaultValue={formData.overpaymentTarget}>
+                              <SelectTrigger><SelectValue/></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="shorten-period">Skrócenie okresu</SelectItem>
+                                <SelectItem value="lower-installment">Zmniejszenie raty</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+              </div>
              <div className="pt-4 border-t">
                 <h3 className="font-semibold text-lg mb-2">Symulacja Zmiany Stóp Procentowych</h3>
                 <div className="flex items-center space-x-4">
@@ -436,17 +855,25 @@ export default function RealEstateCalculatorPage() {
               <CardHeader>
                 <CardTitle>Koszty Początkowe</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-gray-100 rounded-lg">
-                  <p className="text-sm text-gray-600">Wkład własny</p>
-                  <p className="text-2xl font-bold">{formatCurrency(downPayment)}</p>
+              <CardContent className="space-y-4">
+                 <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg">
+                    <p className="text-md text-gray-600">Wkład własny</p>
+                    <p className="text-2xl font-bold">{formatCurrency(downPayment)}</p>
                 </div>
                 <div className="p-4 bg-gray-100 rounded-lg">
-                  <p className="text-sm text-gray-600">Koszty okołozakupowe</p>
-                  <p className="text-2xl font-bold">{formatCurrency(ancillaryCosts)}</p>
+                    <p className="text-md text-gray-600 mb-2">Koszty okołozakupowe</p>
+                    <div className="space-y-2 text-sm text-left">
+                        {(results.pccTax ?? 0) > 0 && <div className="flex justify-between"><span>Podatek PCC:</span> <span>{formatCurrency(results.pccTax)}</span></div>}
+                        {isFirstPropertyPurchase && (results.pccTax === 0) && <div className="flex justify-between"><span>Podatek PCC:</span> <span>Zwolnienie (pierwsza nieruchomość)</span></div>}
+                        {(results.notaryFee ?? 0) > 0 && <div className="flex justify-between"><span>Taksa notarialna:</span> <span>{formatCurrency(results.notaryFee)}</span></div>}
+                        {(results.bankCommissionAmount ?? 0) > 0 && <div className="flex justify-between"><span>Prowizja bankowa:</span> <span>{formatCurrency(results.bankCommissionAmount)}</span></div>}
+                        {(results.courtFees ?? 0) > 0 && <div className="flex justify-between"><span>Opłaty sądowe:</span> <span>{formatCurrency(results.courtFees)}</span></div>}
+                        {(results.agencyCommissionAmount ?? 0) > 0 && <div className="flex justify-between"><span>Prowizja agencji:</span> <span>{formatCurrency(results.agencyCommissionAmount)}</span></div>}
+                        <div className="flex justify-between font-bold border-t pt-2 mt-2"><span>Suma kosztów okołozakupowych:</span> <span>{formatCurrency(ancillaryCosts)}</span></div>
+                    </div>
                 </div>
-                <div className="p-4 bg-blue-100 rounded-lg">
-                  <p className="text-sm text-gray-700">RAZEM (gotówka na start)</p>
+                <div className="flex justify-between items-center p-4 bg-blue-100 rounded-lg">
+                  <p className="text-md font-semibold text-gray-700">RAZEM (gotówka na start)</p>
                   <p className="text-2xl font-bold text-blue-800">{formatCurrency(totalInitialOutlay)}</p>
                 </div>
               </CardContent>
@@ -583,31 +1010,44 @@ export default function RealEstateCalculatorPage() {
               </Card>
             )}
             
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="lg:col-span-1">
-                    <Card className="chart-container-pdf">
-                        <CardHeader><CardTitle>Struktura Raty</CardTitle></CardHeader>
-                        <CardContent><InstallmentStructureChart schedule={results.schedule ?? []} /></CardContent>
-                    </Card>
-                </div>
-                <div className="lg:col-span-1">
-                    <Card className="chart-container-pdf">
-                        <CardHeader><CardTitle>Amortyzacja</CardTitle></CardHeader>
-                        <CardContent><AmortizationChart schedule={results.schedule ?? []} /></CardContent>
-                    </Card>
-                </div>
+            <div className="mt-8 grid grid-cols-1 gap-8">
+                <Card className="chart-container-pdf">
+                    <CardHeader><CardTitle>Struktura Raty</CardTitle></CardHeader>
+                    <CardContent><InstallmentStructureChart schedule={results.schedule ?? []} /></CardContent>
+                </Card>
+                <Card className="chart-container-pdf">
+                    <CardHeader><CardTitle>Amortyzacja</CardTitle></CardHeader>
+                    <CardContent><AmortizationChart schedule={results.schedule ?? []} /></CardContent>
+                </Card>
                 {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
-                     <div className="lg:col-span-2">
-                      <Card className="chart-container-pdf">
-                        <CardHeader><CardTitle>Wpływ Nadpłaty</CardTitle></CardHeader>
+                  <Card className="chart-container-pdf">
+                    <CardHeader><CardTitle>Wpływ Nadpłaty</CardTitle></CardHeader>
+                    <CardContent>
+                        <OverpaymentImpactChart 
+                            schedule={results.schedule ?? []} 
+                            overpaymentResults={results.overpaymentResults}
+                        />
+                    </CardContent>
+                  </Card>
+                )}
+                {results.baseSchedule && results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
+                    <Card className="chart-container-pdf">
+                        <CardHeader><CardTitle>Porównanie Harmonogramów</CardTitle></CardHeader>
                         <CardContent>
-                            <OverpaymentImpactChart 
-                                schedule={results.schedule ?? []} 
-                                overpaymentResults={results.overpaymentResults}
+                            <OverpaymentComparisonChart 
+                                scheduleWithoutOverpayment={results.baseSchedule}
+                                scheduleWithOverpayment={results.schedule}
                             />
                         </CardContent>
-                      </Card>
-                    </div>
+                    </Card>
+                )}
+                {results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
+                    <Card className="chart-container-pdf">
+                        <CardHeader><CardTitle>Harmonogram Nadpłat</CardTitle></CardHeader>
+                        <CardContent>
+                            <OverpaymentTimelineChart schedule={results.schedule} />
+                        </CardContent>
+                    </Card>
                 )}
             </div>
         </div>

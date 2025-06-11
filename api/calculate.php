@@ -65,6 +65,7 @@ function generateSchedule(float $principal, int $years, float $margin, float $re
         'frequency' => 'one-time',
         'startMonth' => 1,
         'target' => 'shorten-period',
+        'interval' => 1,
     ], $overpayment);
 
     $schedule = [];
@@ -90,11 +91,14 @@ function generateSchedule(float $principal, int $years, float $margin, float $re
 
         // Obliczenie zaplanowanej części kapitałowej
         if ($type === 'equal') {
-            $opAmount = (float)$overpayment['amount'];
-            $isOverpaymentMonth = $opAmount > 0 && $month >= (int)$overpayment['startMonth'] &&
-                (($overpayment['frequency'] === 'one-time' && $month === (int)$overpayment['startMonth']) ||
-                 ($overpayment['frequency'] === 'monthly') ||
-                 ($overpayment['frequency'] === 'yearly' && ($month - (int)$overpayment['startMonth']) % 12 === 0));
+                    $opAmount = (float)$overpayment['amount'];
+        $interval = isset($overpayment['interval']) ? (int)$overpayment['interval'] : 1;
+        $interval = max(1, $interval); // Minimum interwał to 1
+        
+        $isOverpaymentMonth = $opAmount > 0 && $month >= (int)$overpayment['startMonth'] &&
+            (($overpayment['frequency'] === 'one-time' && $month === (int)$overpayment['startMonth']) ||
+             ($overpayment['frequency'] === 'monthly' && ($month - (int)$overpayment['startMonth']) % $interval === 0) ||
+             ($overpayment['frequency'] === 'yearly' && ($month - (int)$overpayment['startMonth']) % ($interval * 12) === 0));
 
             $needsRecalculation = is_null($payment) || 
                                   ($month === $bridgeMonths + 1 && $bridgeMonths > 0 && $bridgeIncrease > 0) ||
@@ -114,10 +118,13 @@ function generateSchedule(float $principal, int $years, float $margin, float $re
         }
 
         $opAmount = (float)$overpayment['amount'];
-        $isOverpaymentMonth = $opAmount > 0 && $month >= (int)$overpayment['startMonth'] &&
+        $interval = isset($overpayment['interval']) ? (int)$overpayment['interval'] : 1;
+        $interval = max(1, $interval); // Minimum interwał to 1
+        
+        $isOverpaymentMonth = $opAmount > 0 && $month >= (int)$overpayment['startMonth'] && 
             (($overpayment['frequency'] === 'one-time' && $month === (int)$overpayment['startMonth']) ||
-             ($overpayment['frequency'] === 'monthly') ||
-             ($overpayment['frequency'] === 'yearly' && ($month - (int)$overpayment['startMonth']) % 12 === 0));
+             ($overpayment['frequency'] === 'monthly' && ($month - (int)$overpayment['startMonth']) % $interval === 0) ||
+             ($overpayment['frequency'] === 'yearly' && ($month - (int)$overpayment['startMonth']) % ($interval * 12) === 0));
         
         $currentOverpayment = $isOverpaymentMonth ? $opAmount : 0;
         
@@ -188,6 +195,7 @@ $results = [
     'totalInterest' => null,
     'overpaymentResults' => null,
     'simulationResults' => null,
+    'baseSchedule' => null,
 ];
 
 // 1. Walidacja i rzutowanie typów
@@ -199,17 +207,25 @@ $marketType = $input['marketType'] ?? 'secondary';
 
 // 2. Obliczenie kosztów początkowych
 if ($propertyValue > 0) {
-    $results['notaryFee'] = calculateNotaryFee($propertyValue);
-    $results['pccTax'] = ($marketType === 'secondary') ? $propertyValue * 0.02 : 0;
+    // Obsługa własnej opłaty notarialnej
+    if (isset($input['notaryFeeType']) && $input['notaryFeeType'] === 'custom' && isset($input['customNotaryFee']) && is_numeric($input['customNotaryFee'])) {
+        $results['notaryFee'] = (float)$input['customNotaryFee'];
+    } else {
+        $results['notaryFee'] = calculateNotaryFee($propertyValue);
+    }
     
-    $agencyCommPercentage = isset($input['agencyCommissionPercentage']) && is_numeric($input['agencyCommissionPercentage']) ? (float)$input['agencyCommissionPercentage'] / 100 : 0.0;
-    $results['agencyCommissionAmount'] = $propertyValue * $agencyCommPercentage;
+    // Obsługa podatku PCC z możliwością zwolnienia
+    $pccTaxRate = isset($input['pccTaxRate']) && is_numeric($input['pccTaxRate']) ? (float)$input['pccTaxRate'] / 100 : 0.02;
+    $results['pccTax'] = $propertyValue * $pccTaxRate;
+    
+    $agencyCommission = isset($input['agencyCommission']) && is_numeric($input['agencyCommission']) ? (float)$input['agencyCommission'] / 100 : 0.0;
+    $results['agencyCommissionAmount'] = $propertyValue * $agencyCommission;
     
     $results['courtFees'] = 200 + 150; // Opłata za wpis hipoteki + opłata za wpis do księgi wieczystej
 }
 if ($loanAmount > 0) {
-    $bankCommPercentage = isset($input['bankCommissionPercentage']) && is_numeric($input['bankCommissionPercentage']) ? (float)$input['bankCommissionPercentage'] / 100 : 0.0;
-    $results['bankCommissionAmount'] = $loanAmount * $bankCommPercentage;
+    $bankCommission = isset($input['bankCommission']) && is_numeric($input['bankCommission']) ? (float)$input['bankCommission'] / 100 : 0.0;
+    $results['bankCommissionAmount'] = $loanAmount * $bankCommission;
 }
 
 // 3. Generowanie harmonogramu i powiązanych obliczeń
@@ -240,11 +256,13 @@ if ($loanAmount > 0 && $loanTerm > 0) {
         'frequency' => $input['overpaymentFrequency'] ?? 'one-time',
         'startMonth' => isset($input['overpaymentStartMonth']) && is_numeric($input['overpaymentStartMonth']) ? (int)$input['overpaymentStartMonth'] : 1,
         'target' => $input['overpaymentTarget'] ?? 'shorten-period',
+        'interval' => isset($input['overpaymentInterval']) && is_numeric($input['overpaymentInterval']) ? (int)$input['overpaymentInterval'] : 1,
     ];
 
     $finalSchedule = ($overpayment['amount'] > 0) ? generateSchedule($loanAmount, $loanTerm, $bankMargin, $effectiveReferenceRate, $installmentType, $bridgeMonths, $bridgeIncrease, $overpayment) : $baseSchedule;
     
     $results['schedule'] = $finalSchedule;
+    $results['baseSchedule'] = ($overpayment['amount'] > 0) ? $baseSchedule : null;
 
     if (!empty($finalSchedule)) {
         $overpaymentTotalInterest = array_sum(array_column($finalSchedule, 'interestPart'));
