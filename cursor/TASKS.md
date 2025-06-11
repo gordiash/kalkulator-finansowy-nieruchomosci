@@ -1,86 +1,236 @@
-# PLAN ROZBUDOWY KALKULATORA ZDOLNOŚCI KREDYTOWEJ
+# ZADANIA IMPLEMENTACYJNE - ZAAWANSOWANY ALGORYTM KALKULATORA ZDOLNOŚCI KREDYTOWEJ
 
-## Cel
-Modernizacja i rozbudowa kalkulatora zdolności kredytowej (`/kalkulator-zdolnosci-kredytowej/page.tsx`) w celu dostarczania bardziej realistycznych i użytecznych wyników dla użytkownika.
-
----
-
-## Etap 1: Modernizacja UI i Dodanie Kluczowych Parametrów
-
-### 1.1. Przebudowa interfejsu na shadcn/ui
-[x] Zrefaktoryzuj istniejące pola `input` i `button` na komponenty `Input`, `Button`, `Label` z biblioteki shadcn/ui.
-[x] Owiń cały kalkulator w komponent `Card`, a nagłówek w `CardHeader`, `CardTitle` i `CardDescription`.
-[x] Ulepsz responsywność układu za pomocą siatki (grid).
-
-### 1.2. Dodanie podstawowych parametrów kredytu
-[x] Dodaj pole `Input` dla **okresu kredytowania (w latach)** z domyślną wartością 30.
-[x] Dodaj pole `Input` dla **oprocentowania kredytu (%)** z domyślną wartością np. 7.5.
-[x] Dodaj komponent `Select` do wyboru **rodzaju rat** (równe / malejące).
-
-### 1.3. Aktualizacja logiki obliczeniowej
-[x] Zmodyfikuj funkcję `calculateCreditScore`, aby uwzględniała okres kredytowania i oprocentowanie w odwróconej formule na kwotę kredytu.
-[x] Wprowadź rozróżnienie w obliczeniach dla rat równych i malejących.
+## 🎯 CEL GŁÓWNY
+Implementacja bardziej zaawansowanego i realistycznego algorytmu oceny zdolności kredytowej, który lepiej odzwierciedla aktualne praktyki bankowe i wymogi KNF.
 
 ---
 
-## Etap 2: Uszczegółowienie Danych Wejściowych
+## 📋 LISTA ZADAŃ
 
-### 2.1. Rozbudowa sekcji dochodów
-[x] Dodaj pole `Input` na **miesięczny dochód netto drugiego kredytobiorcy**.
-[x] (Opcjonalnie) Dodaj `Select` do wyboru **typu umowy** (Umowa o pracę, B2B, Umowa zlecenie/o dzieło) i uwzględnij różne wagi w obliczeniach.
+### 1. KONFIGURACJA STAŁYCH I PARAMETRÓW
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Wysoki  
+**Czas szacowany:** 15 min
 
-### 2.2. Rozbudowa sekcji zobowiązań
-[x] Dodaj pole `Input` na **sumę przyznanych limitów na kartach kredytowych**.
-[x] Dodaj pole `Input` na **sumę limitów w koncie (debet)**.
-[x] Zaktualizuj logikę, aby wliczała standardowy procent (np. 3-5%) sumy limitów do miesięcznych obciążeń.
-
----
-
-## Etap 3: Ulepszona Logika i Wizualizacja Wyników
-
-### 3.1. Urealnienie kosztów utrzymania
-[x] Zastąp uproszczony model `liczba osób * 1000 zł` bardziej szczegółowym:
-    - 1 osoba: ~1300 zł
-    - 2 osoby: ~2200 zł
-    - 3 osoby: ~3000 zł
-    - 4 osoby: ~3800 zł
-    - każda kolejna: +700 zł
-
-### 3.2. Wprowadzenie wskaźnika DSTI
-[x] Dodaj `Select` pozwalający wybrać **poziom wskaźnika DSTI** (np. 40% - konserwatywnie, 50% - standardowo).
-[x] Zmodyfikuj główną formułę obliczeniową, aby maksymalna rata była liczona jako: `(dochód_łączny * DSTI) - suma_istniejących_rat`.
-
-### 3.3. Wizualizacja wyników
-[x] Zintegruj bibliotekę `recharts`.
-[x] Stwórz **wykres kołowy**, który przedstawia strukturę miesięcznych dochodów i wydatków.
-    - Kategorie: Stałe opłaty, Inne kredyty, Koszty utrzymania, Dostępna kwota na ratę, Pozostałe środki.
-[x] Ulepsz prezentację wyników, aby były bardziej czytelne.
+**Zadania szczegółowe:**
+- [x] Dodać stałe konfiguracyjne na początku pliku `api/calculate.php`
+- [x] Zdefiniować `INTEREST_RATE_STRESS_BUFFER = 2.5` (bufor stóp procentowych)
+- [x] Zdefiniować `MAX_LOAN_TERM_YEARS = 30` (maksymalny okres kredytowania)
+- [x] Zdefiniować `LIVING_COST_INCOME_FACTOR = 0.10` (10% dochodu na koszty życia)
+- [x] Zdefiniować `AVG_SALARY_THRESHOLD = 7500` (próg średniego wynagrodzenia)
+- [x] Zdefiniować `HIGH_SALARY_THRESHOLD = 12000` (próg wysokiego wynagrodzenia)
 
 ---
 
-## Etap 4: Przeniesienie Logiki na Backend (Opcjonalne)
+### 2. STRESS TEST STÓP PROCENTOWYCH
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Krytyczny  
+**Czas szacowany:** 30 min
 
-### 4.1. Modyfikacja Backendu PHP (`/api/calculate.php`)
-[x] Wprowadź nowy warunek rozpoznający typ kalkulacji, np. `calculationType: 'credit-score'`.
-[x] Zaimplementuj całą rozbudowaną logikę obliczeniową z etapów 1-3 w PHP.
-[x] Ujednolić format odpowiedzi JSON.
+**Zadania szczegółowe:**
+- [x] Zmodyfikować funkcję `calculateMaxLoanAmount()`
+- [x] Dodać automatyczny bufor +2.5 p.p. do oprocentowania użytkownika
+- [x] Użyć "zestresowanego" oprocentowania do obliczeń maksymalnej kwoty kredytu
+- [x] Ograniczyć okres kredytowania do maksymalnie 30 lat niezależnie od wprowadzonych danych
+- [x] Zaktualizować dokumentację funkcji
 
-### 4.2. Aktualizacja Frontendu
-[x] Zrefaktoryzuj komponent, aby wysyłał zapytanie `POST` do `/api/calculate.php` z nowym parametrem.
-[x] Dodaj obsługę stanu ładowania (`isLoading`) i błędów (`error`).
-[x] Dostosuj wyświetlanie wyników do danych otrzymywanych z API.
-
----
-
-## Checkpoints
-
-- [x] **Checkpoint 1**: UI zmodernizowane, dodano pola okresu i oprocentowania.
-- [x] **Checkpoint 2**: Dodano szczegółowe pola dochodów i zobowiązań.
-- [x] **Checkpoint 3**: Wprowadzono ulepszoną logikę kosztów utrzymania i DSTI.
-- [x] **Checkpoint 4**: Wyniki są wizualizowane na wykresie kołowym.
-- [x] **Checkpoint 5**: Całość działa w oparciu o backend PHP.
+**Uzasadnienie:** Banki muszą stosować stress test zgodnie z wytycznymi KNF, zakładając wzrost stóp procentowych o min. 2 p.p.
 
 ---
 
-**Priorytet**: Średni  
-**Status**: ✅ UKOŃCZONE
+### 3. DYNAMICZNE KOSZTY UTRZYMANIA
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Wysoki  
+**Czas szacowany:** 20 min
+
+**Zadania szczegółowe:**
+- [x] Zmodyfikować funkcję `calculateLivingCosts()` 
+- [x] Zmienić sygnaturę funkcji na `calculateLivingCosts($people, $totalNetIncome)`
+- [x] Obniżyć bazowe koszty na osobę (1200/2000/2800/3500 zł)
+- [x] Dodać komponent uzależniony od dochodu: `10% całkowitego dochodu netto`
+- [x] Wzór: `Koszty = Baza za osoby + (Dochód * 10%)`
+- [x] Zaktualizować wszystkie wywołania funkcji
+
+**Uzasadnienie:** Osoby z wyższymi dochodami mają zazwyczaj wyższe stałe koszty życia (mieszkanie, samochód, ubezpieczenia).
+
+---
+
+### 4. DYNAMICZNY LIMIT DSTI
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Krytyczny  
+**Czas szacowany:** 45 min
+
+**Zadania szczegółowe:**
+- [x] Dodać logikę dynamicznego DSTI w głównej funkcji kalkulatora
+- [x] Implementować ograniczenia:
+  - Dochód < 7500 zł → DSTI max 40%
+  - Dochód 7500-12000 zł → DSTI max 50% 
+  - Dochód > 12000 zł → DSTI zgodnie z wyborem użytkownika (do 60%)
+- [x] Efektywne DSTI = `min(preferencja_użytkownika, maksymalny_dozwolony_limit)`
+- [x] Zaktualizować obliczenia maksymalnej raty
+- [x] Dodać informację o zastosowanym DSTI w odpowiedzi
+
+**Uzasadnienie:** Zapobiega przeszacowaniu zdolności przy niższych dochodach, zgodnie z zasadą ostrożnego kredytowania.
+
+---
+
+### 5. REFAKTORYZACJA GŁÓWNEJ LOGIKI
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Wysoki  
+**Czas szacowany:** 60 min
+
+**Zadania szczegółowe:**
+- [x] Przepisać całą sekcję `if ($isCreditScoreCalculator)` 
+- [x] Podzielić logikę na etapy:
+  1. Zbieranie i walidacja danych
+  2. Obliczenia pośrednie (wagi, zobowiązania, koszty życia)
+  3. Zastosowanie dynamicznego DSTI
+  4. Obliczenie maksymalnej kwoty kredytu ze stress testem
+  5. Przygotowanie odpowiedzi
+- [x] Poprawić czytelność kodu i dodać komentarze
+- [x] Zastąpić proste zmienne opisowymi nazwami
+
+---
+
+### 6. ROZSZERZENIE ODPOWIEDZI API
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Średni  
+**Czas szacowany:** 20 min
+
+**Zadania szczegółowe:**
+- [x] Dodać do odpowiedzi API nowe pola:
+  - `costOfLiving` - obliczone dynamiczne koszty utrzymania
+  - `totalCommitments` - suma wszystkich miesięcznych zobowiązań
+  - `stressedInterestRate` - oprocentowanie użyte do obliczeń (z buforem)
+  - `effectiveDstiLimit` - faktycznie zastosowany limit DSTI
+- [x] Zachować kompatybilność wsteczną z istniejącymi polami
+- [x] Dodać dokumentację nowych pól
+
+---
+
+### 7. AKTUALIZACJA FRONTENDU
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Średni  
+**Czas szacowany:** 30 min  
+
+**Zadania szczegółowe:**
+- [x] Zaktualizować tooltips, aby wyjaśnić nową logikę stress testu
+- [x] Dodać informację o automatycznym buforze stóp procentowych (+2.5 p.p.)
+- [x] Wyjaśnić, że okresy powyżej 30 lat są ograniczane do 30 lat
+- [x] Dodać tooltip o dynamicznych kosztach utrzymania (baza + 10% dochodu)
+- [x] Informacja o dynamicznych limitach DSTI w zależności od wysokości dochodu
+
+---
+
+### 8. TESTOWANIE I WALIDACJA
+**Status:** ✅ UKOŃCZONE  
+**Priorytet:** Krytyczny  
+**Czas szacowany:** 45 min
+
+**Zadania szczegółowe:**
+- [x] Przetestować różne scenariusze dochodowe:
+  - Niski dochód (< 7500 zł) - sprawdzić limit DSTI 40% ✅
+  - Średni dochód (7500-12000 zł) - sprawdzić limit DSTI 50% ✅
+  - Wysoki dochód (> 12000 zł) - sprawdzić pełne DSTI do 60% ✅
+- [x] Przetestować wpływ stress testu na kwotę kredytu ✅ (19.3% redukcja)
+- [x] Sprawdzić wpływ ograniczenia okresu do 30 lat ✅
+- [x] Walidować czy dynamiczne koszty życia działają poprawnie ✅
+- [x] Porównać wyniki z poprzednim algorytmem ✅
+
+---
+
+### 9. DOKUMENTACJA ZMIAN
+**Status:** ⏳ Do wykonania  
+**Priorytet:** Niski  
+**Czas szacowany:** 15 min
+
+**Zadania szczegółowe:**
+- [ ] Udokumentować kluczowe zmiany w algorytmie
+- [ ] Stworzyć przykłady obliczeń dla różnych scenariuszy
+- [ ] Dodać informację o zgodności z praktykami bankowymi
+- [ ] Opisać wpływ każdej zmiany na końcowy wynik
+
+---
+
+## 🔄 KOLEJNOŚĆ IMPLEMENTACJI
+
+**Etap 1 (Krytyczny):** Zadania 1, 2, 4  
+**Etap 2 (Ważny):** Zadania 3, 5  
+**Etap 3 (Dodatkowy):** Zadania 6, 7, 8, 9
+
+---
+
+## 📊 STATUS OGÓLNY
+- **Zadania ukończone:** 8/9
+- **Zadania pozostałe:** 1/9
+- **Postęp:** 89% ✅
+- **Etap 1 i 2:** UKOŃCZONE
+- **Pozostało:** Dokumentacja (Zadanie 9)
+
+---
+
+## ⚠️ UWAGI TECHNICZNE
+1. Przed implementacją zrobić backup aktualnego pliku `api/calculate.php`
+2. Testować każdy etap przed przejściem do następnego
+3. Zachować istniejące nazwy pól w odpowiedzi API dla kompatybilności
+4. Nowe pola dodawać jako opcjonalne
+5. Logować kluczowe wartości do debugowania w fazie testów
+
+---
+
+## 🎉 PODSUMOWANIE IMPLEMENTACJI
+
+### ✅ **UKOŃCZONE ZADANIA:**
+
+**🔧 BACKEND (PHP):**
+- ✅ Dodano stałe konfiguracyjne (bufory, progi, limity)
+- ✅ Stress test stóp procentowych (+2.5 p.p.)
+- ✅ Dynamiczne koszty życia (baza + 10% dochodu)
+- ✅ Inteligentny DSTI (40%/50%/60% w zależności od dochodu)
+- ✅ Ograniczenie okresu kredytowania do max 30 lat
+- ✅ Przepisana logika obliczeniowa na 5 etapów
+- ✅ Rozszerzona odpowiedź API (nowe pola diagnostyczne)
+
+**🎨 FRONTEND (React):**
+- ✅ Zaktualizowane tooltips wyjaśniające nowe cechy
+- ✅ Informacje o stress teście i ograniczeniach
+- ✅ Wyjaśnienie dynamicznego modelu kosztów życia
+
+### 🔄 **DZIAŁAJĄCY ALGORYTM:**
+
+Nowy kalkulator implementuje **4 kluczowe ulepszenia**:
+
+1. **Stress Test** - automatyczny bufor +2.5 p.p. do oprocentowania
+2. **Dynamiczne koszty życia** - realistyczny model uwzględniający dochód  
+3. **Inteligentne DSTI** - automatyczne ograniczenia w zależności od zarobków
+4. **Bezpieczne limity** - maksymalny okres 30 lat niezależnie od input
+
+### 📈 **EFEKTY:**
+- **Bardziej realistyczne wyniki** zgodne z praktykami banków
+- **Większe bezpieczeństwo** dzięki stress testowi
+- **Inteligentne dostosowanie** do poziomu dochodów
+- **Transparentność** - użytkownik wie jakie ograniczenia są stosowane
+
+### 🧪 **REZULTATY TESTOWANIA (ZADANIE 8):**
+
+**Przeprowadzone testy:**
+- ✅ 5 kompleksowych scenariuszy testowych
+- ✅ Walidacja wszystkich nowych pól API  
+- ✅ Weryfikacja dynamicznych mechanizmów
+- ✅ Potwierdzenie 19.3% redukcji przez stress test
+- ✅ Sprawdzenie poprawności tooltipów
+
+**Stworzone pliki testowe:**
+- `cursor/test_scenarios.md` - kompletne scenariusze i wyniki
+- `test3_result.json`, `test4a_result.json`, `test4b_result.json`, itd.
+
+**Kluczowe odkrycia:**
+- ✅ Algorytm prawidłowo ogranicza DSTI (40%/50%/60%)
+- ✅ Stress test skutecznie wpływa na kwotę kredytu (~19% redukcja)
+- ✅ Dynamiczne koszty życia realistycznie rosną z dochodem
+- ✅ Wszystkie nowe pola API działają zgodnie z dokumentacją
+- ✅ Interfejs intuicyjnie wyjaśnia nowe mechanizmy
+
+**Werdykt:** 🎯 **WSZYSTKIE TESTY ZALICZONE** - algorytm działa zgodnie z założeniami!
+
+---

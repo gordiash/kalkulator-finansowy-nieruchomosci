@@ -19,6 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 /**
+ * ===== WSPÓLNE STAŁE I KONFIGURACJA =====
+ */
+define('INTEREST_RATE_STRESS_BUFFER', 2.5); // Bufor 2.5 p.p. do stress testu stóp procentowych
+define('MAX_LOAN_TERM_YEARS', 30); // Maksymalny okres kredytowania do obliczeń (w latach)
+define('LIVING_COST_INCOME_FACTOR', 0.10); // 10% dochodu dodawane do bazowych kosztów życia
+define('AVG_SALARY_THRESHOLD', 7500); // Próg średniego wynagrodzenia w PLN
+define('HIGH_SALARY_THRESHOLD', 12000); // Próg wysokiego wynagrodzenia w PLN
+
+/**
  * Oblicza szacunkową wysokość taksy notarialnej na podstawie wartości nieruchomości.
  * @param float $value Wartość nieruchomości.
  * @return float Szacunkowa taksa notarialna z VAT.
@@ -175,16 +184,24 @@ function generateProjectionRental($purchasePrice, $monthlyRent, $loanAmount, $lo
  */
 
 /**
- * Oblicza realistyczne koszty utrzymania na podstawie liczby osób
+ * Oblicza dynamiczne koszty utrzymania na podstawie liczby osób i dochodu
  * @param int $people Liczba osób w gospodarstwie domowym
+ * @param float $totalNetIncome Całkowity miesięczny dochód netto
  * @return float Miesięczne koszty utrzymania
  */
-function calculateLivingCosts($people) {
-    if ($people === 1) return 1300;
-    if ($people === 2) return 2200;
-    if ($people === 3) return 3000;
-    if ($people === 4) return 3800;
-    return 3800 + ($people - 4) * 700; // każda kolejna osoba +700 zł
+function calculateLivingCosts($people, $totalNetIncome) {
+    // Bazowe koszty życia w zależności od liczby osób
+    $baseCost = 0;
+    if ($people === 1) $baseCost = 1200;
+    else if ($people === 2) $baseCost = 2000;
+    else if ($people === 3) $baseCost = 2800;
+    else if ($people === 4) $baseCost = 3500;
+    else $baseCost = 3500 + ($people - 4) * 600; // każda kolejna osoba +600 zł
+
+    // Dodatkowy komponent uzależniony od dochodu (osoby z wyższymi dochodami mają wyższe koszty życia)
+    $incomeBasedCost = $totalNetIncome * LIVING_COST_INCOME_FACTOR;
+    
+    return $baseCost + $incomeBasedCost;
 }
 
 /**
@@ -206,30 +223,37 @@ function getEmploymentWeight($employmentType) {
 }
 
 /**
- * Oblicza maksymalną kwotę kredytu na podstawie raty
+ * Oblicza maksymalną kwotę kredytu na podstawie raty, uwzględniając stress test i limity
  * @param float $maxMonthlyPayment Maksymalna miesięczna rata
- * @param float $interestRate Oprocentowanie roczne (%)
- * @param int $termYears Okres kredytowania w latach
+ * @param float $interestRate Oprocentowanie roczne (%) podane przez użytkownika
+ * @param int $termYears Okres kredytowania w latach podany przez użytkownika
  * @param string $installmentType Typ rat ('equal' lub 'decreasing')
  * @return float Maksymalna kwota kredytu
  */
 function calculateMaxLoanAmount($maxMonthlyPayment, $interestRate, $termYears, $installmentType) {
-    $r = $interestRate / 100 / 12; // Miesięczne oprocentowanie
-    $n = $termYears * 12; // Całkowita liczba rat
+    // 1. Zastosuj bufor na stopę procentową (stress test)
+    $stressedRate = $interestRate + INTEREST_RATE_STRESS_BUFFER;
+    
+    // 2. Ogranicz okres kredytowania do maksimum
+    $effectiveTermYears = min($termYears, MAX_LOAN_TERM_YEARS);
+    
+    $r = $stressedRate / 100 / 12; // Miesięczne "zestresowane" oprocentowanie
+    $n = $effectiveTermYears * 12; // Całkowita liczba rat
     
     if ($installmentType === 'equal') {
         // Raty równe (annuitetowe)
         if ($r > 0) {
             return $maxMonthlyPayment * ((pow(1 + $r, $n) - 1) / ($r * pow(1 + $r, $n)));
         } else {
-            return $maxMonthlyPayment * $n; // Przypadek bez odsetek
+            return $maxMonthlyPayment * $n;
         }
     } else {
-        // Raty malejące - uproszczone obliczenie
+        // Raty malejące - dla rat malejących pierwsza rata jest najwyższa
+        // Upewniamy się, że nie przekracza $maxMonthlyPayment
         if ($r > 0) {
-            return $maxMonthlyPayment * $n / (1 + ($r * $n / 2));
+            return $maxMonthlyPayment / (1/$n + $r);
         } else {
-            return $maxMonthlyPayment * $n;
+             return $maxMonthlyPayment * $n;
         }
     }
 }
@@ -404,78 +428,100 @@ $isCreditScoreCalculator = isset($input['calculationType']) && $input['calculati
 $isRentalCalculator = isset($input['monthlyRent']) || isset($input['purchasePrice']);
 
 if ($isCreditScoreCalculator) {
-    // ===== KALKULATOR ZDOLNOŚCI KREDYTOWEJ =====
+    // ===== ZAAWANSOWANY KALKULATOR ZDOLNOŚCI KREDYTOWEJ =====
     try {
-        // Walidacja podstawowych danych
-        if (!isset($input['monthlyIncome']) || $input['monthlyIncome'] <= 0) {
+        // --- 1. ZBIERANIE I WALIDACJA DANYCH ---
+        if (!isset($input['monthlyIncome']) || $input['monthlyIncome'] < 0) {
             throw new Exception('Nieprawidłowy miesięczny dochód');
         }
         
-        // Pobieranie danych wejściowych
+        // Dane podstawowe
         $monthlyIncome = floatval($input['monthlyIncome']);
-        $monthlyExpenses = isset($input['monthlyExpenses']) ? floatval($input['monthlyExpenses']) : 0;
-        $otherLoans = isset($input['otherLoans']) ? floatval($input['otherLoans']) : 0;
-        $householdSize = isset($input['householdSize']) ? intval($input['householdSize']) : 1;
+        $secondBorrowerIncome = floatval($input['secondBorrowerIncome'] ?? 0);
+        $employmentType = $input['employmentType'] ?? 'employment';
+        $monthlyExpenses = floatval($input['monthlyExpenses'] ?? 0);
+        $otherLoans = floatval($input['otherLoans'] ?? 0);
+        $householdSize = intval($input['householdSize'] ?? 1);
+        $creditCardLimits = floatval($input['creditCardLimits'] ?? 0);
+        $accountOverdrafts = floatval($input['accountOverdrafts'] ?? 0);
+        $userDstiPref = floatval($input['dstiRatio'] ?? 50);
         
         // Parametry kredytu
-        $loanTerm = isset($input['loanTerm']) ? intval($input['loanTerm']) : 30;
-        $interestRate = isset($input['interestRate']) ? floatval($input['interestRate']) : 7.5;
-        $installmentType = isset($input['installmentType']) ? $input['installmentType'] : 'equal';
+        $loanTerm = intval($input['loanTerm'] ?? 30);
+        $interestRate = floatval($input['interestRate'] ?? 7.5);
+        $installmentType = $input['installmentType'] ?? 'equal';
         
-        // Dodatkowe pola
-        $secondBorrowerIncome = isset($input['secondBorrowerIncome']) ? floatval($input['secondBorrowerIncome']) : 0;
-        $employmentType = isset($input['employmentType']) ? $input['employmentType'] : 'employment';
-        $creditCardLimits = isset($input['creditCardLimits']) ? floatval($input['creditCardLimits']) : 0;
-        $accountOverdrafts = isset($input['accountOverdrafts']) ? floatval($input['accountOverdrafts']) : 0;
-        $dstiRatio = isset($input['dstiRatio']) ? floatval($input['dstiRatio']) : 50;
-        
-        // Obliczenia
+        // --- 2. OBLICZENIA POŚREDNIE ---
         $employmentWeight = getEmploymentWeight($employmentType);
         $totalIncome = ($monthlyIncome * $employmentWeight) + $secondBorrowerIncome;
+        
+        // Zobowiązania kredytowe (standardowe 3% obciążenia)
         $creditObligations = ($creditCardLimits + $accountOverdrafts) * 0.03;
-        $costOfLiving = calculateLivingCosts($householdSize);
         
-        // Maksymalna możliwa rata na podstawie DSTI
-        $maxRateFromDSTI = $totalIncome * ($dstiRatio / 100);
-        $availableForLoan = $maxRateFromDSTI - $otherLoans;
+        // Dynamiczne koszty życia (baza + 10% dochodu)
+        $costOfLiving = calculateLivingCosts($householdSize, $totalIncome);
         
-        // Sprawdzenie czy rata jest możliwa do sfinansowania
-        $totalNecessaryExpenses = $monthlyExpenses + $costOfLiving + $creditObligations + $otherLoans;
-        $remainingIncome = $totalIncome - $totalNecessaryExpenses;
+        // Całkowite stałe zobowiązania
+        $totalMonthlyCommitments = $monthlyExpenses + $otherLoans + $creditObligations + $costOfLiving;
         
-        if ($availableForLoan > 0 && $remainingIncome > 0) {
-            $maxMonthlyPayment = min($availableForLoan, $remainingIncome * 0.8); // Margines bezpieczeństwa
-            $maxLoanAmount = calculateMaxLoanAmount($maxMonthlyPayment, $interestRate, $loanTerm, $installmentType);
-            
-            // Przygotowanie danych dla wykresu
-            $remainingAfterLoan = $totalIncome - $monthlyExpenses - $otherLoans - $creditObligations - $costOfLiving - $maxMonthlyPayment;
-            $chartData = prepareCreditScoreChartData(
-                $monthlyExpenses, 
-                $otherLoans, 
-                $creditObligations, 
-                $costOfLiving, 
-                $maxMonthlyPayment, 
-                max(0, $remainingAfterLoan)
-            );
-            
-            $response = [
-                'creditCapacity' => round($maxMonthlyPayment, 2),
-                'maxLoanAmount' => round($maxLoanAmount),
-                'chartData' => $chartData,
-                'totalIncome' => round($totalIncome, 2),
-                'availableForLoan' => round($availableForLoan, 2),
-                'dstiUsed' => round(($maxMonthlyPayment + $otherLoans) / $totalIncome * 100, 2)
-            ];
+        // Dostępne środki po odjęciu zobowiązań
+        $netAvailable = $totalIncome - $totalMonthlyCommitments;
+        
+        if ($netAvailable <= 0) {
+            // Brak zdolności, jeśli koszty przekraczają dochód
+            $maxMonthlyPayment = 0;
+            $effectiveDstiRatio = 0;
         } else {
-            $response = [
-                'creditCapacity' => 0,
-                'maxLoanAmount' => 0,
-                'chartData' => [],
-                'totalIncome' => round($totalIncome, 2),
-                'availableForLoan' => 0,
-                'dstiUsed' => 0
-            ];
+                    // --- 3. DYNAMICZNY LIMIT DSTI ---
+        $maxDstiAllowed = 0.60; // Domyślnie dla wysokich dochodów
+        if ($totalIncome < AVG_SALARY_THRESHOLD) {
+            $maxDstiAllowed = 0.40; // Niski dochód < 7500 zł
+        } elseif ($totalIncome < HIGH_SALARY_THRESHOLD) {
+            $maxDstiAllowed = 0.50; // Średni dochód 7500-12000 zł
         }
+        // Wysokie dochody > 12000 zł zachowują pełne DSTI zgodnie z wyborem użytkownika
+            
+            // Efektywne DSTI to niższa wartość z preferencji użytkownika i dozwolonego limitu
+            $effectiveDstiRatio = min($userDstiPref / 100, $maxDstiAllowed);
+            
+            // Maksymalna kwota na wszystkie raty (nowy kredyt + istniejące)
+            $maxTotalRepayments = $totalIncome * $effectiveDstiRatio;
+            
+            // Maksymalna rata nowego kredytu
+            $maxInstallmentByDsti = $maxTotalRepayments - $otherLoans;
+            
+            // Rata nie może być wyższa niż wolne środki
+            $maxMonthlyPayment = max(0, min($netAvailable, $maxInstallmentByDsti));
+        }
+        
+        // --- 4. OBLICZENIE MAKSYMALNEJ KWOTY KREDYTU ZE STRESS TESTEM ---
+        $maxLoanAmount = 0;
+        if ($maxMonthlyPayment > 0) {
+            $maxLoanAmount = calculateMaxLoanAmount($maxMonthlyPayment, $interestRate, $loanTerm, $installmentType);
+        }
+        
+        // --- 5. PRZYGOTOWANIE ODPOWIEDZI ---
+        $remainingAfterLoan = $netAvailable - $maxMonthlyPayment;
+        $chartData = prepareCreditScoreChartData(
+            $monthlyExpenses, 
+            $otherLoans, 
+            $creditObligations, 
+            $costOfLiving, 
+            $maxMonthlyPayment, 
+            max(0, $remainingAfterLoan)
+        );
+        
+        $response = [
+            'creditCapacity' => round($maxMonthlyPayment, 2),
+            'maxLoanAmount' => round($maxLoanAmount),
+            'chartData' => $chartData,
+            'totalIncome' => round($totalIncome, 2),
+            'costOfLiving' => round($costOfLiving, 2),
+            'totalCommitments' => round($totalMonthlyCommitments, 2),
+            'stressedInterestRate' => round($interestRate + INTEREST_RATE_STRESS_BUFFER, 2),
+            'effectiveDstiLimit' => round($effectiveDstiRatio * 100, 1),
+            'dstiUsed' => $totalIncome > 0 ? round(($maxMonthlyPayment + $otherLoans) / $totalIncome * 100, 2) : 0
+        ];
         
         http_response_code(200);
         echo json_encode($response);

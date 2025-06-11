@@ -65,7 +65,7 @@ const Footer = () => {
         <div className="border-t border-gray-200 pt-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-600 text-sm mb-3 md:mb-0">
-              &copy; 2024 Kalkulatory Nieruchomości. Wszelkie prawa zastrzeżone.
+              &copy; 2025 Kalkulatory Nieruchomości. Wszelkie prawa zastrzeżone.
             </p>
             <div className="flex space-x-6">
               <Link href="/regulamin" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
