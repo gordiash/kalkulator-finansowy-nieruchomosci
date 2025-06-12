@@ -221,6 +221,7 @@ const RentalProfitabilityCalculatorPage = () => {
     
     try {
       const requestData = {
+        calculationType: 'rental',
         purchasePrice: parseFloat(purchasePrice),
         monthlyRent: parseFloat(monthlyRent),
         transactionCosts: parseFloat(transactionCosts) || 0,
@@ -229,15 +230,15 @@ const RentalProfitabilityCalculatorPage = () => {
         utilities: parseFloat(utilities) || 0,
         insurance: parseFloat(insurance) || 0,
         otherCosts: parseFloat(otherCosts) || 0,
-        vacancyPeriod: parseFloat(vacancyPeriod) || 1,
-        downPayment: downPayment ? parseFloat(downPayment) : undefined,
-        downPaymentType: downPaymentType as 'pln' | 'percent',
-        interestRate: interestRate ? parseFloat(interestRate) : undefined,
-        loanYears: loanYears ? parseFloat(loanYears) : undefined,
+        vacancyRate: parseFloat(vacancyPeriod) || 1,
+        downPayment: downPayment ? (downPaymentType === 'percent' ? parseFloat(purchasePrice) * parseFloat(downPayment) / 100 : parseFloat(downPayment)) : 0,
+        interestRate: interestRate ? parseFloat(interestRate) : 0,
+        loanYears: loanYears ? parseFloat(loanYears) : 25,
         taxationType: taxationType as 'ryczalt' | 'skala',
         taxScale: taxScale as '12' | '32',
         propertyAppreciation: parseFloat(propertyAppreciation) || 3,
         rentGrowth: parseFloat(rentGrowth) || 2,
+        otherInitialCosts: parseFloat(transactionCosts) || 0,
       };
 
       const response = await fetch('/api/calculate.php', {

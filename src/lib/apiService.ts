@@ -25,7 +25,7 @@ export interface CalculationResults {
   [key: string]: any;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/calculate.php';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/calculate.php';
 
 export const getCalculations = async (input: CalculationInput): Promise<CalculationResults> => {
   const response = await fetch(API_URL, {
