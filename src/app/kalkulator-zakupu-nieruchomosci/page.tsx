@@ -115,6 +115,7 @@ const OverpaymentComparisonChart: React.FC<{
             },
             tooltip: {
                 callbacks: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label: function(context: any) {
                         let label = context.dataset.label || '';
                         if (label) {
@@ -141,6 +142,7 @@ const OverpaymentComparisonChart: React.FC<{
                     text: 'Pozostałe saldo (zł)'
                 },
                 ticks: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     callback: function(value: any) {
                         return formatCurrency(value);
                     }
@@ -158,7 +160,7 @@ const OverpaymentTimelineChart: React.FC<{
 }> = ({ schedule }) => {
     
     const overpaymentMonths = schedule
-        .map((item, index) => ({ month: item.month, overpayment: item.overpayment }))
+        .map((item) => ({ month: item.month, overpayment: item.overpayment }))
         .filter(item => item.overpayment > 0);
 
     if (overpaymentMonths.length === 0) {
@@ -190,6 +192,7 @@ const OverpaymentTimelineChart: React.FC<{
             },
             tooltip: {
                 callbacks: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label: function(context: any) {
                         return `Nadpłata: ${formatCurrency(context.parsed.y)}`;
                     }
@@ -209,6 +212,7 @@ const OverpaymentTimelineChart: React.FC<{
                     text: 'Kwota nadpłaty (zł)'
                 },
                 ticks: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     callback: function(value: any) {
                         return formatCurrency(value);
                     }
@@ -393,6 +397,7 @@ export default function RealEstateCalculatorPage() {
   // Walidacja przy każdej zmianie
   useEffect(() => {
     validateAllFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.propertyValue, formData.loanAmount, formData.loanTerm, 
       formData.bankMargin, formData.referenceRate, formData.bankCommission, 
       formData.agencyCommission, formData.pccTaxRate]);
@@ -447,6 +452,7 @@ export default function RealEstateCalculatorPage() {
   };
 
   const handleSelectChange = (name: string, value: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFormData(prev => ({ ...prev, [name]: value as any }));
   };
 
@@ -600,6 +606,7 @@ export default function RealEstateCalculatorPage() {
     });
 
     // Sekcja kosztów
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let yPos = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
     doc.text(normalizeText("Koszty początkowe"), 15, yPos);
@@ -728,6 +735,7 @@ export default function RealEstateCalculatorPage() {
                 }
             });
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return (doc as any).lastAutoTable.finalY + 10;
         };
 
@@ -1247,7 +1255,6 @@ export default function RealEstateCalculatorPage() {
                     <CardHeader><CardTitle>Wpływ Nadpłaty</CardTitle></CardHeader>
                     <CardContent>
                         <OverpaymentImpactChart 
-                            schedule={results.schedule ?? []} 
                             overpaymentResults={results.overpaymentResults}
                         />
                     </CardContent>

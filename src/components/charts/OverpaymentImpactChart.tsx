@@ -3,7 +3,12 @@
 import { Bar } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function OverpaymentImpactChart({ schedule, overpaymentResults }: { schedule: any[], overpaymentResults: any }) {
+interface OverpaymentResults {
+  savedInterest: number;
+  newLoanTerm: number;
+}
+
+export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResults: OverpaymentResults }) {
     if (!overpaymentResults) return null;
 
     const data = {

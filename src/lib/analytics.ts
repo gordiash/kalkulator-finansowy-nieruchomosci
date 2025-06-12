@@ -5,6 +5,7 @@ declare global {
     gtag: (
       command: 'config' | 'event' | 'js',
       targetId: string | Date,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       config?: Record<string, any>
     ) => void;
   }
@@ -13,6 +14,7 @@ declare global {
 export const GA_MEASUREMENT_ID = 'G-355556102';
 
 // Funkcja do śledzenia zdarzeń
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const trackEvent = (eventName: string, parameters?: Record<string, any>) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, {
@@ -33,6 +35,7 @@ export const trackCalculatorUse = (calculatorType: 'credit-score' | 'rental' | '
 export const trackCalculatorResult = (
   calculatorType: 'credit-score' | 'rental' | 'purchase',
   result: number,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters?: Record<string, any>
 ) => {
   trackEvent('calculator_result', {

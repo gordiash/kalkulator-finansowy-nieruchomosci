@@ -38,7 +38,7 @@ export default function PolitykaPrywatnosciPage() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-sm sm:text-base text-gray-700 leading-relaxed ml-4">
               <li>Poprzez dobrowolnie wprowadzone w formularzach dane, które zostają wprowadzone do systemów Operatora.</li>
-              <li>Poprzez zapisywanie w urządzeniach końcowych plików cookie (tzw. „ciasteczka").</li>
+              <li>Poprzez zapisywanie w urządzeniach końcowych plików cookie (tzw. &ldquo;ciasteczka&rdquo;).</li>
             </ul>
           </section>
 
@@ -158,7 +158,7 @@ export default function PolitykaPrywatnosciPage() {
             <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-800">8. Informacja o plikach cookies</h2>
             <ul className="list-disc list-inside space-y-3 text-sm sm:text-base text-gray-700 leading-relaxed">
               <li>Serwis korzysta z plików cookies.</li>
-              <li>Pliki cookies (tzw. „ciasteczka") stanowią dane informatyczne, w szczególności pliki tekstowe, które przechowywane są w urządzeniu końcowym Użytkownika Serwisu i przeznaczone są do korzystania ze stron internetowych Serwisu. Cookies zazwyczaj zawierają nazwę strony internetowej, z której pochodzą, czas przechowywania ich na urządzeniu końcowym oraz unikalny numer.</li>
+              <li>Pliki cookies (tzw. &ldquo;ciasteczka&rdquo;) stanowią dane informatyczne, w szczególności pliki tekstowe, które przechowywane są w urządzeniu końcowym Użytkownika Serwisu i przeznaczone są do korzystania ze stron internetowych Serwisu. Cookies zazwyczaj zawierają nazwę strony internetowej, z której pochodzą, czas przechowywania ich na urządzeniu końcowym oraz unikalny numer.</li>
               <li>Podmiotem zamieszczającym na urządzeniu końcowym Użytkownika Serwisu pliki cookies oraz uzyskującym do nich dostęp jest operator Serwisu.</li>
             </ul>
 
@@ -167,11 +167,11 @@ export default function PolitykaPrywatnosciPage() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-sm sm:text-base text-gray-700 leading-relaxed ml-4">
               <li>utrzymanie sesji użytkownika Serwisu (po zalogowaniu), dzięki której użytkownik nie musi na każdej podstronie Serwisu ponownie wpisywać loginu i hasła;</li>
-              <li>realizacji celów określonych powyżej w części "Istotne techniki marketingowe";</li>
+              <li>realizacji celów określonych powyżej w części &ldquo;Istotne techniki marketingowe&rdquo;;</li>
             </ul>
 
             <p className="text-gray-700 leading-relaxed mt-6 mb-4">
-              W ramach Serwisu stosowane są dwa zasadnicze rodzaje plików cookies: „sesyjne" (session cookies) oraz „stałe" (persistent cookies). Cookies „sesyjne" są plikami tymczasowymi, które przechowywane są w urządzeniu końcowym Użytkownika do czasu wylogowania, opuszczenia strony internetowej lub wyłączenia oprogramowania (przeglądarki internetowej). „Stałe" pliki cookies przechowywane są w urządzeniu końcowym Użytkownika przez czas określony w parametrach plików cookies lub do czasu ich usunięcia przez Użytkownika.
+              W ramach Serwisu stosowane są dwa zasadnicze rodzaje plików cookies: &ldquo;sesyjne&rdquo; (session cookies) oraz &ldquo;stałe&rdquo; (persistent cookies). Cookies &ldquo;sesyjne&rdquo; są plikami tymczasowymi, które przechowywane są w urządzeniu końcowym Użytkownika do czasu wylogowania, opuszczenia strony internetowej lub wyłączenia oprogramowania (przeglądarki internetowej). &ldquo;Stałe&rdquo; pliki cookies przechowywane są w urządzeniu końcowym Użytkownika przez czas określony w parametrach plików cookies lub do czasu ich usunięcia przez Użytkownika.
             </p>
 
             <p className="text-gray-700 leading-relaxed mb-4">

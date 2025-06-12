@@ -10,7 +10,7 @@ const AmortizationChart: React.FC<AmortizationChartProps> = ({ baseSchedule, ove
   if (!baseSchedule || baseSchedule.length === 0) return null;
 
   const chartData = baseSchedule.map(item => {
-    const dataPoint: any = {
+    const dataPoint: Record<string, number> = {
       miesiac: item.month,
       'Saldo bazowe': item.remainingBalance,
     };

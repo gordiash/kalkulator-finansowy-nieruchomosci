@@ -15,8 +15,8 @@ export default function RegulaminPage() {
           <section className="mb-8">
             <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-800">§1. Postanowienia ogólne</h2>
             <ol className="list-decimal list-inside space-y-3 text-sm sm:text-base text-gray-700 leading-relaxed">
-              <li>Niniejszy regulamin (dalej "Regulamin") określa zasady korzystania z serwisu internetowego Kalkulator Finansowy Nieruchomości dostępnego pod adresem kalkulatorynieruchomosci.pl (dalej "Serwis").</li>
-              <li>Administratorem Serwisu jest Kalkulator Finansowy Nieruchomości z siedzibą w Olsztynie (dalej "Administrator").</li>
+              <li>Niniejszy regulamin (dalej &ldquo;Regulamin&rdquo;) określa zasady korzystania z serwisu internetowego Kalkulator Finansowy Nieruchomości dostępnego pod adresem kalkulatorynieruchomosci.pl (dalej &ldquo;Serwis&rdquo;).</li>
+              <li>Administratorem Serwisu jest Kalkulator Finansowy Nieruchomości z siedzibą w Olsztynie (dalej &ldquo;Administrator&rdquo;).</li>
               <li>Regulamin określa prawa i obowiązki Użytkowników Serwisu oraz prawa, obowiązki i zakres odpowiedzialności Administratora.</li>
               <li>Korzystanie z Serwisu jest równoznaczne z akceptacją Regulaminu oraz Polityki Prywatności.</li>
               <li>Serwis służy do przeprowadzania kalkulacji finansowych związanych z inwestycjami w nieruchomości, porównywania opłacalności zakupu i wynajmu nieruchomości oraz analizy wartości nieruchomości na podstawie parametrów finansowych.</li>

@@ -3,7 +3,13 @@
 import { Bar } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function InstallmentStructureChart({ schedule }: { schedule: any[] }) {
+interface ScheduleItem {
+  month: number;
+  principalPart: number;
+  interestPart: number;
+}
+
+export function InstallmentStructureChart({ schedule }: { schedule: ScheduleItem[] }) {
     const data = {
         labels: schedule.map(item => item.month),
         datasets: [

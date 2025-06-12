@@ -21,6 +21,7 @@ export interface CalculationInput {
 
 export interface CalculationResults {
   // Tutaj zdefiniujemy typy dla wyników, na razie może być 'any'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 

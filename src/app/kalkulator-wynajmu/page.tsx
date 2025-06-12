@@ -192,6 +192,7 @@ const RentalProfitabilityCalculatorPage = () => {
   // Walidacja przy każdej zmianie
   useEffect(() => {
     validateAllFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchasePrice, monthlyRent, transactionCosts, renovationCosts, 
       adminFees, utilities, insurance, otherCosts, vacancyPeriod, 
       downPayment, interestRate, loanYears, propertyAppreciation, rentGrowth]);

@@ -3,7 +3,12 @@
 import { Line } from 'react-chartjs-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function AmortizationChart({ schedule }: { schedule: any[] }) {
+interface ScheduleItem {
+  month: number;
+  remainingBalance: number;
+}
+
+export function AmortizationChart({ schedule }: { schedule: ScheduleItem[] }) {
     const data = {
         labels: schedule.map(item => item.month),
         datasets: [

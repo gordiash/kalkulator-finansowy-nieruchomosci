@@ -138,6 +138,7 @@ const CreditScoreCalculatorPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [creditCapacity, setCreditCapacity] = useState<number | null>(null);
   const [maxLoanAmount, setMaxLoanAmount] = useState<number | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [chartData, setChartData] = useState<any[]>([]);
   
   // Rozszerzone dane z zaawansowanego algorytmu
@@ -202,6 +203,7 @@ const CreditScoreCalculatorPage = () => {
   // Walidacja przy każdej zmianie
   useEffect(() => {
     validateAllFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthlyIncome, secondBorrowerIncome, monthlyExpenses, otherLoans, 
       creditCardLimits, accountOverdrafts, householdSize, loanTerm, 
       interestRate, dstiRatio]);
