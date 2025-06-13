@@ -481,10 +481,18 @@ export async function POST(request: NextRequest) {
 // ===== OBSŁUGA KALKULATORA WYNAJMU =====
 function handleRentalCalculation(input: RentalInput) {
     try {
-        const purchasePrice = parseFloat(input.purchasePrice.toString()) || 0;
+        const purchasePriceRaw = input.purchasePrice !== undefined ? parseFloat(input.purchasePrice.toString()) : 0;
         const monthlyRent = parseFloat(input.monthlyRent.toString()) || 0;
-        const downPayment = parseFloat(input.downPayment.toString()) || 0;
-        const loanAmount = purchasePrice - downPayment;
+        const downPayment = parseFloat(input.downPayment?.toString() || '0');
+
+        // Pozwalamy przekazać loanAmount bezpośrednio z frontu (np. gdy kwota kredytu wyliczona gdzie indziej)
+        let loanAmount = input.loanAmount !== undefined ? parseFloat(input.loanAmount.toString()) : NaN;
+        if (isNaN(loanAmount)) {
+            loanAmount = Math.max(0, purchasePriceRaw - downPayment);
+        }
+
+        // Jeżeli front podał loanAmount, a purchasePrice = 0, to odtworzymy purchasePrice = loan + wkład własny
+        const purchasePrice = purchasePriceRaw > 0 ? purchasePriceRaw : loanAmount + downPayment;
         
         // Koszty miesięczne
         const adminFees = parseFloat(input.adminFees.toString()) || 0;
@@ -848,4 +856,4 @@ export async function OPTIONS() {
     });
 }
 
-export { handlePurchaseCalculation };
+export { handlePurchaseCalculation, handleRentalCalculation, handleCreditScoreCalculation };

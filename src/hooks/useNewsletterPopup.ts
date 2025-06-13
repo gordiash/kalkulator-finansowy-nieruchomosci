@@ -56,7 +56,7 @@ export const useNewsletterPopup = () => {
         showPopup();
         window.removeEventListener('scroll', handleScroll);
       }
-    }, 15000);
+    }, 30000);
 
     // Dodaj listener scroll
     window.addEventListener('scroll', handleScroll, { passive: true });

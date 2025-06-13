@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, type ChartOptions } from 'chart.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -36,7 +36,7 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
         ],
     };
 
-    const options: any = {
+    const options: ChartOptions<'bar'> = {
         responsive: true,
         plugins: {
             legend: {
