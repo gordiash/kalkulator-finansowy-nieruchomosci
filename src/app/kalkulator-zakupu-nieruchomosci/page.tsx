@@ -294,7 +294,7 @@ type CalculationResults = {
   lastInstallment: number | null;
   totalRepayment: number | null;
   totalInterest: number | null;
-  overpaymentResults: { savedInterest: number; newLoanTerm: number; } | null;
+  overpaymentResults: { savedInterest: number; newLoanTerm: number; monthsShortened: number; } | null;
   simulationResults?: SimulationResults;
   baseSchedule?: ScheduleItem[] | null;
 };
@@ -437,7 +437,8 @@ export default function RealEstateCalculatorPage() {
   const service = new CalculationService();
 
   const formatLoanTerm = (months: number | null) => {
-    if (!months || months <= 0) return 'N/A';
+    if (months === null || months === undefined) return 'N/A';
+    if (months <= 0) return '0';
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
     let termString = '';
@@ -654,7 +655,7 @@ export default function RealEstateCalculatorPage() {
         summaryData.push(['Kwota nadpłaty', formatCurrency(parseFloat(formData.overpaymentAmount))]);
         summaryData.push(['Częstotliwość', formData.overpaymentFrequency === 'one-time' ? 'Jednorazowa' : formData.overpaymentFrequency === 'monthly' ? 'Miesięczna' : 'Roczna']);
         summaryData.push(['Zaoszczędzone odsetki', formatCurrency(results.overpaymentResults.savedInterest)]);
-        summaryData.push(['Skrócenie o', formatLoanTerm(parseInt(formData.loanTerm) * 12 - results.overpaymentResults.newLoanTerm)]);
+        summaryData.push(['Skrócenie o', formatLoanTerm(results.overpaymentResults.monthsShortened > 0 ? results.overpaymentResults.monthsShortened : 0)]);
     }
 
     autoTable(doc, {
@@ -1130,7 +1131,7 @@ export default function RealEstateCalculatorPage() {
                   </div>
                   <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
                     <p className="text-sm md:text-base text-green-800 mb-2">Kredyt spłacisz szybciej o</p>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{formatLoanTerm(parseInt(formData.loanTerm) * 12 - results.overpaymentResults.newLoanTerm)}</p>
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{results.overpaymentResults.monthsShortened > 0 ? formatLoanTerm(results.overpaymentResults.monthsShortened) : '0'}</p>
                   </div>
                 </CardContent>
               </Card>

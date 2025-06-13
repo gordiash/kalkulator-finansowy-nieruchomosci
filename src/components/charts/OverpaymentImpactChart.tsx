@@ -8,32 +8,35 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface OverpaymentResults {
   savedInterest: number;
-  newLoanTerm: number;
+  monthsShortened: number;
 }
 
 export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResults: OverpaymentResults }) {
     if (!overpaymentResults) return null;
 
     const data = {
-        labels: ['Zaoszczędzone odsetki', 'Nowy okres (msc)'],
+        labels: ['Zaoszczędzone odsetki', 'Skrócenie (msc)'],
         datasets: [
             {
-                label: 'Wpływ nadpłaty',
-                data: [overpaymentResults.savedInterest, overpaymentResults.newLoanTerm],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.5)',
-                    'rgba(153, 102, 255, 0.5)',
-                ],
-                borderColor: [
-                    'rgb(75, 192, 192)',
-                    'rgb(153, 102, 255)',
-                ],
+                label: 'Zaoszczędzone odsetki (PLN)',
+                data: [overpaymentResults.savedInterest, 0],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgb(75, 192, 192)',
                 borderWidth: 1,
+                yAxisID: 'y',
+            },
+            {
+                label: 'Skrócenie okresu (miesiące)',
+                data: [0, overpaymentResults.monthsShortened],
+                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                borderColor: 'rgb(153, 102, 255)',
+                borderWidth: 1,
+                yAxisID: 'y1',
             },
         ],
     };
 
-    const options = {
+    const options: any = {
         responsive: true,
         plugins: {
             legend: {
@@ -44,6 +47,26 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
                 text: 'Wpływ Nadpłaty',
             },
         },
+        scales: {
+            y: {
+                position: 'left',
+                ticks: {
+                    callback: function(value: unknown) {
+                        const numValue = typeof value === 'number' ? value : 0;
+                        return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(numValue);
+                    }
+                }
+            },
+            y1: {
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: {
+                    callback: function(value: unknown) {
+                        return `${value} msc`;
+                    }
+                }
+            }
+        }
     };
 
     return (

@@ -10,6 +10,7 @@ interface ScheduleItem {
   month: number;
   principalPart: number;
   interestPart: number;
+  overpayment?: number;
 }
 
 export function InstallmentStructureChart({ schedule }: { schedule: ScheduleItem[] }) {
@@ -32,22 +33,27 @@ export function InstallmentStructureChart({ schedule }: { schedule: ScheduleItem
         labels: schedule.map(item => item.month),
         datasets: [
             {
-                label: 'Część kapitałowa',
-                data: schedule.map(item => item.principalPart),
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                stack: 'combined',
-                type: 'bar' as const,
+              label: 'Część kapitałowa',
+              data: schedule.map((item) => item.principalPart - (item.overpayment || 0)),
+              backgroundColor: 'rgba(75, 192, 192, 0.5)',
+              borderColor: 'rgb(75, 192, 192)',
+              borderWidth: 1,
             },
             {
-                label: 'Część odsetkowa',
-                data: schedule.map(item => item.interestPart),
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                stack: 'combined',
-                type: 'bar' as const,
+              label: 'Nadpłata',
+              data: schedule.map((item) => item.overpayment || 0),
+              backgroundColor: 'rgba(255, 205, 86, 0.6)',
+              borderColor: 'rgb(255, 205, 86)',
+              borderWidth: 1,
             },
-        ],
+            {
+              label: 'Część odsetkowa',
+              data: schedule.map((item) => item.interestPart),
+              backgroundColor: 'rgba(255, 99, 132, 0.5)',
+              borderColor: 'rgb(255, 99, 132)',
+              borderWidth: 1,
+            }
+          ],
     };
 
     const options = {

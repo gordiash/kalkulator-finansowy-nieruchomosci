@@ -265,7 +265,28 @@ function generateSchedule(
     const overpaymentFrequency = overpayment.frequency || 'one-time';
     const overpaymentStartMonth = overpayment.startMonth || 1;
     
-    while (remainingPrincipal > 0.01 && monthNumber <= totalMonths) {
+    // Ustal bazową ratę (annuitetową lub malejącą) aby wspierać strategię skrócenia okresu
+    let baseMonthlyPayment = 0;
+    if (type === 'equal') {
+        if (monthlyRate === 0) {
+            baseMonthlyPayment = principal / totalMonths;
+        } else {
+            baseMonthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+        }
+    } else {
+        baseMonthlyPayment = (principal / totalMonths) + (principal * monthlyRate);
+    }
+    
+    // Dla celu "reduce-payment" harmonogram powinien mieć zawsze pełną długość (totalMonths)
+    // Dla "shorten-period" kończymy jak spłacimy kapitał
+    const loopCondition = () => {
+        if (overpayment.target === 'reduce-payment') {
+            return monthNumber <= totalMonths;
+        }
+        return remainingPrincipal > 0.01 && monthNumber <= totalMonths;
+    };
+
+    while (loopCondition()) {
         // Obliczenie czy w tym miesiącu jest ubezpieczenie pomostowe
         const currentRate = (monthNumber <= bridgeMonths) ? 
             (margin + refRate + bridgeIncrease) / 100 / 12 : monthlyRate;
@@ -275,23 +296,40 @@ function generateSchedule(
         let totalPayment: number;
         
         if (type === 'equal') {
-            // Raty równe (annuitetowe)
-            const remainingMonths = totalMonths - monthNumber + 1;
-            if (currentRate === 0) {
-                totalPayment = remainingPrincipal / remainingMonths;
-                principalPayment = totalPayment;
-                interestPayment = 0;
-            } else {
-                totalPayment = remainingPrincipal * (currentRate * Math.pow(1 + currentRate, remainingMonths)) / 
-                              (Math.pow(1 + currentRate, remainingMonths) - 1);
+            if (overpayment.target === 'shorten-period') {
+                // Stała pierwotna rata
                 interestPayment = remainingPrincipal * currentRate;
+                totalPayment = baseMonthlyPayment;
                 principalPayment = totalPayment - interestPayment;
+                // zabezpieczenie przed negatywnym kapitałem
+                if (principalPayment < 0) principalPayment = 0;
+            } else {
+                // Raty równe ze zmienną ratą (zmniejszanie raty)
+                const remainingMonths = totalMonths - monthNumber + 1;
+                // Obliczamy standardową ratę annuitetową dla pozostałego kapitału
+                if (currentRate === 0) {
+                    totalPayment = remainingPrincipal / remainingMonths;
+                    interestPayment = 0;
+                } else {
+                    totalPayment = remainingPrincipal * (currentRate * Math.pow(1 + currentRate, remainingMonths)) / 
+                                  (Math.pow(1 + currentRate, remainingMonths) - 1);
+                    interestPayment = remainingPrincipal * currentRate;
+                }
+
+                // Zastosowanie strategii "reduce-payment": kwotę nadpłaty traktujemy jako obniżenie raty,
+                // a jednocześnie w całości kierujemy ją w kapitał.
+                const paymentReduction = overpaymentAmount;
+                // Nowa (niższa) rata nie może spaść poniżej części odsetkowej
+                totalPayment = Math.max(interestPayment, totalPayment - paymentReduction);
+
+                principalPayment = totalPayment - interestPayment + overpaymentAmount;
             }
         } else {
             // Raty malejące
             principalPayment = principal / totalMonths;
             interestPayment = remainingPrincipal * currentRate;
             totalPayment = principalPayment + interestPayment;
+            // jeśli celem jest skrócenie okresu, raty malejące i tak powodują skrócenie przez nadpłatę
         }
         
         // Sprawdzenie nadpłaty
@@ -306,8 +344,8 @@ function generateSchedule(
             }
         }
         
-        // Zastosowanie nadpłaty
-        if (currentOverpayment > 0) {
+        // Zastosowanie nadpłaty dla shorten-period (dodatkowa kwota zwiększa ratę)
+        if (currentOverpayment > 0 && overpayment.target === 'shorten-period') {
             principalPayment += Math.min(currentOverpayment, remainingPrincipal - principalPayment);
             totalPayment += currentOverpayment;
         }
@@ -318,7 +356,7 @@ function generateSchedule(
             totalPayment = principalPayment + interestPayment;
         }
         
-        remainingPrincipal -= principalPayment;
+        remainingPrincipal = Math.max(0, remainingPrincipal - principalPayment);
         
         schedule.push({
             month: monthNumber,
@@ -331,8 +369,21 @@ function generateSchedule(
         
         monthNumber++;
         
-        // Zabezpieczenie przed nieskończoną pętlą
         if (monthNumber > 600) break; // Maksymalnie 50 lat
+    }
+    
+    // Jeżeli cel to reduce-payment i po wykonaniu pętli pozostał niespłacony kapitał (zaokrąglenie)
+    if (overpayment.target === 'reduce-payment' && remainingPrincipal > 0.01) {
+        const interestPayment = remainingPrincipal * monthlyRate;
+        const totalPayment = remainingPrincipal + interestPayment;
+        schedule.push({
+            month: schedule.length + 1,
+            principalPart: Math.round(remainingPrincipal * 100) / 100,
+            interestPart: Math.round(interestPayment * 100) / 100,
+            totalPayment: Math.round(totalPayment * 100) / 100,
+            remainingPrincipal: 0,
+            overpayment: 0
+        });
     }
     
     return schedule;
@@ -745,9 +796,11 @@ function handlePurchaseCalculation(input: PurchaseInput) {
                 results.lastInstallment = finalSchedule[finalSchedule.length - 1].totalPayment;
                 
                 if (overpayment.amount > 0) {
+                    const monthsShortened = baseSchedule.length - finalSchedule.length;
                     results.overpaymentResults = {
                         savedInterest: baseTotalInterest - overpaymentTotalInterest,
-                        newLoanTerm: finalSchedule.length
+                        newLoanTerm: finalSchedule.length,
+                        monthsShortened: monthsShortened
                     };
                 }
             }
@@ -794,3 +847,5 @@ export async function OPTIONS() {
         },
     });
 }
+
+export { handlePurchaseCalculation };
