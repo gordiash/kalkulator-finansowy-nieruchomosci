@@ -1,13 +1,14 @@
 'use client';
 
 import MarkdownIt from 'markdown-it';
+import markdownItAttrs from 'markdown-it-attrs';
 
-// Inicjalizacja parsera markdown
+// Inicjalizacja parsera markdown z pluginem attrs (np. {.class})
 const md = new MarkdownIt({
   html: true,
   linkify: true,
   typographer: true,
-}).use(require('markdown-it-attrs')); // Dodaj obsługę atrybutów np. {.class}
+}).use(markdownItAttrs);
 
 interface BlogPostContentProps {
   content: string;

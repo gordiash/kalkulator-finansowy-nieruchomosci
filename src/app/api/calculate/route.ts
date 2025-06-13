@@ -450,12 +450,10 @@ function handleRentalCalculation(input: RentalInput) {
         // Obliczenia podstawowe
         const annualRentIncome = monthlyRent * 12;
         const effectiveRentalMonths = 12 * (1 - vacancyRate / 100);
-        const vacancyMonths = 12 - effectiveRentalMonths;
         const netIncome = monthlyRent * effectiveRentalMonths;
         
-        // Koszty roczne
+        // Koszty roczne (stałe opłaty przez 12 miesięcy)
         const annualCosts = adminFees * 12 + utilities * 12 + insurance + otherCosts * 12 + managementFee * 12;
-        const monthCosts = adminFees + utilities + otherCosts + managementFee;
         
         // ROI podstawowe
         const actualInvestment = downPayment + 
@@ -470,8 +468,9 @@ function handleRentalCalculation(input: RentalInput) {
             monthlyPayment = calculateLoanPaymentRental(loanAmount, interestRate, loanYears);
         }
         
-        const monthlyCashFlow = monthlyRent - monthCosts - monthlyPayment;
-        const annualCashFlow = monthlyCashFlow * effectiveRentalMonths - (monthlyPayment * vacancyMonths);
+        // Roczny Cash-Flow: przychód za efektywne miesiące najmu minus koszty operacyjne za pełne 12 mies. minus raty kredytu za 12 mies.
+        const annualLoanPayments = monthlyPayment * 12;
+        const annualCashFlow = netIncome - annualCosts - annualLoanPayments;
         const cashOnCashReturn = actualInvestment > 0 ? (annualCashFlow / actualInvestment) * 100 : 0;
         
         // Obliczenia podatkowe
@@ -565,17 +564,20 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         // Koszty utrzymania
         const costOfLiving = calculateLivingCosts(householdSize, totalNetIncome);
         
-        // Zobowiązania kredytowe (5% limitów kart kredytowych + 10% overdraftów + inne kredyty)
-        const creditObligations = (creditCardLimits * 0.05) + (accountOverdrafts * 0.10) + otherLoans;
+        // Zobowiązania kredytowe:
+        // • 3% limitów kart kredytowych
+        // • 3% debetu w rachunku
+        // • miesięczne raty innych kredytów
+        // Do całkowitych zobowiązań doliczamy także stałe miesięczne opłaty (monthlyExpenses)
+        const creditObligationsCore = (creditCardLimits * 0.03) + (accountOverdrafts * 0.03) + otherLoans;
+        const totalCommitments = monthlyExpenses + creditObligationsCore;
         
         // Dostępne środki na kredyt
-        const availableForLoan = adjustedIncome - monthlyExpenses - costOfLiving - creditObligations;
+        const availableForLoan = adjustedIncome - costOfLiving - totalCommitments;
         
         // Maksymalna rata kredytu (zgodnie z wskaźnikiem DSTI)
-        const maxMonthlyPayment = Math.min(
-            availableForLoan,
-            (adjustedIncome * dstiRatio / 100) - monthlyExpenses - costOfLiving - creditObligations
-        );
+        const maxDstiPayment = (adjustedIncome * dstiRatio / 100) - totalCommitments;
+        const maxMonthlyPayment = Math.min(availableForLoan, maxDstiPayment);
         
         // Debug logging
         console.log('Credit Score Calculation Debug:', {
@@ -584,7 +586,7 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
             employmentWeight,
             adjustedIncome,
             costOfLiving,
-            creditObligations,
+            totalCommitments,
             availableForLoan,
             maxMonthlyPayment,
             dstiRatio
@@ -607,30 +609,32 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         }
         
         // Obliczenie ile zostanie po spłacie kredytu
-        const remainingAfterLoan = adjustedIncome - monthlyExpenses - costOfLiving - creditObligations - maxMonthlyPayment;
+        const remainingAfterLoan = adjustedIncome - costOfLiving - totalCommitments - maxMonthlyPayment;
         
         // Przygotowanie danych do wykresu
         const chartData = prepareCreditScoreChartData(
             monthlyExpenses,
             otherLoans,
-            creditObligations - otherLoans, // Tylko karty kredytowe i overdrafty
+            creditObligationsCore - otherLoans, // karty + overdrafty
             costOfLiving,
             maxMonthlyPayment,
             Math.max(0, remainingAfterLoan)
         );
         
+        // Obliczenia DSTI do szczegółów
+        const dstiUsedPercent = totalNetIncome > 0 ? ((maxMonthlyPayment + totalCommitments) / totalNetIncome) * 100 : 0;
+
         const response = {
             creditCapacity: Math.max(0, Math.round(creditCapacity)),
             maxLoanAmount: Math.max(0, Math.round(maxLoanAmount)),
             chartData: chartData,
             details: {
-                totalNetIncome: totalNetIncome,
-                adjustedIncome: adjustedIncome,
+                totalIncome: totalNetIncome,
                 costOfLiving: costOfLiving,
-                creditObligations: creditObligations,
-                availableForLoan: Math.max(0, availableForLoan),
-                stressTestRate: stressTestRate,
-                employmentWeight: employmentWeight
+                totalCommitments: totalCommitments,
+                stressedInterestRate: stressTestRate,
+                effectiveDstiLimit: dstiRatio, // rzeczywisty użyty limit DSTI (%), można rozszerzyć o dynamikę
+                dstiUsed: dstiUsedPercent
             }
         };
         

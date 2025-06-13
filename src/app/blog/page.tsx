@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getBlogPosts, getBlogCategories } from '../../lib/strapi';
-import type { BlogPost, BlogCategory, StrapiResponse } from '../../types/blog';
+import type { BlogPost, BlogCategory } from '../../types/blog';
 import BlogPostCard from '../../components/blog/BlogPostCard';
 import BlogPagination from '../../components/blog/BlogPagination';
 import BlogFilter from '../../components/blog/BlogFilter';
@@ -28,7 +28,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
   const pageSize = 12;
   
   // Przygotowanie filtrów (bez status, korzystamy z domyślnego stanu publikacji Strapi)
-  const filters: Record<string, any> = {};
+  const filters: Record<string, unknown> = {};
   
   if (searchParams.category) {
     filters['categories.slug'] = searchParams.category;
@@ -48,7 +48,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
       getBlogPosts({
         page,
         pageSize,
-        sort: 'published_at:desc',
+        sort: 'publishedAt:desc',
         filters: Object.keys(filters).length > 0 ? filters : undefined,
         populate: ['categories', 'featured_image']
       }),
@@ -144,9 +144,10 @@ async function BlogContent({ searchParams }: BlogPageProps) {
   }
 }
 
-// Strona bloga jako async server component, aby można było używać searchParams
-export default async function BlogPage({ searchParams }: BlogPageProps) {
-  return <BlogContent searchParams={searchParams} />;
+// Strona bloga jako async server component w Next.js 15 (searchParams jako Promise)
+export default async function BlogPage({ searchParams }: { searchParams: Promise<BlogPageProps['searchParams']> }) {
+  const resolvedParams = await searchParams;
+  return <BlogContent searchParams={resolvedParams} />;
 }
 
 // Dodaj ISR: strona odświeża dane co 60 sekund

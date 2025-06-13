@@ -154,7 +154,7 @@ export default function BlogFilter({
             
             {searchQuery && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                "{searchQuery}"
+                &quot;{searchQuery}&quot;
                 <button
                   onClick={() => updateSearchParams({ search: null })}
                   className="ml-1 hover:text-blue-600"

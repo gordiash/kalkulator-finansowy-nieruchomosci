@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Typy dla Strapi Blog API
 
 export interface StrapiMedia {
@@ -94,7 +95,7 @@ export interface PaginationMeta {
 
 export interface StrapiSingleResponse<T> {
   data: T;
-  meta: {};
+  meta: Record<string, unknown>;
 }
 
 // Typy dla formularzy i tworzenia postów

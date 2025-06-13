@@ -251,7 +251,7 @@ const CreditScoreCalculatorPage = () => {
         dstiRatio: parseFloat(dstiRatio)
       };
 
-      const response = await fetch('/api/calculate.php', {
+      const response = await fetch('/api/calculate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -275,20 +275,20 @@ const CreditScoreCalculatorPage = () => {
       
       // Zapisz szczegółowe dane z zaawansowanego algorytmu
       setCalculationDetails({
-        totalIncome: result.details?.totalNetIncome,
+        totalIncome: result.details?.totalIncome,
         costOfLiving: result.details?.costOfLiving,
-        totalCommitments: result.details?.creditObligations,
-        stressedInterestRate: result.details?.stressTestRate,
-        effectiveDstiLimit: result.details?.adjustedIncome,
-        dstiUsed: result.details?.availableForLoan
+        totalCommitments: result.details?.totalCommitments,
+        stressedInterestRate: result.details?.stressedInterestRate,
+        effectiveDstiLimit: result.details?.effectiveDstiLimit,
+        dstiUsed: result.details?.dstiUsed
       });
 
       // Śledzenie wyniku kalkulatora
       trackCalculatorResult('credit-score', result.maxLoanAmount, {
         credit_capacity: result.creditCapacity,
-        total_income: result.totalIncome,
-        dsti_limit: result.effectiveDstiLimit,
-        stressed_rate: result.stressedInterestRate
+        total_income: result.details?.totalIncome,
+        dsti_limit: result.details?.effectiveDstiLimit,
+        stressed_rate: result.details?.stressedInterestRate
       });
 
     } catch (err) {
@@ -603,7 +603,7 @@ const CreditScoreCalculatorPage = () => {
                               {calculationDetails.totalCommitments?.toFixed(0)} zł
                             </p>
                             <p className="text-sm text-red-600 mt-1">
-                              Opłaty + kredyty + 3% limitów kart
+                              Opłaty + kredyty + 3% limitów kart/debetu
                             </p>
                           </div>
 

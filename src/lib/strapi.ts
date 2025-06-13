@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
 // Konfiguracja klienta Strapi
@@ -74,7 +75,7 @@ export async function getBlogPosts(params?: {
           });
         } else {
           // Prosty filtr eq
-          queryParams.append(`where[${key}][$eq]`, String(value));
+          queryParams.append(`filters[${key}][$eq]`, String(value));
         }
       }
     }
@@ -95,7 +96,7 @@ export async function getBlogPost(slug: string, populate: string[] = ['categorie
     const queryParams = new URLSearchParams();
     
     // Filtrowanie po slug
-    queryParams.append('where[slug][$eq]', slug);
+    queryParams.append('filters[slug][$eq]', slug);
     
     // Populate dla relacji
     if (populate && populate.length > 0) {

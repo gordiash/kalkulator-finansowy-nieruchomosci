@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getBlogPost, getBlogPosts } from '@/lib/strapi';
@@ -7,13 +6,6 @@ import BlogPostHeader from '@/components/blog/BlogPostHeader';
 import BlogPostContent from '@/components/blog/BlogPostContent';
 import BlogPostNavigation from '@/components/blog/BlogPostNavigation';
 import RelatedPosts from '@/components/blog/RelatedPosts';
-import BlogLoadingSkeleton from '@/components/blog/BlogLoadingSkeleton';
-
-type BlogPostPageProps = {
-  params: {
-    slug: string;
-  };
-};
 
 // Generowanie statycznych ścieżek dla postów
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
@@ -36,11 +28,12 @@ export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
 
 // Generowanie metadanych SEO
 export async function generateMetadata(
-  { params }: BlogPostPageProps,
+  { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
+  const awaitedParams = await params;
   try {
-    const post: BlogPost = await getBlogPost(params.slug);
+    const post: BlogPost = await getBlogPost(awaitedParams.slug);
     if (!post) {
       return {
         title: 'Nie znaleziono posta',
@@ -109,12 +102,9 @@ async function PostPageContent({ slug }: { slug: string }) {
   }
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  return (
-    <Suspense fallback={<BlogLoadingSkeleton />}>
-      <PostPageContent slug={params.slug} />
-    </Suspense>
-  );
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  return <PostPageContent slug={slug} />;
 }
 
 // Dodaj ISR: strona odświeża dane co 60 sekund
