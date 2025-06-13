@@ -55,7 +55,9 @@ async function BlogContent({ searchParams }: BlogPageProps) {
       getBlogCategories()
     ]);
 
-    const posts = postsResponse.data as BlogPost[];
+    // Filtrujemy posty bez tytułu lub sluga (nieopublikowane / uszkodzone)
+    const postsRaw = postsResponse.data as BlogPost[];
+    const posts = postsRaw.filter(p => p.attributes?.slug);
     const categories = categoriesResponse.data as BlogCategory[];
     const pagination = postsResponse.meta.pagination;
 

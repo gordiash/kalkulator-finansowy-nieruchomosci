@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import MarkdownIt from 'markdown-it';
 import markdownItAttrs from 'markdown-it-attrs';
 
@@ -11,12 +12,28 @@ const md = new MarkdownIt({
 }).use(markdownItAttrs);
 
 interface BlogPostContentProps {
-  content: string;
+  content: string | any[];
 }
 
 export default function BlogPostContent({ content }: BlogPostContentProps) {
+  // Strapi blocks → plain string
+  let source = '';
+  if (Array.isArray(content)) {
+    source = content
+      .map((block) =>
+        typeof block === 'string'
+          ? block
+          : Array.isArray((block as any).children)
+              ? (block as any).children.map((child: any) => child.text || '').join('')
+              : ''
+      )
+      .join('\n\n');
+  } else {
+    source = content ?? '';
+  }
+
   // Parsowanie i renderowanie treści markdown
-  const htmlContent = md.render(content);
+  const htmlContent = md.render(source);
 
   return (
     <article 

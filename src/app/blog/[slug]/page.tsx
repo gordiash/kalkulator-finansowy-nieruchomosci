@@ -10,16 +10,18 @@ import RelatedPosts from '@/components/blog/RelatedPosts';
 // Generowanie statycznych ścieżek dla postów
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   try {
-    const postsResponse = await getBlogPosts({ pageSize: 100, filters: { status: 'published' } });
+    const postsResponse = await getBlogPosts({ pageSize: 100, filters: { post_status: 'published' } });
     const posts: BlogPost[] = postsResponse.data;
     
     if (!posts) {
       return [];
     }
     
-    return posts.map((post: BlogPost): { slug: string } => ({
-      slug: post.attributes.slug,
-    }));
+    return posts
+      .filter((post) => typeof post.attributes.slug === 'string' && post.attributes.slug.length > 0)
+      .map((post: BlogPost): { slug: string } => ({
+        slug: post.attributes.slug,
+      }));
   } catch (error) {
     console.error("Failed to generate static params for blog posts:", error);
     return [];
@@ -66,7 +68,7 @@ async function PostPageContent({ slug }: { slug: string }) {
   try {
     const post = await getBlogPost(slug);
 
-    if (!post || post.attributes.status !== 'published') {
+    if (!post || (post.attributes.post_status && post.attributes.post_status !== 'published')) {
       notFound();
     }
 

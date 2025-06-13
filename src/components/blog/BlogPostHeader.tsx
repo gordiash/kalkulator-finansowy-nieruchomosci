@@ -9,7 +9,7 @@ interface BlogPostHeaderProps {
 
 export default function BlogPostHeader({ post }: BlogPostHeaderProps) {
   const { attributes } = post;
-  const featuredImageUrl = getStrapiMediaUrl(attributes.featured_image?.data);
+  const featuredImageUrl = getStrapiMediaUrl(attributes?.featured_image);
   
   const publishedDate = new Date(attributes.published_at || attributes.publishedAt).toLocaleDateString('pl-PL', {
     year: 'numeric',

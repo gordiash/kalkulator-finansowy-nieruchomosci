@@ -11,17 +11,19 @@ export default async function BlogPostNavigation({ currentPost }: BlogPostNaviga
 
   // Pobierz poprzedni post (opublikowany wcześniej)
   const prevPostResponse = await getBlogPosts({
-    filters: { published_at: { $lt: publishedAt } },
-    sort: 'published_at:desc',
+    filters: { publishedAt: { $lt: publishedAt.toISOString() }, post_status: 'published' },
+    sort: 'publishedAt:desc',
     pageSize: 1,
+    populate: ['categories','featured_image']
   });
   const prevPost = prevPostResponse.data?.[0];
 
   // Pobierz następny post (opublikowany później)
   const nextPostResponse = await getBlogPosts({
-    filters: { published_at: { $gt: publishedAt } },
-    sort: 'published_at:asc',
+    filters: { publishedAt: { $gt: publishedAt.toISOString() }, post_status: 'published' },
+    sort: 'publishedAt:asc',
     pageSize: 1,
+    populate: ['categories','featured_image']
   });
   const nextPost = nextPostResponse.data?.[0];
   

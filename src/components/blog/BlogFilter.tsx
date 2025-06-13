@@ -61,6 +61,8 @@ export default function BlogFilter({
 
   const hasActiveFilters = selectedCategory || searchQuery;
 
+  const safeCategories = (categories || []).filter((cat) => cat && cat.attributes);
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
@@ -112,8 +114,8 @@ export default function BlogFilter({
           </button>
 
           {/* Przyciski kategorii */}
-          {categories.map((category) => {
-            const isSelected = selectedCategory === category.attributes.slug;
+          {safeCategories.map((category) => {
+            const isSelected = selectedCategory === category.attributes?.slug;
             
             return (
               <button
@@ -124,9 +126,9 @@ export default function BlogFilter({
                     ? 'text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
-                style={isSelected ? { backgroundColor: category.attributes.color } : {}}
+                style={isSelected ? { backgroundColor: category.attributes?.color } : {}}
               >
-                {category.attributes.name}
+                {category.attributes?.name}
               </button>
             );
           })}
