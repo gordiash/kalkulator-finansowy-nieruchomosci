@@ -856,4 +856,14 @@ export async function OPTIONS() {
     });
 }
 
-export { handlePurchaseCalculation, handleRentalCalculation, handleCreditScoreCalculation };
+// Eksporty tylko dla środowiska testowego (Jest) – nie są wychwytywane przez analizator Next.js
+// dzięki czemu nie łamią typu Route
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+if (process.env.JEST_WORKER_ID) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mod = module as any;
+  mod.exports.handlePurchaseCalculation = handlePurchaseCalculation;
+  mod.exports.handleRentalCalculation = handleRentalCalculation;
+  mod.exports.handleCreditScoreCalculation = handleCreditScoreCalculation;
+}
