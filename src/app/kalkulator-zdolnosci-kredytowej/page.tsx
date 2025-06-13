@@ -200,9 +200,13 @@ const CreditScoreCalculatorPage = () => {
     return isValid;
   };
 
-  // Walidacja przy każdej zmianie
+  // Walidacja z debouncing dla lepszej wydajności
   useEffect(() => {
-    validateAllFields();
+    const timeoutId = setTimeout(() => {
+      validateAllFields();
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(timeoutId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthlyIncome, secondBorrowerIncome, monthlyExpenses, otherLoans, 
       creditCardLimits, accountOverdrafts, householdSize, loanTerm, 
@@ -271,12 +275,12 @@ const CreditScoreCalculatorPage = () => {
       
       // Zapisz szczegółowe dane z zaawansowanego algorytmu
       setCalculationDetails({
-        totalIncome: result.totalIncome,
-        costOfLiving: result.costOfLiving,
-        totalCommitments: result.totalCommitments,
-        stressedInterestRate: result.stressedInterestRate,
-        effectiveDstiLimit: result.effectiveDstiLimit,
-        dstiUsed: result.dstiUsed
+        totalIncome: result.details?.totalNetIncome,
+        costOfLiving: result.details?.costOfLiving,
+        totalCommitments: result.details?.creditObligations,
+        stressedInterestRate: result.details?.stressTestRate,
+        effectiveDstiLimit: result.details?.adjustedIncome,
+        dstiUsed: result.details?.availableForLoan
       });
 
       // Śledzenie wyniku kalkulatora

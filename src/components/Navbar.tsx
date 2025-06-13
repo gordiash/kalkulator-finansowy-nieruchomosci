@@ -10,20 +10,39 @@ const Navbar = () => {
     <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          <Link href="/" className="text-xl font-bold text-gray-800">
+          <Link href="/" className="text-xl font-bold text-gray-800" prefetch={true}>
             Kalkulatory Nieruchomości
           </Link>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/kalkulator-zakupu-nieruchomosci" className="text-gray-600 hover:text-blue-600 transition-colors">
+            <Link 
+              href="/kalkulator-zakupu-nieruchomosci" 
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
+            >
               Zakup Nieruchomości
             </Link>
-            <Link href="/kalkulator-wynajmu" className="text-gray-600 hover:text-blue-600 transition-colors">
+            <Link 
+              href="/kalkulator-wynajmu" 
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
+            >
               Opłacalność Wynajmu
             </Link>
-            <Link href="/kalkulator-zdolnosci-kredytowej" className="text-gray-600 hover:text-blue-600 transition-colors">
+            <Link 
+              href="/kalkulator-zdolnosci-kredytowej" 
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
+            >
               Zdolność Kredytowa
+            </Link>
+            <Link 
+              href="/blog" 
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
+            >
+              Blog
             </Link>
             <a 
               href="https://suppi.pl/kalkulatorynieruchomosci" 
@@ -60,6 +79,7 @@ const Navbar = () => {
                 href="/kalkulator-zakupu-nieruchomosci" 
                 className="block px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
+                prefetch={true}
               >
                 Zakup Nieruchomości
               </Link>
@@ -67,6 +87,7 @@ const Navbar = () => {
                 href="/kalkulator-wynajmu" 
                 className="block px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
+                prefetch={true}
               >
                 Opłacalność Wynajmu
               </Link>
@@ -74,8 +95,17 @@ const Navbar = () => {
                 href="/kalkulator-zdolnosci-kredytowej" 
                 className="block px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
+                prefetch={true}
               >
                 Zdolność Kredytowa
+              </Link>
+              <Link 
+                href="/blog" 
+                className="block px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+                prefetch={true}
+              >
+                Blog
               </Link>
               <div className="px-3 py-2">
                 <a 

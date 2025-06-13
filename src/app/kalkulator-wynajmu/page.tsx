@@ -29,6 +29,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
@@ -189,9 +190,13 @@ const RentalProfitabilityCalculatorPage = () => {
     return isValid;
   };
 
-  // Walidacja przy każdej zmianie
+  // Walidacja z debouncing dla lepszej wydajności
   useEffect(() => {
-    validateAllFields();
+    const timeoutId = setTimeout(() => {
+      validateAllFields();
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(timeoutId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchasePrice, monthlyRent, transactionCosts, renovationCosts, 
       adminFees, utilities, insurance, otherCosts, vacancyPeriod, 
@@ -239,6 +244,7 @@ const RentalProfitabilityCalculatorPage = () => {
         propertyAppreciation: parseFloat(propertyAppreciation) || 3,
         rentGrowth: parseFloat(rentGrowth) || 2,
         otherInitialCosts: parseFloat(transactionCosts) || 0,
+        managementFee: 0,
       };
 
       const response = await fetch('/api/calculate.php', {
@@ -278,8 +284,8 @@ const RentalProfitabilityCalculatorPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <Card className="max-w-5xl mx-auto">
+          <div className="container max-w-7xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+        <Card className="max-w-6xl mx-auto">
         <CardHeader className="text-center pb-4 sm:pb-6">
           <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold">
             Kalkulator Opłacalności Wynajmu
@@ -362,7 +368,7 @@ const RentalProfitabilityCalculatorPage = () => {
             />
           </div>
           
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mb-6 p-4 bg-blue-50 rounded-md w-sm">
             <InputWithValidation
               id="vacancyPeriod"
               label="Okres pustostanów (mies./rok)"
@@ -617,14 +623,18 @@ const RentalProfitabilityCalculatorPage = () => {
                        <CardTitle className="text-center">Struktura kosztów miesięcznych</CardTitle>
                      </CardHeader>
                      <CardContent>
-                       <ResponsiveContainer width="100%" height={300}>
+                       <ResponsiveContainer width="100%" height={400}>
                          <PieChart>
                            <Pie
                              data={results.costBreakdown}
                              cx="50%"
-                             cy="50%"
-                             labelLine={false}
-                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                             cy="45%"
+                             labelLine={true}
+                             label={({ name, percent }) => {
+                               if (percent > 0.15) return `${name}\n${(percent * 100).toFixed(0)}%`;
+                               if (percent > 0.01) return `${(percent * 100).toFixed(0)}%`;
+                               return '';
+                             }}
                              outerRadius={80}
                              fill="#8884d8"
                              dataKey="value"
@@ -634,6 +644,11 @@ const RentalProfitabilityCalculatorPage = () => {
                              ))}
                            </Pie>
                            <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Koszt']} />
+                           <Legend 
+                             verticalAlign="bottom" 
+                             height={80}
+                             wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
+                           />
                          </PieChart>
                        </ResponsiveContainer>
                      </CardContent>
@@ -645,15 +660,17 @@ const RentalProfitabilityCalculatorPage = () => {
                        <CardTitle className="text-center">Przychody vs Koszty (roczne)</CardTitle>
                      </CardHeader>
                      <CardContent>
-                       <ResponsiveContainer width="100%" height={300}>
-                         <BarChart data={results.incomeVsCosts}>
+                       <ResponsiveContainer width="100%" height={350}>
+                         <BarChart data={results.incomeVsCosts} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
                            <CartesianGrid strokeDasharray="3 3" />
                            <XAxis 
                              dataKey="name" 
                              angle={-45}
                              textAnchor="end"
                              height={80}
-                             fontSize={12}
+                             fontSize={11}
+                             interval={0}
+                             tick={{ dy: 10 }}
                            />
                            <YAxis tickFormatter={(value: number) => `${(value / 1000).toFixed(0)}k zł`} />
                            <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Kwota']} />

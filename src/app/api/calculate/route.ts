@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // ===== WSPÓLNE STAŁE I KONFIGURACJA =====
 const INTEREST_RATE_STRESS_BUFFER = 2.5; // Bufor 2.5 p.p. do stress testu stóp procentowych
-const MAX_LOAN_TERM_YEARS = 30; // Maksymalny okres kredytowania do obliczeń (w latach)
+const MAX_LOAN_TERM_YEARS = 35; // Maksymalny okres kredytowania
 const LIVING_COST_INCOME_FACTOR = 0.10; // 10% dochodu dodawane do bazowych kosztów życia
-const AVG_SALARY_THRESHOLD = 7500; // Próg średniego wynagrodzenia w PLN
-const HIGH_SALARY_THRESHOLD = 12000; // Próg wysokiego wynagrodzenia w PLN
+
 
 // ===== FUNKCJE POMOCNICZE =====
 
@@ -79,18 +78,12 @@ function calculateTaxRental(income: number, costs: number, interestAmount: numbe
 function prepareCostBreakdownData(adminFees: number, utilities: number, insurance: number, otherCosts: number, monthlyLoanPayment: number) {
     const data = [];
     
-    if (adminFees > 0) {
-        data.push({ name: 'Czynsz administracyjny', value: adminFees });
-    }
-    if (utilities > 0) {
-        data.push({ name: 'Media', value: utilities });
-    }
-    if (insurance > 0) {
-        data.push({ name: 'Ubezpieczenie', value: insurance / 12 });
-    }
-    if (otherCosts > 0) {
-        data.push({ name: 'Inne koszty', value: otherCosts });
-    }
+    // Zawsze dodaj koszty, nawet jeśli są 0 (dla jasności)
+    data.push({ name: 'Czynsz administracyjny', value: Math.max(0, adminFees) });
+    data.push({ name: 'Media', value: Math.max(0, utilities) });
+    data.push({ name: 'Ubezpieczenie', value: Math.max(0, insurance / 12) });
+    data.push({ name: 'Inne koszty', value: Math.max(0, otherCosts) });
+    
     if (monthlyLoanPayment > 0) {
         data.push({ name: 'Rata kredytu', value: monthlyLoanPayment });
     }
@@ -172,11 +165,16 @@ function calculateLivingCosts(people: number, totalNetIncome: number): number {
  */
 function getEmploymentWeight(employmentType: string): number {
     const weights: { [key: string]: number } = {
-        'umowa_o_prace': 1.0,        // Najlepsza stabilność
-        'umowa_zlecenie': 0.8,       // Średnia stabilność
-        'dzialalnosc_gospodarcza': 0.7, // Niższa stabilność
-        'umowa_o_dzielo': 0.6,       // Najniższa stabilność
-        'emeryt_rencista': 0.9       // Wysoka stabilność dla emerytów/rencistów
+        // Polskie nazwy (stare)
+        'umowa_o_prace': 1.0,
+        'umowa_zlecenie': 0.8,
+        'dzialalnosc_gospodarcza': 0.7,
+        'umowa_o_dzielo': 0.6,
+        'emeryt_rencista': 0.9,
+        // Angielskie nazwy (nowe z frontendu)
+        'employment': 1.0,        // Umowa o pracę - najlepsza stabilność
+        'b2b': 0.8,             // B2B / Działalność gospodarcza - średnia stabilność
+        'contract': 0.7         // Umowa zlecenie/o dzieło - niższa stabilność
     };
     
     return weights[employmentType] || 0.7; // Domyślna waga dla nieznanych typów
@@ -210,14 +208,37 @@ function calculateMaxLoanAmount(maxMonthlyPayment: number, interestRate: number,
  * Przygotowuje dane wykresu dla kalkulatora zdolności kredytowej
  */
 function prepareCreditScoreChartData(expenses: number, loans: number, creditObligations: number, costOfLiving: number, maxMonthlyPayment: number, remainingAfterLoan: number) {
-    return [
-        { name: 'Wydatki miesięczne', value: expenses, fill: '#FF8042' },
-        { name: 'Inne kredyty', value: loans, fill: '#FFBB28' },
-        { name: 'Zobowiązania kredytowe', value: creditObligations, fill: '#FF4444' },
-        { name: 'Koszty utrzymania', value: costOfLiving, fill: '#82ca9d' },
-        { name: 'Maks. rata kredytu', value: maxMonthlyPayment, fill: '#0088FE' },
-        { name: 'Pozostaje po kredycie', value: remainingAfterLoan, fill: '#00C49F' }
-    ];
+    const data = [];
+    
+    if (expenses > 0) {
+        data.push({ name: 'Wydatki miesięczne', value: expenses, fill: '#FF8042' });
+    }
+    if (loans > 0) {
+        data.push({ name: 'Inne kredyty', value: loans, fill: '#FFBB28' });
+    }
+    if (creditObligations > 0) {
+        data.push({ name: 'Zobowiązania kredytowe', value: creditObligations, fill: '#FF4444' });
+    }
+    if (costOfLiving > 0) {
+        data.push({ name: 'Koszty utrzymania', value: costOfLiving, fill: '#82ca9d' });
+    }
+    if (maxMonthlyPayment > 0) {
+        data.push({ name: 'Maks. rata kredytu', value: maxMonthlyPayment, fill: '#0088FE' });
+    }
+    if (remainingAfterLoan > 0) {
+        data.push({ name: 'Pozostaje po kredycie', value: remainingAfterLoan, fill: '#00C49F' });
+    }
+    
+    return data;
+}
+
+interface ScheduleItem {
+    month: number;
+    principalPart: number;
+    interestPart: number;
+    totalPayment: number;
+    remainingPrincipal: number;
+    overpayment: number;
 }
 
 /**
@@ -232,8 +253,8 @@ function generateSchedule(
     bridgeMonths: number, 
     bridgeIncrease: number, 
     overpayment: { amount: number; frequency?: string; startMonth?: number; target?: string; interval?: number }
-): any[] {
-    const schedule = [];
+): ScheduleItem[] {
+    const schedule: ScheduleItem[] = [];
     const monthlyRate = (margin + refRate) / 100 / 12;
     const totalMonths = years * 12;
     let remainingPrincipal = principal;
@@ -243,8 +264,6 @@ function generateSchedule(
     const overpaymentAmount = overpayment.amount || 0;
     const overpaymentFrequency = overpayment.frequency || 'one-time';
     const overpaymentStartMonth = overpayment.startMonth || 1;
-    const overpaymentTarget = overpayment.target || 'shorten-period';
-    const overpaymentInterval = overpayment.interval || 1;
     
     while (remainingPrincipal > 0.01 && monthNumber <= totalMonths) {
         // Obliczenie czy w tym miesiącu jest ubezpieczenie pomostowe
@@ -319,6 +338,69 @@ function generateSchedule(
     return schedule;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface RentalInput extends Record<string, any> {
+    calculationType: string;
+    purchasePrice: number;
+    monthlyRent: number;
+    downPayment: number;
+    adminFees: number;
+    utilities: number;
+    insurance: number;
+    otherCosts: number;
+    vacancyRate: number;
+    interestRate: number;
+    loanYears: number;
+    taxationType: string;
+    taxScale: string;
+    propertyAppreciation: number;
+    rentGrowth: number;
+    renovationCosts: number | null;
+    otherInitialCosts: number | null;
+    managementFee: number | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface CreditScoreInput extends Record<string, any> {
+    calculationType: string;
+    monthlyIncome: number;
+    monthlyExpenses: number;
+    otherLoans: number;
+    householdSize: number;
+    loanTerm: number;
+    interestRate: number;
+    installmentType: string;
+    secondBorrowerIncome: number;
+    employmentType: string;
+    creditCardLimits: number;
+    accountOverdrafts: number;
+    dstiRatio: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface PurchaseInput extends Record<string, any> {
+    propertyValue: number;
+    loanAmount: number;
+    loanTerm: number;
+    bankMargin: number;
+    referenceRate: number;
+    installmentType: string;
+    useSimulationRate?: boolean;
+    referenceRateChange?: number;
+    bridgeInsuranceMonths?: number;
+    bridgeInsuranceMarginIncrease?: number;
+    overpaymentAmount?: number;
+    overpaymentFrequency?: string;
+    overpaymentStartMonth?: number;
+    overpaymentTarget?: string;
+    overpaymentInterval?: number;
+    notaryFeeType?: string;
+    customNotaryFee?: number;
+    pccTaxRate?: number;
+    agencyCommission?: number;
+    bankCommission?: number;
+}
+
 // ===== GŁÓWNA FUNKCJA OBSŁUGI REQUESTÓW =====
 
 export async function POST(request: NextRequest) {
@@ -329,11 +411,11 @@ export async function POST(request: NextRequest) {
         const calculationType = input.calculationType;
         
         if (calculationType === 'rental') {
-            return handleRentalCalculation(input);
+            return handleRentalCalculation(input as RentalInput);
         } else if (calculationType === 'credit-score') {
-            return handleCreditScoreCalculation(input);
+            return handleCreditScoreCalculation(input as CreditScoreInput);
         } else {
-            return handlePurchaseCalculation(input);
+            return handlePurchaseCalculation(input as PurchaseInput);
         }
         
     } catch (error) {
@@ -346,24 +428,24 @@ export async function POST(request: NextRequest) {
 }
 
 // ===== OBSŁUGA KALKULATORA WYNAJMU =====
-function handleRentalCalculation(input: any) {
+function handleRentalCalculation(input: RentalInput) {
     try {
-        const purchasePrice = parseFloat(input.purchasePrice) || 0;
-        const monthlyRent = parseFloat(input.monthlyRent) || 0;
-        const downPayment = parseFloat(input.downPayment) || 0;
+        const purchasePrice = parseFloat(input.purchasePrice.toString()) || 0;
+        const monthlyRent = parseFloat(input.monthlyRent.toString()) || 0;
+        const downPayment = parseFloat(input.downPayment.toString()) || 0;
         const loanAmount = purchasePrice - downPayment;
         
         // Koszty miesięczne
-        const adminFees = parseFloat(input.adminFees) || 0;
-        const utilities = parseFloat(input.utilities) || 0;
-        const insurance = parseFloat(input.insurance) || 0;
-        const otherCosts = parseFloat(input.otherCosts) || 0;
-        const managementFee = parseFloat(input.managementFee) || 0;
-        const vacancyRate = parseFloat(input.vacancyRate) || 0;
+        const adminFees = parseFloat(input.adminFees.toString()) || 0;
+        const utilities = parseFloat(input.utilities.toString()) || 0;
+        const insurance = parseFloat(input.insurance.toString()) || 0;
+        const otherCosts = parseFloat(input.otherCosts.toString()) || 0;
+        const managementFee = input.managementFee ? parseFloat(input.managementFee.toString()) : 0;
+        const vacancyRate = parseFloat(input.vacancyRate.toString()) || 0;
         
         // Parametry kredytu
-        const interestRate = parseFloat(input.interestRate) || 0;
-        const loanYears = parseInt(input.loanYears) || 25;
+        const interestRate = parseFloat(input.interestRate.toString()) || 0;
+        const loanYears = parseInt(input.loanYears.toString()) || 25;
         
         // Obliczenia podstawowe
         const annualRentIncome = monthlyRent * 12;
@@ -376,7 +458,9 @@ function handleRentalCalculation(input: any) {
         const monthCosts = adminFees + utilities + otherCosts + managementFee;
         
         // ROI podstawowe
-        const actualInvestment = downPayment + (parseFloat(input.renovationCosts) || 0) + (parseFloat(input.otherInitialCosts) || 0);
+        const actualInvestment = downPayment + 
+            (input.renovationCosts ? parseFloat(input.renovationCosts.toString()) : 0) + 
+            (input.otherInitialCosts ? parseFloat(input.otherInitialCosts.toString()) : 0);
         const annualNetIncome = netIncome - annualCosts;
         const roi = actualInvestment > 0 ? (annualNetIncome / actualInvestment) * 100 : 0;
         
@@ -409,8 +493,8 @@ function handleRentalCalculation(input: any) {
         const incomeVsCosts = prepareIncomeVsCostsData(annualRentIncome, adminFees, utilities, insurance, otherCosts, monthlyPayment, taxAmount);
         
         // Projekcja wieloletnia
-        const propertyAppreciation = parseFloat(input.propertyAppreciation) || 3;
-        const rentGrowth = parseFloat(input.rentGrowth) || 2;
+        const propertyAppreciation = parseFloat(input.propertyAppreciation.toString()) || 3;
+        const rentGrowth = parseFloat(input.rentGrowth.toString()) || 2;
         
         const projection = generateProjectionRental(
             purchasePrice,
@@ -457,21 +541,21 @@ function handleRentalCalculation(input: any) {
 }
 
 // ===== OBSŁUGA KALKULATORA ZDOLNOŚCI KREDYTOWEJ =====
-function handleCreditScoreCalculation(input: any) {
+function handleCreditScoreCalculation(input: CreditScoreInput) {
     try {
         // Walidacja i rzutowanie danych wejściowych
-        const monthlyIncome = parseFloat(input.monthlyIncome) || 0;
-        const monthlyExpenses = parseFloat(input.monthlyExpenses) || 0;
-        const otherLoans = parseFloat(input.otherLoans) || 0;
-        const householdSize = parseInt(input.householdSize) || 1;
-        const loanTerm = parseInt(input.loanTerm) || 25;
-        const interestRate = parseFloat(input.interestRate) || 5.0;
+        const monthlyIncome = parseFloat(input.monthlyIncome.toString()) || 0;
+        const monthlyExpenses = parseFloat(input.monthlyExpenses.toString()) || 0;
+        const otherLoans = parseFloat(input.otherLoans.toString()) || 0;
+        const householdSize = parseInt(input.householdSize.toString()) || 1;
+        const loanTerm = parseInt(input.loanTerm.toString()) || 25;
+        const interestRate = parseFloat(input.interestRate.toString()) || 5.0;
         const installmentType = input.installmentType || 'equal';
-        const secondBorrowerIncome = parseFloat(input.secondBorrowerIncome) || 0;
+        const secondBorrowerIncome = parseFloat(input.secondBorrowerIncome.toString()) || 0;
         const employmentType = input.employmentType || 'umowa_o_prace';
-        const creditCardLimits = parseFloat(input.creditCardLimits) || 0;
-        const accountOverdrafts = parseFloat(input.accountOverdrafts) || 0;
-        const dstiRatio = parseFloat(input.dstiRatio) || 50;
+        const creditCardLimits = parseFloat(input.creditCardLimits.toString()) || 0;
+        const accountOverdrafts = parseFloat(input.accountOverdrafts.toString()) || 0;
+        const dstiRatio = parseFloat(input.dstiRatio.toString()) || 50;
         
         // Obliczenia podstawowe
         const totalNetIncome = monthlyIncome + secondBorrowerIncome;
@@ -490,8 +574,21 @@ function handleCreditScoreCalculation(input: any) {
         // Maksymalna rata kredytu (zgodnie z wskaźnikiem DSTI)
         const maxMonthlyPayment = Math.min(
             availableForLoan,
-            (adjustedIncome * dstiRatio / 100) - creditObligations
+            (adjustedIncome * dstiRatio / 100) - monthlyExpenses - costOfLiving - creditObligations
         );
+        
+        // Debug logging
+        console.log('Credit Score Calculation Debug:', {
+            totalNetIncome,
+            employmentType,
+            employmentWeight,
+            adjustedIncome,
+            costOfLiving,
+            creditObligations,
+            availableForLoan,
+            maxMonthlyPayment,
+            dstiRatio
+        });
         
         // Obliczenie maksymalnej kwoty kredytu
         const stressTestRate = interestRate + INTEREST_RATE_STRESS_BUFFER;
@@ -549,9 +646,10 @@ function handleCreditScoreCalculation(input: any) {
 }
 
 // ===== OBSŁUGA KALKULATORA ZAKUPU NIERUCHOMOŚCI =====
-function handlePurchaseCalculation(input: any) {
+function handlePurchaseCalculation(input: PurchaseInput) {
     try {
         // Inicjalizacja wyników
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const results: any = {
             pccTax: null,
             notaryFee: null,
@@ -569,52 +667,51 @@ function handlePurchaseCalculation(input: any) {
         };
 
         // 1. Walidacja i rzutowanie typów
-        const propertyValue = parseFloat(input.propertyValue) || 0;
-        const loanAmount = parseFloat(input.loanAmount) || 0;
-        const loanTerm = parseInt(input.loanTerm) || 0;
-        const marketType = input.marketType || 'secondary';
+        const propertyValue = parseFloat(input.propertyValue.toString()) || 0;
+        const loanAmount = parseFloat(input.loanAmount.toString()) || 0;
+        const loanTerm = parseInt(input.loanTerm.toString()) || 0;
 
         // 2. Obliczenie kosztów początkowych
         if (propertyValue > 0) {
             // Obsługa własnej opłaty notarialnej
             if (input.notaryFeeType === 'custom' && input.customNotaryFee) {
-                results.notaryFee = parseFloat(input.customNotaryFee);
+                results.notaryFee = parseFloat(input.customNotaryFee.toString());
             } else {
                 results.notaryFee = calculateNotaryFee(propertyValue);
             }
             
             // Obsługa podatku PCC z możliwością zwolnienia
-            const pccTaxRate = parseFloat(input.pccTaxRate) / 100 || 0.02;
+            const pccTaxRate = parseFloat((input.pccTaxRate?.toString() || '2')) / 100 || 0.02;
             results.pccTax = propertyValue * pccTaxRate;
             
-            const agencyCommission = parseFloat(input.agencyCommission) / 100 || 0;
+            const agencyCommission = parseFloat((input.agencyCommission?.toString() || '0')) / 100 || 0;
             results.agencyCommissionAmount = propertyValue * agencyCommission;
             
             results.courtFees = 200 + 150; // Opłata za wpis hipoteki + opłata za wpis do księgi wieczystej
         }
         
         if (loanAmount > 0) {
-            const bankCommission = parseFloat(input.bankCommission) / 100 || 0;
+            const bankCommission = parseFloat((input.bankCommission?.toString() || '0')) / 100 || 0;
             results.bankCommissionAmount = loanAmount * bankCommission;
         }
 
         // 3. Generowanie harmonogramu i powiązanych obliczeń
         if (loanAmount > 0 && loanTerm > 0) {
-            const bankMargin = parseFloat(input.bankMargin) || 0;
-            const referenceRate = parseFloat(input.referenceRate) || 0;
+            const bankMargin = parseFloat(input.bankMargin.toString()) || 0;
+            const referenceRate = parseFloat(input.referenceRate.toString()) || 0;
             const installmentType = input.installmentType || 'equal';
 
             // Logika symulacji
             const useSimulationRate = input.useSimulationRate === true;
-            const rateChange = parseFloat(input.referenceRateChange) || 0;
+            const rateChange = parseFloat((input.referenceRateChange?.toString() || '0')) || 0;
             
             let effectiveReferenceRate = referenceRate;
             if (useSimulationRate && rateChange !== 0) {
                 effectiveReferenceRate += rateChange;
             }
 
-            const bridgeMonths = parseInt(input.bridgeInsuranceMonths) || 0;
-            const bridgeIncrease = parseFloat(input.bridgeInsuranceMarginIncrease) || 0;
+            const bridgeMonths = parseInt((input.bridgeInsuranceMonths?.toString() || '0')) || 0;
+            const bridgeIncrease = parseFloat((input.bridgeInsuranceMarginIncrease?.toString() || '0')) || 0;
             
             // Podstawowy harmonogram (bez nadpłat)
             const baseSchedule = generateSchedule(loanAmount, loanTerm, bankMargin, effectiveReferenceRate, installmentType, bridgeMonths, bridgeIncrease, { amount: 0 });
@@ -622,11 +719,11 @@ function handlePurchaseCalculation(input: any) {
 
             // Harmonogram z nadpłatami
             const overpayment = {
-                amount: parseFloat(input.overpaymentAmount) || 0,
+                amount: parseFloat((input.overpaymentAmount?.toString() || '0')) || 0,
                 frequency: input.overpaymentFrequency || 'one-time',
-                startMonth: parseInt(input.overpaymentStartMonth) || 1,
+                startMonth: parseInt((input.overpaymentStartMonth?.toString() || '1')) || 1,
                 target: input.overpaymentTarget || 'shorten-period',
-                interval: parseInt(input.overpaymentInterval) || 1,
+                interval: parseInt((input.overpaymentInterval?.toString() || '1')) || 1,
             };
 
             const finalSchedule = (overpayment.amount > 0) ? 

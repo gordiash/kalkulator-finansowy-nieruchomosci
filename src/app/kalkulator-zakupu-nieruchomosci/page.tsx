@@ -84,7 +84,7 @@ const OverpaymentComparisonChart: React.FC<{
         datasets: [
             {
                 label: 'Saldo bez nadpłat',
-                data: scheduleWithoutOverpayment.map(item => item.remainingBalance),
+                data: scheduleWithoutOverpayment.map(item => item.remainingPrincipal),
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 tension: 0.1,
@@ -93,7 +93,7 @@ const OverpaymentComparisonChart: React.FC<{
             },
             {
                 label: 'Saldo z nadpłatami',
-                data: scheduleWithOverpayment.map(item => item.remainingBalance),
+                data: scheduleWithOverpayment.map(item => item.remainingPrincipal),
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 tension: 0.1,
@@ -258,7 +258,7 @@ type ScheduleItem = {
   interestPart: number;
   totalPayment: number;
   overpayment: number;
-  remainingBalance: number;
+  remainingPrincipal: number;
 };
 
 type FormData = {
@@ -394,9 +394,13 @@ export default function RealEstateCalculatorPage() {
     return isValid;
   };
 
-  // Walidacja przy każdej zmianie
+  // Walidacja z debouncing dla lepszej wydajności
   useEffect(() => {
-    validateAllFields();
+    const timeoutId = setTimeout(() => {
+      validateAllFields();
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(timeoutId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.propertyValue, formData.loanAmount, formData.loanTerm, 
       formData.bankMargin, formData.referenceRate, formData.bankCommission, 
@@ -715,7 +719,7 @@ export default function RealEstateCalculatorPage() {
                 formatCurrency(item.principalPart),
                 formatCurrency(item.interestPart),
                 formatCurrency(item.overpayment),
-                formatCurrency(item.remainingBalance),
+                formatCurrency(item.remainingPrincipal),
             ].map(cell => normalizeText(String(cell))));
 
             autoTable(doc, {
@@ -1189,7 +1193,7 @@ export default function RealEstateCalculatorPage() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.interestPart)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.overpayment)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{formatCurrency(item.totalPayment)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.remainingBalance)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.remainingPrincipal)}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -1,7 +1,10 @@
 'use client';
 
 import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface ScheduleItem {
   month: number;
@@ -10,6 +13,21 @@ interface ScheduleItem {
 }
 
 export function InstallmentStructureChart({ schedule }: { schedule: ScheduleItem[] }) {
+    if (!schedule || schedule.length === 0) {
+        return (
+            <Card className="col-span-1">
+                <CardHeader>
+                    <CardTitle>Struktura Raty</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-center h-40 text-gray-500">
+                        Brak danych do wyświetlenia
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
     const data = {
         labels: schedule.map(item => item.month),
         datasets: [
@@ -48,7 +66,18 @@ export function InstallmentStructureChart({ schedule }: { schedule: ScheduleItem
                 stacked: true,
             },
             y: {
-                stacked: true
+                stacked: true,
+                ticks: {
+                    callback: function(value: unknown) {
+                        const numValue = typeof value === 'number' ? value : 0;
+                        return new Intl.NumberFormat('pl-PL', { 
+                            style: 'currency', 
+                            currency: 'PLN',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }).format(numValue);
+                    }
+                }
             }
         }
     };
