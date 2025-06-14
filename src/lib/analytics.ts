@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-export const GA_MEASUREMENT_ID = 'G-355556102';
+export const GA_MEASUREMENT_ID = '489639239';
 
 // Funkcja do śledzenia zdarzeń
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
