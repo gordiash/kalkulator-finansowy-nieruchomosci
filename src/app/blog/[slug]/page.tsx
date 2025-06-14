@@ -9,7 +9,7 @@ import type { BlogPostListing } from '@/lib/supabase/blog';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { useMDXComponents } from '@/components/mdx-components';
+import { mdxComponents } from '@/components/mdx-components';
 
 // Generowanie statycznych ścieżek dla postów
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
@@ -67,7 +67,7 @@ async function PostPageContent({ slug }: { slug: string }) {
                 <MDXRemote
                   source={sanitized}
                   options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeRaw] } }}
-                  components={useMDXComponents()}
+                  components={mdxComponents}
                 />
               </div>
             );
