@@ -3,11 +3,9 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
-import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') ?? '/admin';
+  const redirect = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('redirect') ?? '/admin') : '/admin';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
