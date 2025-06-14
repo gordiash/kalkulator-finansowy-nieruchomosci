@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
+
 import { Metadata } from 'next';
-import { getBlogPosts, getBlogCategories } from '../../lib/strapi';
-import type { BlogPost, BlogCategory } from '../../types/blog';
-import BlogPostCard from '../../components/blog/BlogPostCard';
 import BlogPagination from '../../components/blog/BlogPagination';
 import BlogFilter from '../../components/blog/BlogFilter';
+import { fetchPublishedPosts } from '@/lib/supabase/blog';
+import type { BlogPostListing } from '@/lib/supabase/blog';
 
 export const metadata: Metadata = {
   title: 'Blog - Kalkulatory Finansowe',
@@ -27,39 +28,11 @@ async function BlogContent({ searchParams }: BlogPageProps) {
   const page = parseInt(searchParams.page || '1');
   const pageSize = 12;
   
-  // Przygotowanie filtrów (bez status, korzystamy z domyślnego stanu publikacji Strapi)
-  const filters: Record<string, unknown> = {};
-  
-  if (searchParams.category) {
-    filters['categories.slug'] = searchParams.category;
-  }
-  
-  if (searchParams.search) {
-    filters['$or'] = [
-      { title: { $containsi: searchParams.search } },
-      { excerpt: { $containsi: searchParams.search } },
-      { content: { $containsi: searchParams.search } }
-    ];
-  }
-
   try {
-    // Równoległe pobieranie danych
-    const [postsResponse, categoriesResponse] = await Promise.all([
-      getBlogPosts({
-        page,
-        pageSize,
-        sort: 'publishedAt:desc',
-        filters: Object.keys(filters).length > 0 ? filters : undefined,
-        populate: ['categories', 'featured_image']
-      }),
-      getBlogCategories()
-    ]);
-
-    // Filtrujemy posty bez tytułu lub sluga (nieopublikowane / uszkodzone)
-    const postsRaw = postsResponse.data as BlogPost[];
-    const posts = postsRaw.filter(p => p.attributes?.slug);
-    const categories = categoriesResponse.data as BlogCategory[];
-    const pagination = postsResponse.meta.pagination;
+    const postsAll = await fetchPublishedPosts();
+    const total = postsAll.length;
+    const pageCount = Math.ceil(total / pageSize);
+    const posts: BlogPostListing[] = postsAll.slice((page - 1) * pageSize, page * pageSize);
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -77,7 +50,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
           {/* Filtry */}
           <div className="mb-8">
             <BlogFilter 
-              categories={categories}
+              categories={[]}
               selectedCategory={searchParams.category}
               searchQuery={searchParams.search}
             />
@@ -88,16 +61,32 @@ async function BlogContent({ searchParams }: BlogPageProps) {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {posts.map((post) => (
-                  <BlogPostCard key={post.id} post={post} />
+                  <article key={post.id} className="border rounded-lg p-6 bg-white shadow">
+                    {post.image_display && (<img src={post.image_display} alt={post.title} className="w-full h-40 object-cover mb-3 rounded" />)}
+                    <a href={`/blog/${post.slug}`}> 
+                      <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
+                    </a>
+                    {post.short_content && <p className="text-gray-700 mb-2 line-clamp-3">{post.short_content}</p>}
+                    {post.tags && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {post.tags.split(',').map((t, idx) => (
+                          <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">
+                            {t.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-500">{new Date(post.published_at).toLocaleDateString('pl-PL')}</p>
+                  </article>
                 ))}
               </div>
 
               {/* Paginacja */}
-              {pagination.pageCount > 1 && (
+              {pageCount > 1 && (
                 <BlogPagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.pageCount}
-                  totalItems={pagination.total}
+                  currentPage={page}
+                  totalPages={pageCount}
+                  totalItems={total}
                   searchParams={searchParams}
                 />
               )}

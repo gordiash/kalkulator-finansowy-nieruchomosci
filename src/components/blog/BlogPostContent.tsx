@@ -8,7 +8,8 @@ import markdownItAttrs from 'markdown-it-attrs';
 const md = new MarkdownIt({
   html: true,
   linkify: true,
-  typographer: true,
+  typographer: false,
+  breaks: true,
 }).use(markdownItAttrs);
 
 interface BlogPostContentProps {
@@ -31,6 +32,16 @@ export default function BlogPostContent({ content }: BlogPostContentProps) {
   } else {
     source = content ?? '';
   }
+
+  // PREPROCESS: 
+  // 1) Zamień trailing " ---" lub "---" po nagłówku/akapicie na osobną linię hr
+  source = source.replace(/\s*-{3}\s*$/gm, '\n\n---\n');
+
+  // 2) Upewnij się, że każdy punkt listy poprzedzony gwiazdką zaczyna się w nowej linii
+  // 2a) Dodaj podwójną nową linię przed gwiazdką jeśli nie ma już pustej linii
+  source = source.replace(/([^\n])\n\*/g, '$1\n\n*');
+  // 2b) Usuń ewentualne spacje przed gwiazdką i zapewnij pojedynczą spację po niej
+  source = source.replace(/\s*\*\s+/g, '* ');
 
   // Parsowanie i renderowanie treści markdown
   const htmlContent = md.render(source);
