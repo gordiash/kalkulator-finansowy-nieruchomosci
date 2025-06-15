@@ -1,14 +1,18 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
+    const supabase = createClient();
+    // wylogowanie po stronie przeglądarki (czyści localStorage, memCache)
     await supabase.auth.signOut();
-    router.push('/login');
+    // zakończ sesję http-only na serwerze
+    await fetch('/api/logout', { method: 'POST' });
+    router.replace('/login');
   };
 
   return (

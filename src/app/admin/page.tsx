@@ -28,7 +28,7 @@ export default async function AdminDashboard() {
           {posts.map((post) => (
             <tr key={post.id} className="border-t">
               <td className="p-3 flex flex-col gap-1"><Link href={`/blog/${post.slug}`} className="text-blue-600 hover:underline">{post.title}</Link>
-              <Link href={`/admin/edit/${post.id}`} className="text-xs text-gray-500 hover:underline">Edytuj</Link></td>
+              </td>
               <td className="p-3">{post.slug}</td>
               <td className="p-3">
                 <span className={`px-2 py-1 rounded text-xs ${post.status==='published'?'bg-green-100 text-green-800':'bg-gray-200 text-gray-700'}`}>{post.status}</span>

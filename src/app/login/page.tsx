@@ -3,9 +3,24 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
+  const router = useRouter();
   const redirect = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('redirect') ?? '/admin') : '/admin';
+
+  // Po pomyślnym logowaniu przekieruj na żądaną ścieżkę (domyślnie /admin)
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        router.replace(redirect);
+      }
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router, redirect]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -22,7 +37,6 @@ export default function LoginPage() {
             },
           }}
           providers={[]}
-          redirectTo={typeof window !== 'undefined' ? `${window.location.origin}${redirect}` : undefined}
           magicLink={false}
         />
       </div>
