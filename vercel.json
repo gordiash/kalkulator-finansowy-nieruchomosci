@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "middleware.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*"
+    }
+  ]
+} 
