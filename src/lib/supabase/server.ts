@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
