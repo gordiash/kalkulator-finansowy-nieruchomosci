@@ -18,23 +18,43 @@ export interface BlogPostDetail extends BlogPostListing {
   content: string | null;
 }
 
-export async function fetchPublishedPosts(): Promise<BlogPostListing[]> {
-  const sb = typeof window === 'undefined'
-    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    : supabase;
+// Zwraca tylko opublikowane posty – używane w widoku bloga publicznego
+export async function fetchPublishedPosts() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  const { data, error } = await sb
+  const { data, error } = await supabase
     .from('posts')
-    .select('id, slug, title, short_content, image_display, tags, seo_title, seo_content, status, published_at')
-    .not('published_at', 'is', null)
+    .select('*')
+    .eq('status', 'published')
     .order('published_at', { ascending: false });
 
   if (error) {
-    console.error('Supabase error:', error);
-    throw new Error(error.message);
+    console.error('Error fetching published posts:', error);
+    return [];
   }
+  return data;
+}
 
-  return (data as BlogPostListing[]) || [];
+// Zwraca wszystkie posty – wykorzystywane w panelu admina
+export async function fetchAllPostsForAdmin() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('published_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching posts for admin:', error);
+    return [];
+  }
+  return data;
 }
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPostDetail | null> {

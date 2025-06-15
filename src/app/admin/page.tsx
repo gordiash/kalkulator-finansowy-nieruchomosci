@@ -1,12 +1,22 @@
-import { fetchPublishedPosts } from '@/lib/supabase/blog';
 import Link from 'next/link';
 import AdminHeader from '@/components/admin/AdminHeader';
 import PostActions from '@/components/admin/PostActions';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  const posts = await fetchPublishedPosts();
+  const supabase = await getSupabaseServerClient();
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('published_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching posts:', error);
+  }
+
+  const safePosts = posts ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -25,7 +35,7 @@ export default async function AdminDashboard() {
           </tr>
         </thead>
         <tbody>
-          {posts.map((post) => (
+          {safePosts.map((post) => (
             <tr key={post.id} className="border-t">
               <td className="p-3 flex flex-col gap-1"><Link href={`/blog/${post.slug}`} className="text-blue-600 hover:underline">{post.title}</Link>
               </td>

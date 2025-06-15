@@ -1,70 +1,28 @@
+// middleware.ts (zmieniono na .ts dla lepszego typowania)
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+//import { createServerClient } from '@supabase/ssr';
 
-export async function middleware(request: NextRequest) {
-  // Tylko dla ścieżki /admin i pod-ścieżek
+export function middleware(request: NextRequest) {
+  // PODSTAWOWE logowanie - powinno być widoczne dla KAŻDEGO żądania
+  console.log('🚨🚨🚨 MIDDLEWARE DZIAŁA 🚨🚨🚨');
+  console.log('Path:', request.nextUrl.pathname);
+  console.log('Headers Host:', request.headers.get('host'));
+  console.log('Full URL:', request.url);
+  
+  // Jeśli to nie admin, po prostu kontynuuj
   if (!request.nextUrl.pathname.startsWith('/admin')) {
+    console.log('Not admin path, continuing...');
     return NextResponse.next();
   }
-
-  try {
-    let response = NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    });
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            response.cookies.set({ name, value, ...options });
-          },
-          remove(name: string, options: any) {
-            response.cookies.set({ name, value: '', ...options });
-          },
-        },
-      }
-    );
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    // Logowanie dla debugowania na Vercel
-    console.log('Middleware - User:', user ? 'authenticated' : 'not authenticated');
-    console.log('Middleware - Error:', error);
-    console.log('Middleware - Path:', request.nextUrl.pathname);
-
-    // Jeśli brak użytkownika lub błąd – przekieruj do /login
-    if (!user || error) {
-      const redirectUrl = new URL('/login', request.url);
-      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
-      
-      console.log('Middleware - Redirecting to:', redirectUrl.toString());
-      
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    return response;
-  } catch (error) {
-    console.error('Middleware error:', error);
-    
-    // W przypadku błędu, przekieruj do logowania
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
+  
+  console.log('🛡️ ADMIN PATH DETECTED - REDIRECTING TO LOGIN');
+  
+  // Dla /admin zawsze przekieruj do /login (na razie)
+  return NextResponse.redirect(new URL('/login', request.url));
 }
 
+// Bez matcher - middleware uruchomi się dla wszystkich ścieżek
 export const config = {
-  matcher: [
-    '/admin/:path*'
-  ],
-}; 
+  // Uruchamiaj middleware dla wszystkich ścieżek z wyjątkiem assetów Nexta i statycznych plików
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+};
