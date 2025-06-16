@@ -248,7 +248,7 @@ body {
 
 /* Markdown Preview Styles - Lepsze formatowanie */
 .markdown-content {
-  font-size: 0.875rem; /* 14px - mały rozmiar dla całego kontenera */
+  font-size: 0.7875rem; /* 0.875rem * 0.9 - zmniejszenie o 10% */
   font-weight: 400 !important;
   line-height: 1.7; /* Lepsze odstępy między liniami */
   color: #374151; /* Ciemniejszy szary dla lepszej czytelności */
@@ -272,7 +272,7 @@ body {
 }
 
 .markdown-content h1 {
-  font-size: 1.25rem; /* Mniejszy nagłówek */
+  font-size: 1.125rem; /* 1.25rem * 0.9 - zmniejszenie o 10% */
   font-weight: 700 !important;
   margin: 1.5rem 0 0.75rem 0; /* Większe odstępy */
   color: #1f2937;
@@ -280,7 +280,7 @@ body {
 }
 
 .markdown-content h2 {
-  font-size: 1.125rem; /* Mniejszy nagłówek */
+  font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600 !important;
   margin: 1.25rem 0 0.5rem 0; /* Większe odstępy */
   color: #374151;
@@ -288,7 +288,7 @@ body {
 }
 
 .markdown-content h3 {
-  font-size: 1rem; /* Mniejszy nagłówek */
+  font-size: 0.9rem; /* 1rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600 !important;
   margin: 1rem 0 0.5rem 0; /* Większe odstępy */
   color: #4b5563;
@@ -299,7 +299,7 @@ body {
   margin: 0.75rem 0; /* Większe odstępy między akapitami */
   line-height: 1.7; /* Lepsze odstępy między liniami */
   font-weight: 400 !important;
-  font-size: 0.875rem; /* 14px - mały rozmiar */
+  font-size: 0.7875rem; /* 0.875rem * 0.9 - zmniejszenie o 10% */
   color: #374151;
 }
 
@@ -308,7 +308,7 @@ body {
   padding-left: 1.25rem; /* Mniejsze wcięcie */
   list-style-type: disc;
   font-weight: 400 !important;
-  font-size: 0.875rem; /* 14px - mały rozmiar */
+  font-size: 0.7875rem; /* 0.875rem * 0.9 - zmniejszenie o 10% */
 }
 
 .markdown-content ol {
@@ -316,13 +316,13 @@ body {
   padding-left: 1.25rem; /* Mniejsze wcięcie */
   list-style-type: decimal;
   font-weight: 400 !important;
-  font-size: 0.875rem; /* 14px - mały rozmiar */
+  font-size: 0.7875rem; /* 0.875rem * 0.9 - zmniejszenie o 10% */
 }
 
 .markdown-content li {
   margin: 0.375rem 0; /* Większe odstępy między elementami listy */
   font-weight: 400 !important;
-  font-size: 0.875rem; /* 14px - mały rozmiar */
+  font-size: 0.7875rem; /* 0.875rem * 0.9 - zmniejszenie o 10% */
   line-height: 1.6;
   color: #374151;
 }
@@ -345,7 +345,7 @@ body {
   padding: 0.125rem 0.375rem; /* Większy padding */
   border-radius: 0.25rem;
   font-family: 'Courier New', monospace;
-  font-size: 0.8125rem; /* Nieco mniejszy */
+  font-size: 0.73125rem; /* 0.8125rem * 0.9 - zmniejszenie o 10% */
   font-weight: 400 !important;
   color: #dc2626; /* Czerwony kolor dla kodu */
   border: 1px solid #e5e7eb;

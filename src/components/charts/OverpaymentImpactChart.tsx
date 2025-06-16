@@ -3,6 +3,7 @@
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, type ChartOptions } from 'chart.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -12,6 +13,8 @@ interface OverpaymentResults {
 }
 
 export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResults: OverpaymentResults }) {
+    const isMobile = useIsMobile();
+    
     if (!overpaymentResults) return null;
 
     const data = {
@@ -38,6 +41,7 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
 
     const options: ChartOptions<'bar'> = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false,
@@ -45,14 +49,35 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
             title: {
                 display: true,
                 text: 'Wpływ Nadpłaty',
+                font: {
+                    size: isMobile ? 12 : 16
+                }
             },
         },
         scales: {
+            x: {
+                ticks: {
+                    font: {
+                        size: isMobile ? 8 : 12
+                    }
+                }
+            },
             y: {
                 position: 'left',
                 ticks: {
+                    font: {
+                        size: isMobile ? 8 : 12
+                    },
                     callback: function(value: unknown) {
                         const numValue = typeof value === 'number' ? value : 0;
+                        if (isMobile) {
+                            return new Intl.NumberFormat('pl-PL', { 
+                                style: 'currency', 
+                                currency: 'PLN', 
+                                maximumFractionDigits: 0,
+                                notation: 'compact'
+                            }).format(numValue);
+                        }
                         return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(numValue);
                     }
                 }
@@ -61,6 +86,9 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
                 position: 'right',
                 grid: { drawOnChartArea: false },
                 ticks: {
+                    font: {
+                        size: isMobile ? 8 : 12
+                    },
                     callback: function(value: unknown) {
                         return `${value} msc`;
                     }
@@ -72,10 +100,12 @@ export function OverpaymentImpactChart({ overpaymentResults }: { overpaymentResu
     return (
         <Card className="col-span-1">
             <CardHeader>
-                <CardTitle>Wpływ Nadpłaty</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Wpływ Nadpłaty</CardTitle>
             </CardHeader>
-            <CardContent>
-                <Bar options={options} data={data} />
+            <CardContent className="p-2 sm:p-6">
+                <div style={{ height: isMobile ? '200px' : '300px' }}>
+                    <Bar options={options} data={data} />
+                </div>
             </CardContent>
         </Card>
     );

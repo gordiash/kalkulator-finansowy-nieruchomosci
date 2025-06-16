@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 interface OverpaymentImpactChartProps {
     baseTotalInterest: number;
@@ -16,6 +17,7 @@ const OverpaymentImpactChart: React.FC<OverpaymentImpactChartProps> = ({
     newLoanTerm,
     overpaymentTarget
 }) => {
+    const isMobile = useIsMobile();
 
     const interestData = [
         { name: 'Całkowite odsetki', 'Scenariusz bazowy': baseTotalInterest, 'Z nadpłatą': overpaymentTotalInterest },
@@ -29,36 +31,82 @@ const OverpaymentImpactChart: React.FC<OverpaymentImpactChartProps> = ({
 
     return (
         <div className="mt-8">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4 text-center">Wpływ Nadpłaty na Kredyt</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 text-center px-2">Wpływ Nadpłaty na Kredyt</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                 <div>
-                    <p className="text-center font-semibold text-gray-600 mb-2">Porównanie całkowitych odsetek</p>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={interestData} margin={{ top: 20, right: 30, left: 40, bottom: 5, }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" tick={false}/>
-                            <YAxis tickFormatter={formatCurrency} width={120}/>
-                            <Tooltip formatter={formatCurrency} />
-                            <Legend />
-                            <Bar dataKey="Scenariusz bazowy" fill="#8884d8" />
-                            <Bar dataKey="Z nadpłatą" fill="#82ca9d" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                {overpaymentTarget === 'shorten-period' && (
-                    <div>
-                        <p className="text-center font-semibold text-gray-600 mb-2">Porównanie okresu kredytowania</p>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={termData} margin={{ top: 20, right: 30, left: 20, bottom: 5, }}>
+                    <p className="text-center font-semibold text-gray-600 mb-2 text-sm sm:text-base px-2">Porównanie całkowitych odsetek</p>
+                    <div className="w-full overflow-x-auto">
+                        <ResponsiveContainer width="100%" height={isMobile ? 200 : 300} minWidth={280}>
+                            <BarChart 
+                                data={interestData} 
+                                margin={{ 
+                                    top: 20, 
+                                    right: isMobile ? 10 : 30, 
+                                    left: isMobile ? 20 : 40, 
+                                    bottom: 5 
+                                }}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" tick={false}/>
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
+                                <YAxis 
+                                    tickFormatter={(value) => {
+                                        if (isMobile) {
+                                            return new Intl.NumberFormat('pl-PL', { 
+                                                style: 'currency', 
+                                                currency: 'PLN',
+                                                notation: 'compact',
+                                                minimumFractionDigits: 0
+                                            }).format(value);
+                                        }
+                                        return formatCurrency(value);
+                                    }}
+                                    width={isMobile ? 60 : 120}
+                                    tick={{ fontSize: isMobile ? 10 : 12 }}
+                                />
+                                <Tooltip 
+                                    formatter={formatCurrency}
+                                    contentStyle={{ fontSize: isMobile ? '12px' : '14px' }}
+                                />
+                                <Legend 
+                                    wrapperStyle={{ fontSize: isMobile ? '11px' : '14px' }}
+                                />
                                 <Bar dataKey="Scenariusz bazowy" fill="#8884d8" />
                                 <Bar dataKey="Z nadpłatą" fill="#82ca9d" />
                             </BarChart>
                         </ResponsiveContainer>
+                    </div>
+                </div>
+                {overpaymentTarget === 'shorten-period' && (
+                    <div>
+                        <p className="text-center font-semibold text-gray-600 mb-2 text-sm sm:text-base px-2">Porównanie okresu kredytowania</p>
+                        <div className="w-full overflow-x-auto">
+                            <ResponsiveContainer width="100%" height={isMobile ? 200 : 300} minWidth={280}>
+                                <BarChart 
+                                    data={termData} 
+                                    margin={{ 
+                                        top: 20, 
+                                        right: isMobile ? 10 : 30, 
+                                        left: isMobile ? 15 : 20, 
+                                        bottom: 5 
+                                    }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" tick={false}/>
+                                    <YAxis 
+                                        tick={{ fontSize: isMobile ? 10 : 12 }}
+                                        width={isMobile ? 40 : 60}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ fontSize: isMobile ? '12px' : '14px' }}
+                                    />
+                                    <Legend 
+                                        wrapperStyle={{ fontSize: isMobile ? '11px' : '14px' }}
+                                    />
+                                    <Bar dataKey="Scenariusz bazowy" fill="#8884d8" />
+                                    <Bar dataKey="Z nadpłatą" fill="#82ca9d" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 )}
             </div>

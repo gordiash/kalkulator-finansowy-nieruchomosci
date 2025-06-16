@@ -38,6 +38,27 @@ export async function fetchPublishedPosts() {
   return data;
 }
 
+// Zwraca najnowsze opublikowane posty z limitem
+export async function fetchLatestPosts(limit: number = 6) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, slug, title, short_content, image_display, tags, seo_title, seo_content, status, published_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching latest posts:', error);
+    return [];
+  }
+  return data;
+}
+
 // Zwraca wszystkie posty – wykorzystywane w panelu admina
 export async function fetchAllPostsForAdmin() {
   const supabase = createClient(

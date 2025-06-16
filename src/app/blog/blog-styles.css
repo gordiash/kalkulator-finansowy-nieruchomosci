@@ -3,7 +3,7 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.8;
   color: #374151;
-  font-size: 1.125rem;
+  font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
   max-width: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,7 +26,7 @@
 }
 
 .blog-content h1 {
-  font-size: 2.25rem !important;
+  font-size: 2.025rem !important; /* 2.25rem * 0.9 - zmniejszenie o 10% */
   font-weight: 800 !important;
   color: #111827 !important;
   margin: 2.5rem 0 1.5rem 0 !important;
@@ -45,7 +45,7 @@
 }
 
 .blog-content h2 {
-  font-size: 1.75rem !important;
+  font-size: 1.575rem !important; /* 1.75rem * 0.9 - zmniejszenie o 10% */
   font-weight: 800 !important;
   color: #111827 !important;
   margin: 2rem 0 1rem 0 !important;
@@ -64,7 +64,7 @@
 }
 
 .blog-content h3 {
-  font-size: 1.375rem !important;
+  font-size: 1.2375rem !important; /* 1.375rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600 !important;
   color: #111827 !important;
   margin: 1.5rem 0 0.75rem 0 !important;
@@ -88,7 +88,7 @@
 
 /* Dodaj h4, h5, h6 */
 .blog-content h4 {
-  font-size: 1.25rem;
+  font-size: 1.125rem; /* 1.25rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600;
   color: #2563eb;
   margin: 1.25rem 0 0.5rem 0;
@@ -103,7 +103,7 @@
 }
 
 .blog-content h5 {
-  font-size: 1.125rem;
+  font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600;
   color: #6b7280;
   margin: 1rem 0 0.5rem 0;
@@ -112,7 +112,7 @@
 }
 
 .blog-content h6 {
-  font-size: 1rem;
+  font-size: 0.9rem; /* 1rem * 0.9 - zmniejszenie o 10% */
   font-weight: 600;
   color: #9ca3af;
   margin: 1rem 0 0.5rem 0;
@@ -124,7 +124,7 @@
   margin: 0 0 1.5rem 0;
   line-height: 1.8;
   color: #4b5563;
-  font-size: 1.125rem;
+  font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
   text-align: justify;
   hyphens: auto;
 }
@@ -164,7 +164,7 @@
   margin: 0.75rem 0;
   line-height: 1.8;
   color: #4b5563;
-  font-size: 1.125rem;
+  font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
   padding-left: 0.5rem;
 }
 
@@ -338,7 +338,7 @@
   margin: 0 !important;
   border: none !important;
   background-color: #ffffff !important;
-  font-size: 0.95rem !important;
+  font-size: 0.855rem !important; /* 0.95rem * 0.9 - zmniejszenie o 10% */
   min-width: 600px !important;
 }
 
@@ -354,7 +354,7 @@
   background-color: #f8fafc !important;
   font-weight: 700 !important;
   color: #1f2937 !important;
-  font-size: 0.9rem !important;
+  font-size: 0.81rem !important; /* 0.9rem * 0.9 - zmniejszenie o 10% */
   text-transform: uppercase !important;
   letter-spacing: 0.025em !important;
   border-bottom: 2px solid #d1d5db !important;
@@ -414,7 +414,7 @@
 /* Responsywność tabel */
 @media (max-width: 768px) {
   .blog-content table {
-    font-size: 0.85rem !important;
+    font-size: 0.765rem !important; /* 0.85rem * 0.9 - zmniejszenie o 10% */
     display: block !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
@@ -426,13 +426,13 @@
   }
   
   .blog-content th {
-    font-size: 0.8rem !important;
+    font-size: 0.72rem !important; /* 0.8rem * 0.9 - zmniejszenie o 10% */
   }
 }
 
 /* Specjalne style dla zawartości */
 .blog-content > p:first-child {
-  font-size: 1.25rem;
+  font-size: 1.125rem; /* 1.25rem * 0.9 - zmniejszenie o 10% */
   color: #374151;
   margin-bottom: 2rem;
   font-weight: 500;
@@ -489,37 +489,37 @@
 /* Responsive typography */
 @media (max-width: 768px) {
   .blog-content {
-    font-size: 1rem;
+    font-size: 0.9rem; /* 1rem * 0.9 - zmniejszenie o 10% */
   }
   
   .blog-content h1 {
-    font-size: 1.875rem;
+    font-size: 1.6875rem; /* 1.875rem * 0.9 - zmniejszenie o 10% */
     margin: 2rem 0 1rem 0;
   }
   
   .blog-content h2 {
-    font-size: 1.5rem;
+    font-size: 1.35rem; /* 1.5rem * 0.9 - zmniejszenie o 10% */
     margin: 1.5rem 0 0.75rem 0;
     padding: 0.5rem 0 0.5rem 0.75rem;
     margin-left: -0.75rem;
   }
   
   .blog-content h3 {
-    font-size: 1.25rem;
+    font-size: 1.125rem; /* 1.25rem * 0.9 - zmniejszenie o 10% */
     margin: 1.5rem 0 0.5rem 0;
   }
   
   .blog-content p {
-    font-size: 1rem;
+    font-size: 0.9rem; /* 1rem * 0.9 - zmniejszenie o 10% */
     text-align: left;
   }
   
   .blog-content li {
-    font-size: 1rem;
+    font-size: 0.9rem; /* 1rem * 0.9 - zmniejszenie o 10% */
   }
   
   .blog-content > p:first-child {
-    font-size: 1.125rem;
+    font-size: 1.0125rem; /* 1.125rem * 0.9 - zmniejszenie o 10% */
     padding: 1rem;
   }
   
