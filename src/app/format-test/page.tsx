@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useState } from 'react';
@@ -71,7 +70,7 @@ React jest potężnym narzędziem do tworzenia nowoczesnych aplikacji webowych.`
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
               <li>Skopiuj przykładowy tekst poniżej lub wklej własny tekst z Gemini AI</li>
-              <li>Kliknij przycisk "🪄 Smart Format"</li>
+              <li>Kliknij przycisk &quot;🪄 Smart Format&quot;</li>
               <li>Sprawdź jak formatowanie zostało poprawione</li>
               <li>Porównaj tekst przed i po formatowaniu</li>
             </ol>
@@ -111,7 +110,7 @@ React jest potężnym narzędziem do tworzenia nowoczesnych aplikacji webowych.`
             value={text}
             onChange={(e) => setText(e.target.value)}
             className="w-full h-80 p-4 border-2 border-gray-200 rounded-lg font-mono text-sm focus:border-blue-500 focus:outline-none resize-none"
-            placeholder="Wklej tekst z Gemini AI tutaj i kliknij 'Smart Format' aby go przeformatować..."
+            placeholder="Wklej tekst z Gemini AI tutaj i kliknij &quot;Smart Format&quot; aby go przeformatować..."
           />
 
           <div className="mt-4 text-sm text-gray-600">

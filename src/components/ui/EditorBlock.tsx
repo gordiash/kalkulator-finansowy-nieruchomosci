@@ -1,5 +1,6 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
+'use client';
 
 import dynamic from 'next/dynamic';
 import { useRef, useEffect } from 'react';
@@ -8,15 +9,15 @@ import { useRef, useEffect } from 'react';
 const ReactEditorJS = dynamic(
   async () => {
     const mod = await import('react-editor-js');
-    return mod.EditorJS || mod.default;
+    return mod.default;
   },
   { ssr: false, loading: () => <p>Ładowanie edytora...</p> }
 );
 
 // Editor.js tools
-// @ts-ignore
+// @ts-expect-error - brak deklaracji typów w paczce
 import Header from '@editorjs/header';
-// @ts-ignore
+// @ts-expect-error - brak deklaracji typów w paczce
 import List from '@editorjs/list';
 
 interface EditorBlockProps {
@@ -24,6 +25,8 @@ interface EditorBlockProps {
   onChange: (content: string) => void; // zapisujemy JSON string
   height?: number;
 }
+
+
 
 export default function EditorBlock({ value, onChange, height = 400 }: EditorBlockProps) {
   const ejRef = useRef<any>(null);
@@ -37,7 +40,9 @@ export default function EditorBlock({ value, onChange, height = 400 }: EditorBlo
     try {
       const parsed = value ? JSON.parse(value) : { blocks: [] };
       editor.isReady.then(() => editor.render(parsed));
-    } catch {}
+    } catch {
+      // Silent error handling
+    }
   }, [value]);
 
   const handleSave = async () => {

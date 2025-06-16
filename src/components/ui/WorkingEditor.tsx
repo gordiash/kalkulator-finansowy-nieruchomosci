@@ -1,7 +1,12 @@
-// @ts-nocheck
 'use client';
 
-export default function WorkingEditor({ value, onChange, height = 300 }) {
+interface WorkingEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  height?: number;
+}
+
+export default function WorkingEditor({ value, onChange, height = 300 }: WorkingEditorProps) {
   const handleSmartFormat = () => {
     console.log('Smart Format clicked!');
     
@@ -39,7 +44,7 @@ export default function WorkingEditor({ value, onChange, height = 300 }) {
 
   const handleBold = () => {
     console.log('Bold clicked!');
-    const textarea = document.querySelector('#working-editor');
+    const textarea = document.querySelector('#working-editor') as HTMLTextAreaElement;
     if (textarea) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
@@ -102,8 +107,8 @@ export default function WorkingEditor({ value, onChange, height = 300 }) {
         <div className="font-medium text-blue-800 mb-1">Instrukcje:</div>
         <div className="text-blue-700">
           1. Wklej tekst z Gemini AI<br/>
-          2. Kliknij "Smart Format" aby automatycznie poprawić formatowanie<br/>
-          3. Lub zaznacz tekst i kliknij "Bold" aby go pogrubić
+          2. Kliknij &quot;Smart Format&quot; aby automatycznie poprawić formatowanie<br/>
+          3. Lub zaznacz tekst i kliknij &quot;Bold&quot; aby go pogrubić
         </div>
       </div>
     </div>

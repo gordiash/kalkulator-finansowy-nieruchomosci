@@ -64,8 +64,8 @@ export default function MarkdownTestPage() {
         <h3 className="font-bold text-blue-800 mb-2">💡 Jak używać Smart Format:</h3>
         <div className="text-blue-700 text-sm space-y-1">
           <div>1. <strong>Wklej tekst z Gemini AI</strong> - zostanie automatycznie sformatowany</div>
-          <div>2. <strong>Lub kliknij "🪄 Smart Format"</strong> aby ręcznie poprawić formatowanie</div>
-          <div>3. <strong>Przełącz na "👁️ Podgląd"</strong> aby zobaczyć renderowany Markdown</div>
+                        <div>2. <strong>Lub kliknij &quot;🪄 Smart Format&quot;</strong> aby ręcznie poprawić formatowanie</div>
+              <div>3. <strong>Przełącz na &quot;👁️ Podgląd&quot;</strong> aby zobaczyć renderowany Markdown</div>
         </div>
         
         <div className="mt-3 pt-3 border-t border-blue-200">

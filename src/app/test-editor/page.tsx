@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 'use client';
 
 import { useState } from 'react';
@@ -17,9 +17,9 @@ export default function TestEditorPage() {
           <div className="bg-blue-50 p-4 rounded-lg mb-4">
             <ol className="list-decimal list-inside space-y-2 text-sm">
               <li>Wklej poniższy przykładowy tekst z Gemini AI do edytora</li>
-              <li>Kliknij przycisk "🪄 Smart Format"</li>
+              <li>Kliknij przycisk &quot;🪄 Smart Format&quot;</li>
               <li>Sprawdź czy formatowanie zostało poprawione</li>
-              <li>Przetestuj funkcję Bold - zaznacz tekst i kliknij "B Bold"</li>
+                              <li>Przetestuj funkcję Bold - zaznacz tekst i kliknij &quot;B Bold&quot;</li>
             </ol>
           </div>
           

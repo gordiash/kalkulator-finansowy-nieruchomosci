@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import Link from 'next/link';
 import AdminHeader from '@/components/admin/AdminHeader';
 import PostActions from '@/components/admin/PostActions';

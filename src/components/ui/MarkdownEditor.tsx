@@ -1,25 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useMemo } from 'react';
 import MarkdownIt from 'markdown-it';
-import markdownItAttrs from 'markdown-it-attrs';
-// @ts-ignore
-import markdownItAnchor from 'markdown-it-anchor';
-// @ts-ignore
-import markdownItContainer from 'markdown-it-container';
-// @ts-ignore - brak deklaracji typów w paczce
-import hljs from 'highlight.js';
-import 'highlight.js/styles/github.css';
-
-function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 
 interface MarkdownEditorProps {
   value: string;
@@ -361,7 +343,7 @@ export default function MarkdownEditor({
               • Bullet pointy (•, ○, ●, ▪, →, ✓, 🔸) zostaną zamienione na listy Markdown<br/>
               • Formatowanie: **pogrubiony**, *kursywa*, `kod` działa poprawnie<br/>
               • Długie zdania są automatycznie dzielone na osobne akapity<br/>
-              • Kliknij "🪄 Smart Format" aby ręcznie poprawić formatowanie
+              • Kliknij &quot;🪄 Smart Format&quot; aby ręcznie poprawić formatowanie
             </div>
           </div>
         </div>

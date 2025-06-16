@@ -82,8 +82,7 @@ mdParser.renderer.rules.table_open = () => '<div class="table-wrapper"><table>';
 mdParser.renderer.rules.table_close = () => '</table></div>';
 
 // Dodatkowe formatowanie dla komórek z numerami
-mdParser.renderer.rules.td_open = (tokens, idx) => {
-  const token = tokens[idx];
+mdParser.renderer.rules.td_open = () => {
   return '<td>';
 };
 
