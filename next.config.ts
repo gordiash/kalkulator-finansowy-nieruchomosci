@@ -4,10 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
-  // Konfiguracja dla Vercel
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/ssr'],
-  },
+  // Konfiguracja dla Next.js 15+
+  serverExternalPackages: ['@supabase/ssr'],
   // Zapewnienie że middleware działa poprawnie
   async headers() {
     return [
