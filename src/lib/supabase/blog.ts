@@ -117,4 +117,40 @@ export async function upsertPost(values: { id?: string; title: string; slug: str
   const { data, error } = await sb.from('posts').upsert(values).select('id').single();
   if (error) throw new Error(error.message);
   return data?.id as string;
+}
+
+// Pobiera powiązane posty na podstawie wspólnych tagów
+export async function fetchRelatedPosts(tags: string | null, excludeSlug: string, limit = 3) {
+  if (!tags) return [];
+  const tagArray = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+  if (tagArray.length === 0) return [];
+
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data, error } = await sb
+    .from('posts')
+    .select('id, slug, title, short_content, image_display, tags, published_at')
+    .eq('status', 'published')
+    .neq('slug', excludeSlug)
+    .order('published_at', { ascending: false })
+    .limit(limit * 3); // pobierz więcej i odfiltruj niżej
+
+  if (error) {
+    console.error('Error fetching related posts:', error);
+    return [];
+  }
+
+  // Prosta filtracja – sprawdź wspólne tagi
+  const related: BlogPostListing[] = [];
+  for (const p of data) {
+    const ptags = p.tags ? p.tags.split(',').map((t: string) => t.trim()) : [];
+    if (ptags.some((tag: string) => tagArray.includes(tag))) {
+      related.push(p as BlogPostListing);
+    }
+    if (related.length >= limit) break;
+  }
+  return related;
 } 

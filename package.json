@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:airtable": "node scripts/test-airtable.js"
+    "test:airtable": "node scripts/test-airtable.js",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@editorjs/editorjs": "^2.30.8",
@@ -73,6 +74,8 @@
     "tailwindcss": "^4",
     "ts-jest": "^29",
     "tw-animate-css": "^1.3.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@lhci/cli": "^0.13.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0"
   }
 }

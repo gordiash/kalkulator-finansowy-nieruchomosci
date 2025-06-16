@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { Metadata } from 'next';
+import Image from 'next/image';
 import BlogPagination from '../../components/blog/BlogPagination';
 import BlogFilter from '../../components/blog/BlogFilter';
 import { fetchPublishedPosts } from '@/lib/supabase/blog';
@@ -62,7 +63,18 @@ async function BlogContent({ searchParams }: BlogPageProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {posts.map((post) => (
                   <article key={post.id} className="border rounded-lg p-6 bg-white shadow">
-                    {post.image_display && (<img src={post.image_display} alt={post.title} className="w-full h-40 object-cover mb-3 rounded" />)}
+                    {post.image_display && (
+                      <div className="w-full h-40 relative mb-3 rounded overflow-hidden">
+                        <Image
+                          src={post.image_display}
+                          alt={post.title}
+                          fill
+                          className="object-cover rounded"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          unoptimized={!post.image_display.startsWith('https://')}
+                        />
+                      </div>
+                    )}
                     <a href={`/blog/${post.slug}`}> 
                       <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
                     </a>

@@ -280,7 +280,7 @@ function generateSchedule(
     // Dla celu "reduce-payment" harmonogram powinien mieć zawsze pełną długość (totalMonths)
     // Dla "shorten-period" kończymy jak spłacimy kapitał
     const loopCondition = () => {
-        if (overpayment.target === 'reduce-payment') {
+        if (overpayment.target === 'lower-installment') {
             return monthNumber <= totalMonths;
         }
         return remainingPrincipal > 0.01 && monthNumber <= totalMonths;
@@ -301,28 +301,30 @@ function generateSchedule(
                 interestPayment = remainingPrincipal * currentRate;
                 totalPayment = baseMonthlyPayment;
                 principalPayment = totalPayment - interestPayment;
-                // zabezpieczenie przed negatywnym kapitałem
                 if (principalPayment < 0) principalPayment = 0;
             } else {
-                // Raty równe ze zmienną ratą (zmniejszanie raty)
+                // Strategia obniżenia raty
                 const remainingMonths = totalMonths - monthNumber + 1;
-                // Obliczamy standardową ratę annuitetową dla pozostałego kapitału
-                if (currentRate === 0) {
-                    totalPayment = remainingPrincipal / remainingMonths;
-                    interestPayment = 0;
-                } else {
-                    totalPayment = remainingPrincipal * (currentRate * Math.pow(1 + currentRate, remainingMonths)) / 
-                                  (Math.pow(1 + currentRate, remainingMonths) - 1);
-                    interestPayment = remainingPrincipal * currentRate;
+
+                const calcAnnuity = (balance: number, rate: number, months: number) => {
+                    if (rate === 0) return balance / months;
+                    return balance * (rate * Math.pow(1 + rate, months)) / (Math.pow(1 + rate, months) - 1);
+                };
+
+                // Standardowa rata annuitetowa dla aktualnego salda
+                const annuityBase = calcAnnuity(remainingPrincipal, currentRate, remainingMonths);
+
+                // Nadpłata w tym miesiącu (jeśli występuje)
+                let currentOverpayment = 0;
+                if (overpaymentAmount > 0 && monthNumber >= overpaymentStartMonth) {
+                    if (overpaymentFrequency === 'one-time' && monthNumber === overpaymentStartMonth) currentOverpayment = overpaymentAmount;
+                    if (overpaymentFrequency === 'monthly') currentOverpayment = overpaymentAmount;
+                    if (overpaymentFrequency === 'yearly' && (monthNumber - overpaymentStartMonth) % 12 === 0) currentOverpayment = overpaymentAmount;
                 }
 
-                // Zastosowanie strategii "reduce-payment": kwotę nadpłaty traktujemy jako obniżenie raty,
-                // a jednocześnie w całości kierujemy ją w kapitał.
-                const paymentReduction = overpaymentAmount;
-                // Nowa (niższa) rata nie może spaść poniżej części odsetkowej
-                totalPayment = Math.max(interestPayment, totalPayment - paymentReduction);
-
-                principalPayment = totalPayment - interestPayment + overpaymentAmount;
+                totalPayment = annuityBase + currentOverpayment; // Całkowity przepływ
+                interestPayment = remainingPrincipal * currentRate;
+                principalPayment = annuityBase - interestPayment + currentOverpayment;
             }
         } else {
             // Raty malejące
@@ -373,7 +375,7 @@ function generateSchedule(
     }
     
     // Jeżeli cel to reduce-payment i po wykonaniu pętli pozostał niespłacony kapitał (zaokrąglenie)
-    if (overpayment.target === 'reduce-payment' && remainingPrincipal > 0.01) {
+    if (overpayment.target === 'lower-installment' && remainingPrincipal > 0.01) {
         const interestPayment = remainingPrincipal * monthlyRate;
         const totalPayment = remainingPrincipal + interestPayment;
         schedule.push({

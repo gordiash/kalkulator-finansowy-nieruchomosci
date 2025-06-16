@@ -3,8 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import { fetchPostBySlug, fetchPublishedPosts } from '@/lib/supabase/blog';
+import type { Metadata } from 'next';
+import { fetchPostBySlug, fetchPublishedPosts, fetchRelatedPosts } from '@/lib/supabase/blog';
 import type { BlogPostListing } from '@/lib/supabase/blog';
 import MarkdownIt from 'markdown-it';
 import markdownItAttrs from 'markdown-it-attrs';
@@ -16,6 +16,9 @@ import markdownItContainer from 'markdown-it-container';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
 import '../blog-styles.css';
+import { defaultMeta } from '@/lib/seo/defaultMeta'
+import Image from 'next/image'
+import Link from 'next/link'
 
 const mdParser = new MarkdownIt({
   html: true,
@@ -103,14 +106,22 @@ export async function generateMetadata(
   if (!post) {
     return { title: 'Nie znaleziono posta' };
   }
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
+    ...defaultMeta,
     title: post.title,
     description: post.seo_content ?? post.short_content ?? '',
+    alternates: {
+      canonical: `${baseUrl}/blog/${post.slug}`,
+    },
     openGraph: {
+      ...defaultMeta.openGraph,
       title: post.title,
       description: post.excerpt ?? '',
       type: 'article',
       publishedTime: post.published_at,
+      url: `${baseUrl}/blog/${post.slug}`,
+      images: post.image_display ? [{ url: post.image_display }] : undefined,
     },
   };
 }
@@ -122,6 +133,8 @@ async function PostPageContent({ slug }: { slug: string }) {
   if (!post) {
     notFound();
   }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 
   return (
     <div className="bg-white min-h-screen">
@@ -162,17 +175,19 @@ async function PostPageContent({ slug }: { slug: string }) {
 
           {/* Featured Image */}
           {post.image_display && (
-            <div className="mb-8">
-              <img 
-                src={post.image_display} 
-                alt={post.title} 
-                className="w-full h-auto rounded-lg shadow-lg object-cover"
-                style={{ maxHeight: '400px' }}
+            <div className="mb-8 relative w-full" style={{ maxHeight: '400px' }}>
+              <Image
+                src={post.image_display}
+                alt={post.title}
+                fill
+                className="object-cover rounded-lg shadow-lg"
+                sizes="100vw"
+                unoptimized={!post.image_display.startsWith('https://')}
               />
             </div>
           )}
 
-                    {/* Content */}
+          {/* Content */}
           <article className="max-w-none">
             {(() => {
               const raw = post.content ?? '';
@@ -186,10 +201,89 @@ async function PostPageContent({ slug }: { slug: string }) {
             })()}
           </article>
 
+          {/* Dane strukturalne Article */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BlogPosting',
+                headline: post.title,
+                description: post.seo_content ?? post.short_content ?? '',
+                datePublished: post.published_at,
+                dateModified: post.updated_at ?? post.published_at,
+                author: {
+                  '@type': 'Person',
+                  name: post.author_name ?? 'Autor',
+                },
+                image: post.image_display ? [post.image_display] : undefined,
+                mainEntityOfPage: {
+                  '@type': 'WebPage',
+                  '@id': `${baseUrl}/blog/${post.slug}`,
+                },
+              }),
+            }}
+          />
+
+          {/* BreadcrumbList schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: 'Blog',
+                    item: `${baseUrl}/blog`,
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: post.title,
+                    item: `${baseUrl}/blog/${post.slug}`,
+                  },
+                ],
+              }),
+            }}
+          />
+
+          {/* Powiązane artykuły */}
+          {post.tags && (
+            <RelatedSection currentSlug={post.slug} tags={post.tags} />
+          )}
 
         </div>
       </div>
     </div>
+  );
+}
+
+async function RelatedSection({ currentSlug, tags }: { currentSlug: string; tags: string }) {
+  const related = await fetchRelatedPosts(tags, currentSlug, 3);
+  if (related.length === 0) return null;
+
+  return (
+    <section className="mt-16">
+      <h2 className="text-2xl font-bold mb-6">Powiązane artykuły</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {related.map((p) => (
+          <Link key={p.id} href={`/blog/${p.slug}`} className="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow bg-white">
+            {p.image_display && (
+              <div className="relative w-full h-40">
+                <Image src={p.image_display} alt={p.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" unoptimized={!p.image_display.startsWith('https://')} />
+              </div>
+            )}
+            <div className="p-4">
+              <h3 className="font-semibold mb-2 line-clamp-2">{p.title}</h3>
+              {p.short_content && <p className="text-sm text-gray-600 line-clamp-3">{p.short_content}</p>}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

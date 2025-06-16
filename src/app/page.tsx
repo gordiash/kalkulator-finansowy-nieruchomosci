@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { FiHome, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
 import { fetchLatestPosts } from '@/lib/supabase/blog';
 import BlogSlider from '@/components/blog/BlogSlider';
+import type { Metadata } from 'next'
+import { defaultMeta } from '@/lib/seo/defaultMeta'
 
 const Card = ({ icon, title, description, href }: { icon: React.ReactNode, title: string, description: string, href: string }) => (
   <Link 
@@ -22,6 +24,26 @@ const Card = ({ icon, title, description, href }: { icon: React.ReactNode, title
     </div>
   </Link>
 );
+
+export const generateMetadata = (): Metadata => {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+  return {
+    ...defaultMeta,
+    title: 'Analityka Nieruchomości – Kalkulatory i Blog',
+    description:
+      'Darmowe kalkulatory zakupu i wynajmu nieruchomości, zdolności kredytowej oraz blog z poradami inwestycyjnymi.',
+    alternates: {
+      canonical: baseUrl,
+    },
+    openGraph: {
+      ...defaultMeta.openGraph,
+      title: 'Analityka Nieruchomości – Kalkulatory i Blog',
+      description:
+        'Darmowe kalkulatory zakupu i wynajmu nieruchomości, zdolności kredytowej oraz blog z poradami inwestycyjnymi.',
+      url: baseUrl,
+    },
+  }
+}
 
 export default async function HomePage() {
   // Pobierz najnowsze posty z bloga
