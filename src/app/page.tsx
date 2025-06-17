@@ -120,7 +120,45 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Slider z najnowszymi postami na blogu */}
+      {/* Sekcja O nas */}
+      <section className="relative py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 text-center">
+            Nasza <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Misja</span> i&nbsp;Wartości
+          </h2>
+          <p className="text-lg text-gray-700 leading-relaxed mb-6 text-center">
+            W&nbsp;<span className="font-semibold">KalkulatoryNieruchomosci.pl</span> wierzymy, że&nbsp;każdy zasługuje
+            na jasność i pewność w świecie nieruchomości. Upraszczamy skomplikowane obliczenia,
+            abyś mógł podejmować świadome decyzje – zawsze i wszędzie.
+          </p>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: 'Dostępność',
+                desc: 'Intuicyjne narzędzia, które każdy może łatwo obsłużyć – wiedza na wyciągnięcie ręki.'
+              },
+              {
+                title: 'Dokładność',
+                desc: 'Aktualne i precyzyjne dane, by wyniki kalkulacji były wiarygodne.'
+              },
+              {
+                title: 'Wsparcie',
+                desc: 'Nie tylko kalkulatory – również wiedza i poradniki, które prowadzą krok po kroku.'
+              },
+              {
+                title: 'Transparentność',
+                desc: 'Pełna jasność założeń i rezultatów, abyś zawsze wiedział, na czym stoisz.'
+              }
+            ].map((item) => (
+              <div key={item.title} className="p-6 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-semibold mb-2 text-blue-700">{item.title}</h3>
+                <p className="text-gray-700 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <BlogSlider posts={latestPosts} />
     </div>
   );

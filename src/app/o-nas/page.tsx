@@ -26,6 +26,20 @@ Rozumiem, że rynek nieruchomości bywa zawiły, dlatego z pełnym zaangażowani
 Jeśli masz jakieś pytania, sugestie lub po prostu chcesz porozmawiać o nieruchomościach, śmiało napisz! Twoja opinia jest dla mnie niezwykle cenna.`}
       </p>
 
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Nasza Misja i Wartości</h2>
+      <p className="mb-4 text-gray-700">
+        W&nbsp;<span className="font-semibold">KalkulatoryNieruchomosci.pl</span> wierzymy, że każdy zasługuje na jasność i pewność w świecie nieruchomości.
+        Naszą misją jest upraszczanie skomplikowanych obliczeń i decyzji związanych z rynkiem nieruchomości.
+        Chcemy, abyś czuł się pewnie i świadomie na każdym etapie – niezależnie od tego, czy kupujesz, sprzedajesz, wynajmujesz, czy inwestujesz.
+      </p>
+
+      <ul className="list-disc list-inside space-y-3 text-gray-700 mb-6">
+        <li><span className="font-semibold">Dostępność:</span> intuicyjne narzędzia, które są łatwe w obsłudze dla każdego – od początkujących po doświadczonych inwestorów.</li>
+        <li><span className="font-semibold">Dokładność:</span> precyzyjne i aktualne dane, aby kalkulatory dostarczały wyniki, na których możesz polegać.</li>
+        <li><span className="font-semibold">Wsparcie:</span> nie jesteśmy tylko zbiorem kalkulatorów – oferujemy także wiedzę i porady, które pomogą Ci zrozumieć rynek.</li>
+        <li><span className="font-semibold">Transparentność:</span> pełna otwartość założeń i wyników, abyś zawsze wiedział, na czym stoisz.</li>
+      </ul>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
