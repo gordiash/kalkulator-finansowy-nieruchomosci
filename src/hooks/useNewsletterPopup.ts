@@ -5,6 +5,7 @@ interface NewsletterPopupState {
   isSubmitting: boolean;
   isSubmitted: boolean;
   error: string | null;
+  savedEmail: string | null;
 }
 
 export const useNewsletterPopup = () => {
@@ -12,7 +13,8 @@ export const useNewsletterPopup = () => {
     isVisible: false,
     isSubmitting: false,
     isSubmitted: false,
-    error: null
+    error: null,
+    savedEmail: null
   });
 
   // Key dla localStorage
@@ -93,23 +95,39 @@ export const useNewsletterPopup = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Wystąpił błąd podczas zapisu');
+      if (response.ok) {
+        // Sukces
+        localStorage.setItem(STORAGE_SUBMITTED_KEY, 'true');
+        setState(prev => ({ 
+          ...prev, 
+          isSubmitting: false, 
+          isSubmitted: true,
+          error: null,
+          savedEmail: email 
+        }));
+
+        // Ukryj popup po 3 sekundach
+        setTimeout(() => {
+          hidePopup();
+        }, 3000);
+        return;
       }
 
-      // Sukces
-      localStorage.setItem(STORAGE_SUBMITTED_KEY, 'true');
-      setState(prev => ({ 
-        ...prev, 
-        isSubmitting: false, 
-        isSubmitted: true,
-        error: null 
-      }));
+      // Jeśli email już istnieje (409) – traktuj jako sukces, ale pokaż informację
+      if (response.status === 409) {
+        // Duplikat – pokaż błąd, nie traktuj jako sukces
+        setState(prev => ({
+          ...prev,
+          isSubmitting: false,
+          isSubmitted: false,
+          error: 'Ten adres email jest już zapisany w naszym newsletterze',
+          savedEmail: null
+        }));
+        return;
+      }
 
-      // Ukryj popup po 3 sekundach
-      setTimeout(() => {
-        hidePopup();
-      }, 3000);
+      // Inne błędy
+      throw new Error(data.error || 'Wystąpił błąd podczas zapisu');
 
     } catch (error) {
       setState(prev => ({ 
@@ -129,6 +147,7 @@ export const useNewsletterPopup = () => {
     isSubmitting: state.isSubmitting,
     isSubmitted: state.isSubmitted,
     error: state.error,
+    savedEmail: state.savedEmail,
     hidePopup,
     dismissPopup,
     submitEmail,

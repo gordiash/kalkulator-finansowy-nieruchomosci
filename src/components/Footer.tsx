@@ -84,26 +84,29 @@ const Footer = () => {
               <Link href="/polityka-prywatnosci" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
                 Polityka Prywatności
               </Link>
+              <Link href="/o-nas" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
+                O&nbsp;nas
+              </Link>
+              <Link href="/kontakt" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
+                Kontakt
+              </Link>
               <button 
                 onClick={() => setIsCookieSettingsOpen(true)}
                 className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
               >
                 Ustawienia Cookies
               </button>
-              <a href="mailto:kontakt@kalkulatorynieruchomosci.pl" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                Kontakt
-              </a>
             </div>
           </div>
-                  </div>
         </div>
         
         <CookieSettings 
           isOpen={isCookieSettingsOpen}
           onClose={() => setIsCookieSettingsOpen(false)}
         />
-      </footer>
-    );
-  };
+      </div>
+    </footer>
+  );
+};
 
 export default Footer; 

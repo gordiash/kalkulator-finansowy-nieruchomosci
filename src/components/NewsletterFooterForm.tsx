@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const NewsletterFooterForm: React.FC = () => {
@@ -8,9 +8,34 @@ const NewsletterFooterForm: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
+  // Nazwa klucza w localStorage
+  const STORAGE_SUBMITTED_KEY = 'newsletter_submitted';
+
+  // Ustaw stan początkowy na podstawie localStorage
+  useEffect(() => {
+    const isSubmitted = typeof window !== 'undefined' && localStorage.getItem(STORAGE_SUBMITTED_KEY);
+    if (isSubmitted) {
+      setStatus('success');
+      setMessage('Jesteś już zapisany do newslettera');
+    }
+  }, []);
+
+  // Funkcja pomocnicza sprawdzająca czy użytkownik już subskrybował
+  const hasSubscribed = () => {
+    return typeof window !== 'undefined' && localStorage.getItem(STORAGE_SUBMITTED_KEY);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Jeśli wcześniejsza subskrypcja istnieje – blokuj
+    if (hasSubscribed()) {
+      setStatus('success');
+      setMessage('Ten adres email jest już zapisany w naszym newsletterze');
+      setEmail('');
+      return;
+    }
+
     if (!email || !email.includes('@')) {
       setStatus('error');
       setMessage('Podaj prawidłowy adres email');
@@ -33,19 +58,22 @@ const NewsletterFooterForm: React.FC = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (response.ok) {
+        setStatus('success');
+        setMessage('Dziękujemy za zapisanie się!');
+        setEmail('');
+        localStorage.setItem(STORAGE_SUBMITTED_KEY, 'true');
+      } else if (response.status === 409) {
+        // Email już istnieje – traktuj jako sukces
+        setStatus('success');
+        setMessage('Ten adres email jest już zapisany w naszym newsletterze');
+        setEmail('');
+        localStorage.setItem(STORAGE_SUBMITTED_KEY, 'true');
+      } else {
         throw new Error(data.error || 'Wystąpił błąd podczas zapisu');
       }
-
-      setStatus('success');
-      setMessage('Dziękujemy za zapisanie się!');
-      setEmail('');
       
-      // Reset po 3 sekundach
-      setTimeout(() => {
-        setStatus('idle');
-        setMessage('');
-      }, 3000);
+      // Brak resetu statusu po sukcesie, aby uniemożliwić ponowne wysyłanie
 
     } catch (error) {
       setStatus('error');

@@ -20,14 +20,53 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, source = 'popup' } = body;
+    // Normalizacja emaila – usuń spacje i zamień na małe litery
+    const rawEmail: string = body.email ?? '';
+    const normalizedEmail = rawEmail.trim().toLowerCase();
+    const { source = 'popup' } = body;
 
     // Walidacja email
-    if (!email || !email.includes('@')) {
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
       return NextResponse.json(
         { error: 'Podaj prawidłowy adres email' },
         { status: 400 }
       );
+    }
+
+    // === SPRAWDZENIE CZY EMAIL JUŻ ISTNIEJE W BAZIE ===
+    try {
+      const emailFilterFormula = `LOWER({Email}) = "${normalizedEmail}"`;
+      const emailFilter = encodeURIComponent(emailFilterFormula);
+      const duplicateCheckUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?filterByFormula=${emailFilter}&maxRecords=1`;
+
+      // Debug: wyświetl zapytanie duplicate-check w logach (bez tokena)
+      console.log('[Newsletter] Duplicate check URL:', duplicateCheckUrl);
+
+      const checkResponse = await fetch(duplicateCheckUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        },
+      });
+
+      if (!checkResponse.ok) {
+        const errorText = await checkResponse.text();
+        console.error('Błąd podczas sprawdzania duplikatu w Airtable:', errorText);
+        return NextResponse.json({ error: 'Błąd konfiguracji serwera. Skontaktuj się z administratorem.' }, { status: 500 });
+      } else {
+        const checkData = await checkResponse.json();
+        console.log('[Newsletter] Duplicate check result count:', checkData.records?.length ?? 0);
+
+        if (checkData.records && checkData.records.length > 0) {
+          // Email już istnieje – zwróć 409
+          return NextResponse.json(
+            { error: 'Ten adres email jest już zapisany w naszym newsletterze' },
+            { status: 409 }
+          );
+        }
+      }
+    } catch (duplicateError) {
+      console.error('Duplicate check error:', duplicateError);
+      // Nie blokuj rejestracji jeśli sprawdzenie się nie powiodło – kontynuuj
     }
 
     // Dodanie do Airtable
@@ -43,7 +82,7 @@ export async function POST(request: NextRequest) {
           records: [
             {
               fields: {
-                'Email': email,
+                'Email': normalizedEmail,
                 'Source': source,
                 'Created': new Date().toISOString().split('T')[0], // Format YYYY-MM-DD
                 'Status': 'Active'

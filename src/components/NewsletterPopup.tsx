@@ -13,7 +13,8 @@ const NewsletterPopup: React.FC = () => {
     error,
     dismissPopup,
     submitEmail,
-    resetError
+    resetError,
+    savedEmail
   } = useNewsletterPopup();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +78,7 @@ const NewsletterPopup: React.FC = () => {
                 Dziękujemy!
               </h3>
               <p className="text-gray-600 text-sm">
-                Twój adres email został dodany do naszego newslettera. Wkrótce otrzymasz od nas pierwsze wiadomości z wartościowymi treściami.
+                Twój adres <span className="font-semibold text-gray-800">{savedEmail}</span> został dodany do naszego newslettera. Wkrótce otrzymasz od nas pierwsze wiadomości z wartościowymi treściami.
               </p>
             </div>
           ) : (
