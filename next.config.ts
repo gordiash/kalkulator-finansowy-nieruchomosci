@@ -81,6 +81,22 @@ const nextConfig: NextConfig = {
         destination: '/blog/:slug',
         permanent: true,
       },
+      // Przekierowania dla starych URL-i kalkulatorów
+      {
+        source: '/kalkulator-wartosci-najmu',
+        destination: '/kalkulator-wynajmu',
+        permanent: true,
+      },
+      {
+        source: '/kalkulator-roi',
+        destination: '/kalkulator-wynajmu',
+        permanent: true,
+      },
+      {
+        source: '/kalkulator-inwestycji',
+        destination: '/kalkulator-wynajmu',
+        permanent: true,
+      },
     ];
   },
 };

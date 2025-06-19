@@ -1,10 +1,21 @@
 import type { Metadata } from 'next'
 import { defaultMeta } from '@/lib/seo/defaultMeta'
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
 export const metadata: Metadata = {
   ...defaultMeta,
   title: 'O nas',
-  description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe, które pomagają podejmować lepsze decyzje.'
+  description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe, które pomagają podejmować lepsze decyzje.',
+  alternates: {
+    canonical: `${baseUrl}/o-nas`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'O nas',
+    description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe, które pomagają podejmować lepsze decyzje.',
+    url: `${baseUrl}/o-nas`,
+  },
 }
 
 export default function AboutPage() {

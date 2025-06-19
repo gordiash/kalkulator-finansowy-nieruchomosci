@@ -165,3 +165,52 @@ Jeśli masz pytania lub sugestie, skontaktuj się poprzez:
 ---
 
 **Notatka**: Ten projekt został przepisany z PHP na TypeScript/Next.js dla lepszej kompatybilności z Vercel i nowoczesnym stack'iem technologicznym.
+
+## Konfiguracja SEO i Google Search Console
+
+### Problemy zidentyfikowane i rozwiązane
+
+#### 1. Duplikaty bez canonical URL
+**Problem:** Google indeksuje nieistniejące URL-e:
+- `/kalkulator-wartosci-najmu`
+- `/kalkulator-roi`
+
+**Rozwiązanie:** Dodano przekierowania 301 w `next.config.ts` kierujące na `/kalkulator-wynajmu`
+
+#### 2. Błąd 404 dla `/kalkulator-inwestycji`
+**Rozwiązanie:** Dodano przekierowanie 301 na `/kalkulator-wynajmu`
+
+#### 3. Canonical URL używa fallback `https://example.com`
+**Problem:** Brak konfiguracji `NEXT_PUBLIC_SITE_URL`
+
+**Rozwiązanie:**
+1. Dodano `NEXT_PUBLIC_SITE_URL` do `env.example`
+2. W produkcji ustaw: `NEXT_PUBLIC_SITE_URL=https://www.kalkulatorynieruchomosci.pl`
+3. Wszystkie strony teraz mają poprawne canonical URL
+
+#### 4. Strony o-nas i kontakt dodane do sitemap
+- Dodano canonical URL dla stron `/o-nas` i `/kontakt`
+- Dodano te strony do `sitemap.ts`
+- Ustawiono odpowiednie priorytety SEO
+
+### Wymagane zmienne środowiskowe
+
+```bash
+# W .env.local lub .env.production
+NEXT_PUBLIC_SITE_URL=https://www.kalkulatorynieruchomosci.pl
+```
+
+### Weryfikacja
+
+Po wdrożeniu sprawdź:
+1. Przekierowania działają: `/kalkulator-roi` → `/kalkulator-wynajmu`
+2. Canonical URL są poprawne (nie zawierają `example.com`)
+3. Sitemap.xml zawiera wszystkie strony
+4. Robots.txt wskazuje na poprawny sitemap
+
+### Obsługa Google Search Console
+
+1. **Przekierowania 301** automatycznie informują Google o zmianach URL
+2. **Canonical URL** zapobiegają duplikatom
+3. **Sitemap** pomaga w indeksacji nowych stron
+4. Możesz użyć "URL Inspection Tool" w GSC aby przyspieszyć indeksację

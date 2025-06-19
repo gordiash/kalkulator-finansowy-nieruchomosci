@@ -5,6 +5,10 @@ export function GET() {
   let content = `User-agent: *\nSitemap: ${baseUrl}/sitemap.xml\n`
   if (isProd) {
     content += 'Disallow: /admin\nDisallow: /api\n'
+    // Blokujemy stare URL-e które są przekierowywane
+    content += 'Disallow: /kalkulator-wartosci-najmu\n'
+    content += 'Disallow: /kalkulator-roi\n'
+    content += 'Disallow: /kalkulator-inwestycji\n'
   } else {
     // W środowiskach innych niż produkcyjne blokujemy całą witrynę
     content += 'Disallow: /\n'

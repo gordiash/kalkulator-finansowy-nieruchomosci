@@ -2,10 +2,21 @@ import type { Metadata } from 'next'
 import { defaultMeta } from '@/lib/seo/defaultMeta'
 import ContactFormWrapper from '@/components/ContactFormWrapper'
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
 export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Kontakt',
-  description: 'Skontaktuj się z nami – chętnie odpowiemy na wszystkie pytania dotyczące naszych kalkulatorów i treści.'
+  description: 'Skontaktuj się z nami – chętnie odpowiemy na wszystkie pytania dotyczące naszych kalkulatorów i treści.',
+  alternates: {
+    canonical: `${baseUrl}/kontakt`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Kontakt',
+    description: 'Skontaktuj się z nami – chętnie odpowiemy na wszystkie pytania dotyczące naszych kalkulatorów i treści.',
+    url: `${baseUrl}/kontakt`,
+  },
 }
 
 export default function KontaktPage() {
