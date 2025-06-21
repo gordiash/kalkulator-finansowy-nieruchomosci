@@ -2,4 +2,9 @@ pandas
 SQLAlchemy
 PyMySQL
 scikit-learn
-xgboost 
+xgboost
+lightgbm
+catboost
+matplotlib
+seaborn
+python-dotenv 

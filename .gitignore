@@ -33,6 +33,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -46,3 +50,150 @@ next-env.d.ts
 
 # models
 models/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+.venv311/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+*.lcov
+.nyc_output
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Optional npm cache directory
+.npm
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Machine learning models and data
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.onnx
+data/
+datasets/
+checkpoints/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Project specific
+-p/
+
+# ML Training outputs
+test_results_*.txt
+quick_test_*.txt
+model_*.txt
+training_*.log
+predictions_*.csv
+feature_importance_*.csv
+
+# Temporary scripts
+temp_*.py
+debug_*.py
+quick_*.py
+
+# Data files
+*.csv
+*.xlsx
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json

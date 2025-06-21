@@ -28,6 +28,14 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 - Różne typy umów o pracę
 - Wizualizacja struktury budżetu
 
+### 4. Kalkulator Wyceny Mieszkań 🚀 AI Ensemble
+- **Zaawansowana sztuczna inteligencja** - Model Ensemble (LightGBM + Random Forest + CatBoost)
+- **Dokładność 0.77% MAPE** - Najlepsza precyzja wyceny w Polsce
+- **Inteligentny fallback** - Ensemble → Random Forest → Heurystyka
+- **Autouzupełnianie lokalizacji** - Baza miast i dzielnic z regionu Olsztyn
+- **Integracja z kalkulatorami** - Przekazywanie ceny do innych narzędzi
+- **100+ cech** - Ultra-zaawansowane feature engineering
+
 ## 🛠️ Stack Technologiczny
 
 ### Frontend
@@ -43,6 +51,14 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 - **Vercel** - Deployment i hosting
 - **Airtable** - Baza danych newslettera
 
+### Machine Learning
+- **Python** - Środowisko ML (scikit-learn, pandas, numpy, LightGBM, CatBoost)
+- **Ensemble Model** - Model produkcyjny (0.77% MAPE) - LightGBM + Random Forest + CatBoost
+- **Advanced Fallback** - Random Forest (15.56% MAPE), Heurystyka (25% MAPE)
+- **MySQL** - Baza danych nieruchomości (566 rekordów)
+- **Feature Engineering** - 100+ cech (lokalizacja, powierzchnia, wiek, interakcje)
+- **Hyperparameter Tuning** - Optuna, GridSearchCV, Weighted Averaging
+
 ### Analytics & Marketing
 - **Google Analytics 4** - Analityka ruchu
 - **Facebook Pixel** - Śledzenie konwersji
@@ -53,18 +69,30 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 ```
 src/
 ├── app/                          # Next.js App Router
-│   ├── api/calculate.php/        # TypeScript API endpoint
+│   ├── api/                     # API endpoints
+│   │   ├── calculate.php/       # TypeScript API endpoint
+│   │   ├── valuation/           # 🤖 ML wycena mieszkań
+│   │   ├── valuation-ensemble/  # 🚀 Advanced ensemble model
+│   │   └── locations/           # Autouzupełnianie miast/dzielnic
 │   ├── kalkulator-zakupu-nieruchomosci/
 │   ├── kalkulator-wynajmu/
-│   └── kalkulator-zdolnosci-kredytowej/
+│   ├── kalkulator-zdolnosci-kredytowej/
+│   └── kalkulator-wyceny/       # 🤖 AI Kalkulator wyceny
 ├── components/                   # Komponenty React
 │   ├── ui/                      # Komponenty bazowe (Radix UI)
-│   └── charts/                  # Komponenty wykresów
+│   ├── charts/                  # Komponenty wykresów
+│   └── ValuationCalculator.tsx  # 🤖 Komponent wyceny AI
 ├── hooks/                       # Custom React hooks
+│   └── useLocations.ts          # Hook lokalizacji
 ├── lib/                         # Logika biznesowa
 │   ├── CalculationService.ts    # Serwis obliczeń
 │   ├── apiService.ts           # API client
 │   └── analytics.ts            # Śledzenie zdarzeń
+├── scripts/                     # 🤖 Machine Learning
+│   ├── train_random_forest.py  # Trenowanie RF model
+│   ├── predict_rf.py           # Predykcja ML
+│   ├── train_advanced_ensemble.py # 🚀 Advanced models
+│   └── analyze_model_errors.py # Analiza błędów
 └── types/                       # Definicje typów TypeScript
 ```
 

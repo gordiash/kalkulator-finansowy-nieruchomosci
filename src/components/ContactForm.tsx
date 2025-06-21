@@ -11,7 +11,7 @@ export default function ContactForm() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setStatus('loading')
     setError('')
@@ -25,8 +25,9 @@ export default function ContactForm() {
       if (!res.ok) throw new Error(data.error || 'Błąd')
       setStatus('success')
       setForm({ name: '', email: '', message: '' })
-    } catch (e: any) {
-      setError(e.message)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Nieznany błąd'
+      setError(errorMessage)
       setStatus('error')
     }
   }

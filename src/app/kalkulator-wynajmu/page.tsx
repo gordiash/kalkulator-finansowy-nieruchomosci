@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import {
   Card,
@@ -76,10 +77,15 @@ const InputWithValidation = ({
 );
 
 const RentalProfitabilityCalculatorPage = () => {
+  const searchParams = useSearchParams();
+  
+  // Pre-wypełnianie ceny z parametru URL
+  const initialPrice = searchParams.get('cena') || '';
+  
   // Kolory dla wykresów
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  const [purchasePrice, setPurchasePrice] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState(initialPrice);
   const [monthlyRent, setMonthlyRent] = useState("");
   // Szczegółowe koszty początkowe
   const [transactionCosts, setTransactionCosts] = useState("");
@@ -292,6 +298,11 @@ const RentalProfitabilityCalculatorPage = () => {
           </CardTitle>
           <CardDescription className="text-sm sm:text-base">
             Przeanalizuj zwrot z inwestycji w nieruchomość na wynajem
+            {initialPrice && (
+              <div className="mt-2 text-green-600 bg-green-100 px-3 py-1 rounded-lg inline-block">
+                💰 Cena z kalkulatora wyceny: {parseInt(initialPrice).toLocaleString('pl-PL')} zł
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>

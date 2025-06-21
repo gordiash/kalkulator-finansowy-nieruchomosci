@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -305,8 +306,13 @@ type SimulationResults = {
 };
 
 export default function RealEstateCalculatorPage() {
+  const searchParams = useSearchParams();
+  
+  // Pre-wypełnianie ceny z parametru URL
+  const initialPrice = searchParams.get('cena') || '';
+  
   const [formData, setFormData] = useState<FormData>({
-    propertyValue: '500000',
+    propertyValue: initialPrice || '500000',
     loanAmount: '400000',
     loanTerm: '30',
     bankMargin: '2.1',
@@ -784,9 +790,16 @@ export default function RealEstateCalculatorPage() {
   return (
     <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
               <Card className="mb-6 sm:mb-8">
-          <CardHeader className="pb-4 sm:pb-6">
-            <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-center font-bold">Kalkulator Zakupu Nieruchomości</CardTitle>
-          </CardHeader>
+                  <CardHeader className="pb-4 sm:pb-6">
+          <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-center font-bold">
+            Kalkulator Zakupu Nieruchomości
+            {initialPrice && (
+              <div className="mt-3 text-sm text-green-600 bg-green-100 px-3 py-2 rounded-lg inline-block">
+                💰 Cena z kalkulatora wyceny: {parseInt(initialPrice).toLocaleString('pl-PL')} zł
+              </div>
+            )}
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -5,7 +5,11 @@ const config = {
     [
       "postcss-preset-env",
       {
-        features: { "oklch-color": { preserve: false } },
+        stage: 1,
+        features: {
+          "oklab-function": false,
+          "color-mix": false,
+        },
       },
     ],
   ],

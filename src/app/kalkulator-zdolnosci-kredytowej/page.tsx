@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -114,12 +115,18 @@ const SelectWithTooltip = ({
 );
 
 const CreditScoreCalculatorPage = () => {
+  const searchParams = useSearchParams();
+  
+  // Pre-wypełnianie kwoty z parametru URL
+  const initialLoanAmount = searchParams.get('kwota') || '';
+  
   const [monthlyIncome, setMonthlyIncome] = useState("");
   const [monthlyExpenses, setMonthlyExpenses] = useState("");
   const [otherLoans, setOtherLoans] = useState("");
   const [householdSize, setHouseholdSize] = useState("1");
   
   // Parametry kredytu
+  const [loanAmount, setLoanAmount] = useState(initialLoanAmount);
   const [loanTerm, setLoanTerm] = useState("30");
   const [interestRate, setInterestRate] = useState("7.5");
   const [installmentType, setInstallmentType] = useState("equal");
@@ -436,8 +443,26 @@ const CreditScoreCalculatorPage = () => {
 
               {/* Sekcja parametrów kredytu */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">Parametry kredytu</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Parametry kredytu
+                  {initialLoanAmount && (
+                    <span className="ml-2 text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
+                      💰 Kwota z kalkulatora wyceny: {parseInt(initialLoanAmount).toLocaleString('pl-PL')} zł
+                    </span>
+                  )}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {loanAmount && (
+                    <InputWithTooltip
+                      id="loanAmount"
+                      label="Kwota kredytu (zł)"
+                      tooltip="Kwota kredytu którą chcesz uzyskać. Zostanie porównana z Twoją maksymalną zdolnością kredytową."
+                      value={loanAmount}
+                      onChange={handleNumericInput(setLoanAmount, false)}
+                      placeholder="np. 500000"
+                    />
+                  )}
+                  
                   <InputWithTooltip
                     id="loanTerm"
                     label="Okres kredytowania (lata)"
@@ -527,6 +552,27 @@ const CreditScoreCalculatorPage = () => {
                       <CardContent className="p-6">
                         <h4 className="text-lg font-semibold mb-2">Maksymalna kwota kredytu:</h4>
                         <p className="text-2xl font-bold text-green-700">{maxLoanAmount?.toFixed(0)} zł</p>
+                        
+                        {loanAmount && parseFloat(loanAmount) > 0 && (
+                          <div className="mt-3 p-3 rounded-lg border">
+                            <p className="text-sm font-medium mb-1">
+                              Porównanie z pożądaną kwotą ({parseInt(loanAmount).toLocaleString('pl-PL')} zł):
+                            </p>
+                            {parseFloat(loanAmount) <= (maxLoanAmount || 0) ? (
+                              <div className="flex items-center text-green-600">
+                                <span className="text-lg mr-2">✅</span>
+                                <span className="font-medium">Kredyt możliwy do uzyskania!</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-red-600">
+                                <span className="text-lg mr-2">❌</span>
+                                <span className="font-medium">
+                                  Przekracza zdolność o {(parseFloat(loanAmount) - (maxLoanAmount || 0)).toFixed(0)} zł
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>

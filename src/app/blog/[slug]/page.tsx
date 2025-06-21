@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-/* eslint-disable @next/next/no-img-element */
 
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';

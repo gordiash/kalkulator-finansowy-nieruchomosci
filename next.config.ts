@@ -1,6 +1,38 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Optymalizacje kompilacji
+  experimental: {
+    // optimizeCss: true, // Wyłączone - powoduje błąd z 'critters'
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+  },
+  
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Optymalizacje tylko dla produkcji
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
+      };
+    }
+    
+    return config;
+  },
+
+  // Kompresja i cache
+  compress: true,
+  poweredByHeader: false,
+  
   images: {
     remotePatterns: [
       {
