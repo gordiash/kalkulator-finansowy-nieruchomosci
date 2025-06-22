@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { HelpCircle, AlertTriangle } from "lucide-react";
 import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
@@ -38,13 +38,8 @@ const InputWithTooltip = ({
   <div className="space-y-2">
     <div className="flex items-center gap-2">
       <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-        </TooltipTrigger>
-        <TooltipContent className="max-w-80">
-          <p>{tooltip}</p>
-        </TooltipContent>
+      <Tooltip content={tooltip}>
+        <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
       </Tooltip>
     </div>
     <Input
@@ -88,13 +83,8 @@ const SelectWithTooltip = ({
   <div className="space-y-2">
     <div className="flex items-center gap-2">
       <Label htmlFor={id} className={error ? "text-red-600" : ""}>{label}</Label>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-        </TooltipTrigger>
-        <TooltipContent className="max-w-80">
-          <p>{tooltip}</p>
-        </TooltipContent>
+      <Tooltip content={tooltip}>
+        <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
       </Tooltip>
     </div>
     <Select value={value} onValueChange={onValueChange}>
@@ -114,7 +104,7 @@ const SelectWithTooltip = ({
   </div>
 );
 
-const CreditScoreCalculatorPage = () => {
+const CreditScoreCalculatorPageContent = () => {
   const searchParams = useSearchParams();
   
   // Pre-wypełnianie kwoty z parametru URL
@@ -291,7 +281,8 @@ const CreditScoreCalculatorPage = () => {
       });
 
       // Śledzenie wyniku kalkulatora
-      trackCalculatorResult('credit-score', result.maxLoanAmount, {
+      trackCalculatorResult('credit-score', {
+        max_loan_amount: result.maxLoanAmount,
         credit_capacity: result.creditCapacity,
         total_income: result.details?.totalIncome,
         dsti_limit: result.details?.effectiveDstiLimit,
@@ -643,7 +634,7 @@ const CreditScoreCalculatorPage = () => {
                             </p>
                           </div>
 
-                          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                          <div className="bg-red-100 p-4 rounded-lg border border-red-200">
                             <h4 className="font-semibold text-red-900 mb-2">📋 Suma zobowiązań</h4>
                             <p className="text-2xl font-bold text-red-700">
                               {calculationDetails.totalCommitments?.toFixed(0)} zł
@@ -663,7 +654,7 @@ const CreditScoreCalculatorPage = () => {
                             </p>
                           </div>
 
-                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <div className="bg-green-100 p-4 rounded-lg border border-green-200">
                             <h4 className="font-semibold text-green-900 mb-2">🎯 Zastosowany limit DSTI</h4>
                             <p className="text-2xl font-bold text-green-700">
                               {calculationDetails.effectiveDstiLimit?.toFixed(0)}%
@@ -734,6 +725,21 @@ const CreditScoreCalculatorPage = () => {
         </Card>
       </div>
     </TooltipProvider>
+  );
+};
+
+const CreditScoreCalculatorPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Ładowanie kalkulatora...</p>
+        </div>
+      </div>
+    }>
+      <CreditScoreCalculatorPageContent />
+    </Suspense>
   );
 };
 

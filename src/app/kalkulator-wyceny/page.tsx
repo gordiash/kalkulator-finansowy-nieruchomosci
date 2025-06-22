@@ -6,15 +6,16 @@ import { generateDynamicMetadata } from '@/lib/seo/dynamicMeta'
 export const revalidate = 0
 
 interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   // Pobierz parametry z URL dla dynamicznego meta title
-  const city = typeof searchParams.miasto === 'string' ? searchParams.miasto : 'Olsztyn'
-  const area = typeof searchParams.metraz === 'string' ? searchParams.metraz : ''
-  const rooms = typeof searchParams.pokoje === 'string' ? searchParams.pokoje : ''
-  const year = typeof searchParams.rok === 'string' ? searchParams.rok : ''
+  const params = await searchParams
+  const city = typeof params.miasto === 'string' ? params.miasto : 'Olsztyn'
+  const area = typeof params.metraz === 'string' ? params.metraz : ''
+  const rooms = typeof params.pokoje === 'string' ? params.pokoje : ''
+  const year = typeof params.rok === 'string' ? params.rok : ''
 
   return generateDynamicMetadata({
     city,
@@ -25,14 +26,15 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   })
 }
 
-export default function ValuationPage({ searchParams }: PageProps) {
+export default async function ValuationPage({ searchParams }: PageProps) {
   // Przekaż parametry URL do komponentu dla pre-wypełnienia
+  const params = await searchParams
   const initialData = {
-    city: typeof searchParams.miasto === 'string' ? searchParams.miasto : 'Olsztyn',
-    area: typeof searchParams.metraz === 'string' ? searchParams.metraz : '',
-    rooms: typeof searchParams.pokoje === 'string' ? searchParams.pokoje : '',
-    year: typeof searchParams.rok === 'string' ? searchParams.rok : '',
-    district: typeof searchParams.dzielnica === 'string' ? searchParams.dzielnica : '',
+    city: typeof params.miasto === 'string' ? params.miasto : 'Olsztyn',
+    area: typeof params.metraz === 'string' ? params.metraz : '',
+    rooms: typeof params.pokoje === 'string' ? params.pokoje : '',
+    year: typeof params.rok === 'string' ? params.rok : '',
+    district: typeof params.dzielnica === 'string' ? params.dzielnica : '',
   }
 
   return (

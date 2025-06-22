@@ -72,13 +72,13 @@ async function runEnsemblePrediction(inputData: ValuationRequest): Promise<Ensem
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
     
     // Znajdź najnowszy model ensemble
-    const modelPatterns = [
-      'models/ensemble_optimized_*.pkl',
-      'models/ensemble_advanced_*.pkl',
-      'models/random_forest_*.pkl'  // fallback
-    ];
+    // const modelPatterns = [
+    //   'models/ensemble_optimized_*.pkl',
+    //   'models/ensemble_advanced_*.pkl',
+    //   'models/random_forest_*.pkl'  // fallback
+    // ];
     
-    let modelPath = 'models/ensemble_optimized_0.78pct.pkl'; // najnowszy najlepszy model
+    const modelPath = 'models/ensemble_optimized_0.78pct.pkl'; // najnowszy najlepszy model
     
     const pythonProcess = spawn('python', [
       scriptPath,

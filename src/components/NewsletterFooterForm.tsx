@@ -127,7 +127,7 @@ const NewsletterFooterForm: React.FC = () => {
           status === 'success' 
             ? 'text-green-600' 
             : status === 'error' 
-              ? 'text-red-600' 
+              ? 'text-red-700' 
               : 'text-gray-600'
         }`}>
           {status === 'success' && <CheckCircle className="w-3 h-3" />}

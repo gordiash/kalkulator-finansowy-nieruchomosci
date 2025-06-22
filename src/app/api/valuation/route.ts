@@ -263,15 +263,15 @@ function calculateHeuristicPrice(city: string, area: number, rooms: number, year
   return Math.round(price / 1000) * 1000
 }
 
-// Mapowanie tier i age category
-function mapLocationTier(city: string, district: string): string {
-  if (city === 'Olsztyn') {
-    if (['Śródmieście', 'Centrum', 'Zatorze'].includes(district)) return 'premium';
-    if (['Kortowo', 'Jaroty', 'Nagórki'].includes(district)) return 'high';
-    if (['Pieczewo', 'Gutkowo', 'Generałów'].includes(district)) return 'medium';
-  }
-  return 'standard';
-}
+// Mapowanie tier i age category (nieużywane - usunięte jako komentarz)
+// function mapLocationTier(city: string, district: string): string {
+//   if (city === 'Olsztyn') {
+//     if (['Śródmieście', 'Centrum', 'Zatorze'].includes(district)) return 'premium';
+//     if (['Kortowo', 'Jaroty', 'Nagórki'].includes(district)) return 'high';
+//     if (['Pieczewo', 'Gutkowo', 'Generałów'].includes(district)) return 'medium';
+//   }
+//   return 'standard';
+// }
 
 export async function POST(request: NextRequest) {
   try {

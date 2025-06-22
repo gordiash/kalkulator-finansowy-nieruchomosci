@@ -174,10 +174,8 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
     try {
       // Konwersja pól numerycznych
-      const payload = {
+      const payload: Record<string, unknown> = {
         city: form.city.trim(),
-        district: form.district.trim(),
-        street: form.street.trim(),
         area: parseFloat(form.area),
         rooms: parseInt(form.rooms),
         floor: form.floor ? parseInt(form.floor) : 0,
@@ -192,6 +190,14 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         orientation: form.orientation,
         transport: form.transport,
         totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined,
+      }
+
+      // Usuń puste opcjonalne pola tekstowe, aby spełnić walidację backendu (min 2 znaki)
+      if (form.district.trim().length >= 2) {
+        payload.district = form.district.trim()
+      }
+      if (form.street.trim().length >= 2) {
+        payload.street = form.street.trim()
       }
 
       // Analytics: Formularz wysłany
@@ -612,6 +618,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
               label="Dostęp do komunikacji"
               tooltip={tooltips.transport}
               htmlFor="transport"
+              tooltipPosition="top"
             >
               <select
                 id="transport"
@@ -634,6 +641,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
               label="Piętra w budynku"
               tooltip={tooltips.totalFloors}
               htmlFor="totalFloors"
+              tooltipPosition="top"
             >
               <input
                 type="number"
@@ -655,7 +663,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Błędy */}
         {error && (
           <div 
-            className="bg-red-50 border border-red-200 rounded-lg p-4"
+            className="bg-red-100 border border-red-200 rounded-lg p-4"
             role="alert"
             aria-live="polite"
           >
@@ -700,7 +708,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
       {/* Wyniki */}
       {status === 'success' && result && (
         <section 
-          className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4"
+          className="bg-green-100 border border-green-200 rounded-lg p-6 space-y-4"
           role="region"
           aria-labelledby="results-title"
           aria-live="polite"
@@ -775,7 +783,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </Link>
                 <Link
                   href={`/kalkulator-wynajmu?cena=${result.price}`}
-                  className="block text-center bg-emerald-600 hover:bg-emerald-700 focus:bg-emerald-700 text-white py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                  className="block text-center bg-emerald-700 hover:bg-emerald-800 focus:bg-emerald-800 text-white py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                   aria-label={`Sprawdź rentowność wynajmu dla ceny ${formatCurrency(result.price)}`}
                   onClick={() => valuationAnalytics.trackActionButtonClick('rental', {
                     city: form.city,

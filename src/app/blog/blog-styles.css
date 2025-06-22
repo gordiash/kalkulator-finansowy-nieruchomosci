@@ -272,7 +272,7 @@
 
 .blog-content code {
   background-color: #f3f4f6;
-  color: #dc2626;
+  color: #B91C1C;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -397,11 +397,11 @@
 
 /* Specjalne formatowanie dla wartości procentowych */
 .blog-content td:contains("%") {
-  color: #059669 !important;
+  color: #047857 !important;
 }
 
 .blog-content td:contains("-") {
-  color: #dc2626 !important;
+  color: #B91C1C !important;
 }
 
 /* Style dla pierwszej kolumny (nazwy) */

@@ -205,7 +205,7 @@ export function Autocomplete({
           aria-live="polite"
         >
           <div className="px-3 py-2 text-sm text-gray-500">
-            Brak wyników dla "{value}"
+            Brak wyników dla &quot;{value}&quot;
           </div>
         </div>
       )}

@@ -67,7 +67,7 @@ export default function ContactForm() {
           required
         />
       </div>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-red-700 text-sm">{error}</p>}
       {status === 'success' && <p className="text-green-600 text-sm">Wiadomość została wysłana. Dziękujemy!</p>}
       <button
         type="submit"

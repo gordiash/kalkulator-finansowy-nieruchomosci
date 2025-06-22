@@ -200,7 +200,7 @@ const CookieSettings: React.FC<CookieSettingsProps> = ({ isOpen, onClose }) => {
               <Button 
                 onClick={handleRevokeConsent}
                 variant="outline"
-                className="w-full text-sm text-red-600 border-red-600 hover:bg-red-50"
+                className="w-full text-sm text-red-700 border-red-700 hover:bg-red-100"
               >
                 Cofnij zgodę na wszystkie cookies
               </Button>

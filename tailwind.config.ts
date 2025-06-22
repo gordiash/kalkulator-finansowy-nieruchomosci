@@ -28,6 +28,29 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      // Poprawione kolory dla lepszej dostępności (WCAG AA)
+      colors: {
+        // Nadpisanie problematycznych kolorów
+        emerald: {
+          600: '#047857', // było #059669 - lepszy kontrast dla białego tekstu
+          700: '#065f46', // ciemniejszy dla hover states
+        },
+        red: {
+          50: '#FEE2E2',   // było #FEF2F2 - lepszy kontrast dla czerwonego tekstu
+          100: '#FECACA',  // dodatkowa opcja
+          600: '#B91C1C',  // było #DC2626 - lepszy kontrast
+          700: '#991B1B',  // ciemniejszy dla hover states
+        },
+        green: {
+          50: '#D1FAE5',   // było #ECFDF5 - lepszy kontrast dla zielonego tekstu
+          100: '#A7F3D0',  // dodatkowa opcja
+        },
+        // Nowe kolory dla accessibility
+        'accessible-success': '#047857',   // emerald-700
+        'accessible-success-bg': '#D1FAE5', // green-100
+        'accessible-error': '#B91C1C',     // red-700
+        'accessible-error-bg': '#FEE2E2',  // red-100
+      },
        backgroundColor: ({ theme }) => ({
         ...theme('colors'),
         DEFAULT: 'rgba(var(--tw-bg-color-rgb) / var(--tw-bg-opacity, 1))'

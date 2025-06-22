@@ -347,7 +347,7 @@ body {
   font-family: 'Courier New', monospace;
   font-size: 0.73125rem; /* 0.8125rem * 0.9 - zmniejszenie o 10% */
   font-weight: 400 !important;
-  color: #dc2626; /* Czerwony kolor dla kodu */
+  color: #B91C1C; /* Czerwony kolor dla kodu - accessibility improved */
   border: 1px solid #e5e7eb;
 }
 

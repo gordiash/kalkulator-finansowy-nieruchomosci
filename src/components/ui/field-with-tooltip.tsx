@@ -10,6 +10,7 @@ interface FieldWithTooltipProps {
   children: React.ReactNode
   htmlFor?: string
   className?: string
+  tooltipPosition?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export function FieldWithTooltip({
@@ -18,7 +19,8 @@ export function FieldWithTooltip({
   required = false,
   children,
   htmlFor,
-  className = ''
+  className = '',
+  tooltipPosition = 'right'
 }: FieldWithTooltipProps) {
   const labelId = `label-${htmlFor || 'field'}`
   const helpId = `help-${htmlFor || 'field'}`
@@ -35,7 +37,7 @@ export function FieldWithTooltip({
           {required && <span className="text-red-500 ml-1" aria-label="pole wymagane">*</span>}
         </label>
         
-        <Tooltip content={tooltip} position="top">
+        <Tooltip content={tooltip} position={tooltipPosition}>
           <button
             type="button"
             className="text-gray-400 hover:text-gray-600 focus:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-full p-0.5"

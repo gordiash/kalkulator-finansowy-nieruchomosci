@@ -64,15 +64,15 @@ export async function GET(request: NextRequest) {
       await connection.end()
 
       return NextResponse.json({
-        cities: (citiesResult as any[]).map(row => row.city),
-        districts: (districtsResult as any[]).map(row => row.district),
+        cities: (citiesResult as Array<{city: string}>).map(row => row.city),
+        districts: (districtsResult as Array<{district: string}>).map(row => row.district),
       })
     }
 
     const [results] = await connection.execute(query, params)
     await connection.end()
 
-    const data = (results as any[]).map(row => 
+    const data = (results as Array<{city?: string, district?: string}>).map(row => 
       type === 'cities' ? row.city : row.district
     )
 

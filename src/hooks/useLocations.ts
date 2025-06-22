@@ -46,17 +46,10 @@ export function useLocations() {
     fetchLocations()
   }, [])
 
-  const getDistrictsForCity = (cityName: string): string[] => {
-    // Możemy rozszerzyć to o bardziej inteligentne filtrowanie
-    // Na razie zwracamy wszystkie dzielnice
-    return data.districts
-  }
-
   return {
     cities: data.cities,
     districts: data.districts,
     loading,
-    error,
-    getDistrictsForCity
+    error
   }
 } 

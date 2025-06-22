@@ -14,19 +14,21 @@
 // Sprawdzenie kontrastów WCAG 2.1
 const colors = {
   primary: '#2563EB',      // blue-600
-  success: '#059669',      // emerald-600
-  error: '#DC2626',        // red-600
+  success: '#047857',      // emerald-700 (poprawione dla lepszego kontrastu)
+  error: '#B91C1C',        // red-700 (poprawione dla lepszego kontrastu)
   text: '#374151',         // gray-700
   background: '#FFFFFF'
 }
 ```
 
 **Wyniki testów kontrastu:**
-- ✅ Tekst na białym tle: 8.9:1 (AAA)
-- ✅ Biały tekst na niebieskim: 4.5:1 (AA)
-- ✅ Biały tekst na zielonym: 4.8:1 (AA)
-- ✅ Biały tekst na czerwonym: 5.3:1 (AA)
-- ✔️ Szary tekst na białym: 4.6:1 (AA)
+- ✅ Tekst na białym tle: 10.31:1 (AAA)
+- ✔️ Biały tekst na niebieskim: 5.17:1 (AA)
+- ✔️ Biały tekst na zielonym: 5.48:1 (AA) - POPRAWIONE
+- ✔️ Biały tekst na czerwonym: 6.47:1 (AA) - POPRAWIONE
+- ✔️ Zielony tekst na jasnym tle: 4.84:1 (AA) - POPRAWIONE
+- ✔️ Czerwony tekst na jasnym tle: 5.3:1 (AA) - POPRAWIONE
+- ✔️ Szary tekst na białym: 4.83:1 (AA)
 
 ### Typografia
 - **Font size**: Skalowane (0.9x bazowy rozmiar)
@@ -229,7 +231,7 @@ npm run dev
 | **Design System** | ✅ | Komponenty UI z Tailwind |
 | **Responsywność** | ✅ | Mobile-first, wszystkie breakpointy |
 | **ARIA Labels** | ✅ | Pełna implementacja semantyczna |
-| **Kontrast** | ✅ | WCAG 2.1 AA/AAA compliance |
+| **Kontrast** | ✅ | WCAG 2.1 AA compliance - POPRAWIONE |
 | **Klawiatura** | ✅ | Pełna nawigacja + shortcuts |
 | **Tooltips** | ✅ | Accessibility + definicje pojęć |
 | **Microcopy** | ✅ | Jasne komunikaty i etykiety |

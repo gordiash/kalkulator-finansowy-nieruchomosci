@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import { Button } from '@/components/ui/button';
@@ -305,7 +305,7 @@ type SimulationResults = {
   newLastInstallment: number;
 };
 
-export default function RealEstateCalculatorPage() {
+function RealEstateCalculatorPageContent() {
   const searchParams = useSearchParams();
   
   // Pre-wypełnianie ceny z parametru URL
@@ -515,7 +515,8 @@ export default function RealEstateCalculatorPage() {
       setResults(data);
       
       // Śledzenie wyniku kalkulatora
-      trackCalculatorResult('purchase', data.totalRepayment || 0, {
+      trackCalculatorResult('purchase', {
+        total_repayment: data.totalRepayment || 0,
         property_value: parseFloat(formData.propertyValue),
         loan_amount: parseFloat(formData.loanAmount),
         loan_term: parseFloat(formData.loanTerm),
@@ -1301,5 +1302,20 @@ export default function RealEstateCalculatorPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RealEstateCalculatorPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Ładowanie kalkulatora...</p>
+        </div>
+      </div>
+    }>
+      <RealEstateCalculatorPageContent />
+    </Suspense>
   );
 }

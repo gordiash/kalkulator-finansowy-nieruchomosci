@@ -2,8 +2,8 @@
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
-    dataLayer?: any[]
+    gtag?: (...args: unknown[]) => void
+    dataLayer?: unknown[]
   }
 }
 
@@ -12,7 +12,7 @@ interface AnalyticsEvent {
   category: string
   label?: string
   value?: number
-  custom_parameters?: Record<string, any>
+  custom_parameters?: Record<string, unknown>
 }
 
 interface ValuationAnalyticsData {
@@ -249,7 +249,7 @@ export function initializeAnalytics(measurementId: string) {
   
   // Inicjalizuj gtag
   window.dataLayer = window.dataLayer || []
-  window.gtag = function(...args: any[]) {
+  window.gtag = function(...args: unknown[]) {
     window.dataLayer?.push(args)
   }
   
@@ -329,4 +329,53 @@ export function useScrollTracking(pageName: string) {
   return () => {
     window.removeEventListener('scroll', handleScroll)
   }
+}
+
+/**
+ * Podstawowe funkcje śledzenia
+ */
+export function trackPageView(page: string) {
+  trackEvent({
+    action: 'page_view',
+    category: 'engagement',
+    label: page,
+    custom_parameters: {
+      page_name: page
+    }
+  })
+}
+
+export function trackError(error: string, context?: string) {
+  trackEvent({
+    action: 'error',
+    category: 'system',
+    label: error,
+    custom_parameters: {
+      error_message: error,
+      context: context
+    }
+  })
+}
+
+export function trackCalculatorUse(calculatorType: string) {
+  trackEvent({
+    action: 'calculator_use',
+    category: 'calculator',
+    label: calculatorType,
+    custom_parameters: {
+      calculator_type: calculatorType
+    }
+  })
+}
+
+export function trackCalculatorResult(calculatorType: string, result: unknown) {
+  trackEvent({
+    action: 'calculator_result',
+    category: 'calculator',
+    label: calculatorType,
+    custom_parameters: {
+      calculator_type: calculatorType,
+      result: result
+    }
+  })
 } 

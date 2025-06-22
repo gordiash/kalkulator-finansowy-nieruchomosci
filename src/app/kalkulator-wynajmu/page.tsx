@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackCalculatorUse, trackCalculatorResult, trackError, trackPageView } from "@/lib/analytics";
 import {
@@ -76,7 +76,7 @@ const InputWithValidation = ({
   </div>
 );
 
-const RentalProfitabilityCalculatorPage = () => {
+const RentalProfitabilityCalculatorPageContent = () => {
   const searchParams = useSearchParams();
   
   // Pre-wypełnianie ceny z parametru URL
@@ -270,7 +270,8 @@ const RentalProfitabilityCalculatorPage = () => {
       setResults(data);
       
       // Śledzenie wyniku kalkulatora
-      trackCalculatorResult('rental', data.roi, {
+      trackCalculatorResult('rental', {
+        roi: data.roi,
         purchase_price: parseFloat(purchasePrice),
         monthly_rent: parseFloat(monthlyRent),
         annual_income: data.annualIncome,
@@ -766,6 +767,21 @@ const RentalProfitabilityCalculatorPage = () => {
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+const RentalProfitabilityCalculatorPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="container max-w-7xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+        <div className="text-center py-10">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Ładowanie kalkulatora...</p>
+        </div>
+      </div>
+    }>
+      <RentalProfitabilityCalculatorPageContent />
+    </Suspense>
   );
 };
 
