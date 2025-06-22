@@ -27,43 +27,8 @@ const nextConfig = {
       };
     }
     
-    // Bardzo robustna konfiguracja aliasów dla Vercel
-    const srcPath = path.resolve(__dirname, 'src');
-    
-    // Wyczyść istniejące aliasy
-    config.resolve.alias = config.resolve.alias || {};
-    
-    // Dodaj nasze aliasy
-    Object.assign(config.resolve.alias, {
-      '@': srcPath,
-      '@/lib': path.resolve(srcPath, 'lib'),
-      '@/components': path.resolve(srcPath, 'components'),
-      '@/app': path.resolve(srcPath, 'app'),
-      '@/hooks': path.resolve(srcPath, 'hooks'),
-      '@/types': path.resolve(srcPath, 'types'),
-    });
-
-    // Konfiguracja modułów
-    config.resolve.modules = [
-      srcPath,
-      'node_modules',
-      path.resolve(__dirname),
-    ];
-
-    // Rozszerzenia
-    config.resolve.extensions = [
-      '.ts',
-      '.tsx',
-      '.js',
-      '.jsx',
-      '.json',
-      '.mjs',
-      ...(config.resolve.extensions || [])
-    ];
-
-    // Dodatkowe ustawienia dla Vercel
-    config.resolve.symlinks = false;
-    config.resolve.cacheWithContext = false;
+    // Minimalna konfiguracja webpack - pozwól Next.js obsłużyć aliasy
+    // Usuń wszystkie custom aliasy - może powodują problemy na Vercel
 
     return config;
   },
