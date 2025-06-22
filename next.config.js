@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
-import path from "path";
+const path = require('path');
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Optymalizacje kompilacji
   experimental: {
     // optimizeCss: true, // Wyłączone - powoduje błąd z 'critters'
@@ -27,27 +27,43 @@ const nextConfig: NextConfig = {
       };
     }
     
-    // Alias '@' -> ./src for both server & client bundles
-    config.resolve.alias = {
-      ...(config.resolve.alias || {}),
-      '@': path.resolve(__dirname, 'src'),
-    };
+    // Bardzo robustna konfiguracja aliasów dla Vercel
+    const srcPath = path.resolve(__dirname, 'src');
+    
+    // Wyczyść istniejące aliasy
+    config.resolve.alias = config.resolve.alias || {};
+    
+    // Dodaj nasze aliasy
+    Object.assign(config.resolve.alias, {
+      '@': srcPath,
+      '@/lib': path.resolve(srcPath, 'lib'),
+      '@/components': path.resolve(srcPath, 'components'),
+      '@/app': path.resolve(srcPath, 'app'),
+      '@/hooks': path.resolve(srcPath, 'hooks'),
+      '@/types': path.resolve(srcPath, 'types'),
+    });
 
-    // Dodatkowa konfiguracja dla Vercel
+    // Konfiguracja modułów
     config.resolve.modules = [
-      path.resolve(__dirname, 'src'),
-      'node_modules'
+      srcPath,
+      'node_modules',
+      path.resolve(__dirname),
     ];
 
-    // Upewnij się, że rozszerzenia są prawidłowo rozpoznawane
+    // Rozszerzenia
     config.resolve.extensions = [
       '.ts',
       '.tsx',
       '.js',
       '.jsx',
       '.json',
+      '.mjs',
       ...(config.resolve.extensions || [])
     ];
+
+    // Dodatkowe ustawienia dla Vercel
+    config.resolve.symlinks = false;
+    config.resolve.cacheWithContext = false;
 
     return config;
   },
@@ -156,4 +172,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig; 

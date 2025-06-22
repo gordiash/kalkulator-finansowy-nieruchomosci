@@ -6,7 +6,7 @@ import { Autocomplete } from '@/components/ui/autocomplete'
 import { FieldWithTooltip } from '@/components/ui/field-with-tooltip'
 import { formatCurrency } from '@/lib/utils'
 import { useLocations } from '@/hooks/useLocations'
-import { useAccessibilityCheck } from '../lib/accessibility'
+import { useAccessibilityCheck } from '@/lib/accessibility'
 import { valuationAnalytics } from '@/lib/analytics'
 import Link from 'next/link'
 
