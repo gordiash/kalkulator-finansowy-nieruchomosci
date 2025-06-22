@@ -1,14 +1,34 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Autocomplete } from '@/components/ui/autocomplete'
 import { FieldWithTooltip } from '@/components/ui/field-with-tooltip'
-import { formatCurrency } from '../lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import { useLocations } from '../hooks/useLocations'
 import { useAccessibilityCheck } from '../accessibility'
 import { valuationAnalytics } from '../lib/analytics'
 import Link from 'next/link'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 interface ValuationResponse {
   price: number
