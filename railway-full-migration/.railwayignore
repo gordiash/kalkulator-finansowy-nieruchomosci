@@ -1,0 +1,46 @@
+# Railway ignore file
+node_modules/
+.next/
+.git/
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+coverage/
+.nyc_output/
+test-results/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Documentation (zbyt duże)
+docs/
+README_*.md
+
+# Backup files
+*.bak
+*.backup 
