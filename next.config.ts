@@ -33,6 +33,22 @@ const nextConfig: NextConfig = {
       '@': path.resolve(__dirname, 'src'),
     };
 
+    // Dodatkowa konfiguracja dla Vercel
+    config.resolve.modules = [
+      path.resolve(__dirname, 'src'),
+      'node_modules'
+    ];
+
+    // Upewnij się, że rozszerzenia są prawidłowo rozpoznawane
+    config.resolve.extensions = [
+      '.ts',
+      '.tsx',
+      '.js',
+      '.jsx',
+      '.json',
+      ...(config.resolve.extensions || [])
+    ];
+
     return config;
   },
 

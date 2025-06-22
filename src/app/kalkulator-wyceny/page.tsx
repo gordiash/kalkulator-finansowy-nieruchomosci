@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import ValuationCalculator from '../../components/ValuationCalculator'
-import { generateDynamicMetadata } from '@/lib/seo/dynamicMeta'
+import { generateDynamicMetadata } from '../../lib/seo/dynamicMeta'
 
 export const revalidate = 0
 

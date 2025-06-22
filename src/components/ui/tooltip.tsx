@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 
 interface TooltipProps {
@@ -43,7 +43,7 @@ export function Tooltip({
     setIsVisible(false)
   }
 
-  const calculatePosition = () => {
+  const calculatePosition = useCallback(() => {
     if (!triggerRef.current) return
 
     const triggerRect = triggerRef.current.getBoundingClientRect()
@@ -153,7 +153,7 @@ export function Tooltip({
     
     // Zapisz efektywną pozycję do użycia przy renderowaniu strzałki
     setEffectivePosition(effectivePosition)
-  }
+  }, [position])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -184,7 +184,7 @@ export function Tooltip({
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [isVisible])
+  }, [isVisible, calculatePosition])
 
   // Aktualizuj efektywną pozycję gdy pozycja początkowa się zmieni
   useEffect(() => {
