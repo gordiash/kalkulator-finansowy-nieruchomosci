@@ -7,8 +7,8 @@ import * as z from "zod"
 import Link from 'next/link'
 
 // UI Components
-import { Input } from '@/components/ui/input'
-import { Button } from "@/components/ui/button"
+import { Input } from './ui/input'
+import { Button } from "./ui/button"
 import {
   Form,
   FormControl,
@@ -16,17 +16,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "./ui/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Autocomplete } from '@/components/ui/autocomplete'
-import { FieldWithTooltip } from '@/components/ui/field-with-tooltip'
+} from "./ui/select"
+import { Slider } from "./ui/slider"
+import { Autocomplete } from './ui/autocomplete'
+import { FieldWithTooltip } from './ui/field-with-tooltip'
 
 // Utilities and Hooks
 import { formatCurrency } from '@/lib/utils'

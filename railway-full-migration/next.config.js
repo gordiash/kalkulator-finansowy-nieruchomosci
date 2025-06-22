@@ -10,10 +10,17 @@ const nextConfig = {
   
   // Webpack configuration
   webpack: (config, { isServer }) => {
-    // Rozwiązanie problemów z modułami
+    const path = require('path');
+    
+    // Rozwiązanie problemów z modułami - używaj ścieżek absolutnych
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': './src',
+      '@': path.resolve(__dirname, './src'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/lib': path.resolve(__dirname, './src/lib'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/types': path.resolve(__dirname, './src/types'),
+      '@/app': path.resolve(__dirname, './src/app'),
     };
     
     // Ignoruj Python pliki w webpack
