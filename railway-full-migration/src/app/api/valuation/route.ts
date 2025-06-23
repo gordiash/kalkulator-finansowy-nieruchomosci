@@ -185,6 +185,11 @@ async function callEnsembleModel(inputData: {
       }
     })
     
+    pythonProcess.on('error', (err) => {
+      console.error('[Ensemble] BŁĄD PROCESU SPAWN:', err);
+      resolve(null);
+    });
+    
     // Timeout po 15 sekund (ensemble może być wolniejszy)
     setTimeout(() => {
       pythonProcess.kill()
@@ -257,7 +262,7 @@ async function callRandomForestModel(inputData: {
     })
     
     pythonProcess.on('error', (error) => {
-      console.error('[Random Forest] Process error:', error)
+      console.error('[Random Forest] BŁĄD PROCESU SPAWN:', error);
       resolve(null)
     })
     
