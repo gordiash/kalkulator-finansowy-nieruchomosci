@@ -45,7 +45,7 @@ Kompletny test środowiska ML:
 - Weryfikacja struktury katalogów
 
 ### 5. **NOWY** - Debug Python Endpoint
-**Plik**: `src/app/api/debug-python/route.ts`
+**Plik**: `src/app/api/diagnostics/route.ts`
 
 Kompleksowa diagnostyka Python:
 - Test wszystkich ścieżek Python
@@ -67,10 +67,10 @@ curl -X POST https://your-railway-app.railway.app/api/health
 ### 3. **NOWY** - Debug Python
 ```bash
 # Test środowiska Python
-curl https://your-railway-app.railway.app/api/debug-python
+curl https://your-railway-app.railway.app/api/diagnostics
 
 # Test spawn Python
-curl -X POST https://your-railway-app.railway.app/api/debug-python
+curl -X POST https://your-railway-app.railway.app/api/diagnostics
 ```
 
 ### 4. Test Wyceny
@@ -100,8 +100,8 @@ curl -X POST https://your-railway-app.railway.app/api/valuation-railway \
 ### Po Deployment
 - [ ] Sprawdź `/api/health` - status modeli ML
 - [ ] Uruchom `POST /api/health` dla pełnego testu
-- [ ] **NOWY** - Sprawdź `/api/debug-python` dla diagnozy Python
-- [ ] **NOWY** - Uruchom `POST /api/debug-python` dla testu spawn
+- [ ] **NOWY** - Sprawdź `/api/diagnostics` dla diagnozy Python
+- [ ] **NOWY** - Uruchom `POST /api/diagnostics` dla testu spawn
 - [ ] Przetestuj wycenę przez `/api/valuation-railway`
 - [ ] Sprawdź logi Railway pod kątem błędów Python
 
@@ -110,10 +110,10 @@ curl -X POST https://your-railway-app.railway.app/api/valuation-railway \
 ### **NOWY** - Python Debug Commands
 ```bash
 # Check Python environment
-curl https://your-app.railway.app/api/debug-python
+curl https://your-app.railway.app/api/diagnostics
 
 # Test Python spawn
-curl -X POST https://your-app.railway.app/api/debug-python
+curl -X POST https://your-app.railway.app/api/diagnostics
 ```
 
 ### Sprawdź Logi
@@ -176,7 +176,7 @@ Po naprawie API powinno zwracać:
 
 ### Problem: `spawn python3 ENOENT`
 **Rozwiązanie**:
-1. Sprawdź `/api/debug-python` - gdzie jest Python
+1. Sprawdź `/api/diagnostics` - gdzie jest Python
 2. Ustaw pełną ścieżkę w kodzie
 3. Zweryfikuj PATH dla użytkownika `nextjs`
 
@@ -184,7 +184,7 @@ Po naprawie API powinno zwracać:
 **Rozwiązanie**:
 1. Sprawdź czy Dockerfile kopiuje modele
 2. Zweryfikuj uprawnienia plików
-3. Sprawdź `/api/debug-python` - lista plików
+3. Sprawdź `/api/diagnostics` - lista plików
 
 ## 🚀 Dalsze Optymalizacje
 
@@ -196,5 +196,5 @@ Po naprawie API powinno zwracać:
 ---
 
 **Status**: ✅ Ready for Railway deployment
-**Wersja**: 2.1 - added Python debugging
+**Wersja**: 2.2 - renamed debug endpoint
 **Data**: $(date +%Y-%m-%d) 
