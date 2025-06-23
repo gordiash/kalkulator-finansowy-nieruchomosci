@@ -20,43 +20,81 @@ export interface BlogPostDetail extends BlogPostListing {
 
 // Zwraca tylko opublikowane posty – używane w widoku bloga publicznego
 export async function fetchPublishedPosts() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching published posts:', error);
+  // Sprawdź czy Supabase jest skonfigurowany
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'dummy_key') {
+    console.warn('Supabase not configured, returning empty posts');
     return [];
   }
-  return data;
+
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching published posts:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return [];
+    }
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching published posts:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: error instanceof Error ? error.stack : String(error),
+      hint: '',
+      code: ''
+    });
+    return [];
+  }
 }
 
 // Zwraca najnowsze opublikowane posty z limitem
 export async function fetchLatestPosts(limit: number = 6) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Sprawdź czy Supabase jest skonfigurowany
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'dummy_key') {
+    console.warn('Supabase not configured, returning empty posts');
+    return [];
+  }
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('id, slug, title, short_content, image_display, tags, seo_title, seo_content, status, published_at')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
-    .limit(limit);
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
-  if (error) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id, slug, title, short_content, image_display, tags, seo_title, seo_content, status, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching latest posts:', error);
+      return [];
+    }
+    return data || [];
+  } catch (error) {
     console.error('Error fetching latest posts:', error);
     return [];
   }
-  return data;
 }
 
 // Zwraca wszystkie posty – wykorzystywane w panelu admina
