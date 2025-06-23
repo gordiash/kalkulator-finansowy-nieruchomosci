@@ -59,7 +59,16 @@ export const generateMetadata = (): Metadata => {
 
 export default async function HomePage() {
   // Pobierz najnowsze posty z bloga
-  const latestPosts = await fetchLatestPosts(6);
+  let latestPosts: any[] = []
+  try {
+    // Sprawdź czy Supabase jest skonfigurowany
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {
+      latestPosts = await fetchLatestPosts(6);
+    }
+  } catch (error) {
+    console.warn('HomePage: Nie można pobrać postów z Supabase:', error)
+    latestPosts = []
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",

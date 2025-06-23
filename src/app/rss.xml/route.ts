@@ -2,7 +2,17 @@ import { fetchPublishedPosts } from '@/lib/supabase/blog'
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
-  const posts = await fetchPublishedPosts()
+  
+  let posts: any[] = []
+  try {
+    // Sprawdź czy Supabase jest skonfigurowany
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {
+      posts = await fetchPublishedPosts()
+    }
+  } catch (error) {
+    console.warn('RSS: Nie można pobrać postów z Supabase:', error)
+    posts = []
+  }
 
   const items = posts
     .slice(0, 10)

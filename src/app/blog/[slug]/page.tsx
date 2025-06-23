@@ -92,8 +92,17 @@ mdParser.renderer.rules.td_close = () => '</td>';
 
 // Generowanie statycznych ścieżek dla postów
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
-  const posts: BlogPostListing[] = await fetchPublishedPosts();
-  return posts.map((p) => ({ slug: p.slug }));
+  try {
+    // Sprawdź czy Supabase jest skonfigurowany
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {
+      const posts: BlogPostListing[] = await fetchPublishedPosts();
+      return posts.map((p) => ({ slug: p.slug }));
+    }
+  } catch (error) {
+    console.warn('Blog generateStaticParams: Nie można pobrać postów z Supabase:', error)
+  }
+  // Zwróć pustą tablicę jeśli Supabase nie jest dostępny
+  return [];
 }
 
 // Generowanie metadanych SEO
@@ -101,28 +110,37 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const awaitedParams = await params;
-  const post = await fetchPostBySlug(awaitedParams.slug);
-  if (!post) {
-    return { title: 'Nie znaleziono posta' };
+  try {
+    // Sprawdź czy Supabase jest skonfigurowany
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {
+      const post = await fetchPostBySlug(awaitedParams.slug);
+      if (!post) {
+        return { title: 'Nie znaleziono posta' };
+      }
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+      return {
+        ...defaultMeta,
+        title: post.title,
+        description: post.seo_content ?? post.short_content ?? '',
+        alternates: {
+          canonical: `${baseUrl}/blog/${post.slug}`,
+        },
+        openGraph: {
+          ...defaultMeta.openGraph,
+          title: post.title,
+          description: post.excerpt ?? '',
+          type: 'article',
+          publishedTime: post.published_at,
+          url: `${baseUrl}/blog/${post.slug}`,
+          images: post.image_display ? [{ url: post.image_display }] : undefined,
+        },
+      };
+    }
+  } catch (error) {
+    console.warn('Blog generateMetadata: Nie można pobrać posta z Supabase:', error)
   }
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
-  return {
-    ...defaultMeta,
-    title: post.title,
-    description: post.seo_content ?? post.short_content ?? '',
-    alternates: {
-      canonical: `${baseUrl}/blog/${post.slug}`,
-    },
-    openGraph: {
-      ...defaultMeta.openGraph,
-      title: post.title,
-      description: post.excerpt ?? '',
-      type: 'article',
-      publishedTime: post.published_at,
-      url: `${baseUrl}/blog/${post.slug}`,
-      images: post.image_display ? [{ url: post.image_display }] : undefined,
-    },
-  };
+  // Fallback metadata
+  return { title: `Blog - ${awaitedParams.slug}` };
 }
 
 // Komponent strony
