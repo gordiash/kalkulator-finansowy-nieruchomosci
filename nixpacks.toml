@@ -1,5 +1,11 @@
 [phases.setup]
-nixPkgs = ["...", "python311", "python311Packages.numpy", "python311Packages.pandas", "python311Packages.scikit-learn", "python311Packages.xgboost", "python311Packages.joblib"]
+nixPkgs = ["...", "python311", "python311Packages.pip"]
 
 [phases.install]
-cmds = ["npm install"] 
+cmds = ["npm install", "python -m venv venv", "source venv/bin/activate && pip install --upgrade pip", "source venv/bin/activate && pip install -r requirements-railway.txt"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "source venv/bin/activate && npm start" 

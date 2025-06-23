@@ -80,11 +80,7 @@ async function runEnsemblePrediction(inputData: ValuationRequest): Promise<Ensem
     
     const modelPath = 'models/ensemble_optimized_0.78pct.pkl'; // najnowszy najlepszy model
     
-    const pythonProcess = spawn('python', [
-      scriptPath,
-      modelPath,
-      JSON.stringify(inputData)
-    ], {
+    const pythonProcess = spawn('bash', ['-c', `source venv/bin/activate && python ${scriptPath} ${modelPath} '${JSON.stringify(inputData)}'`], {
       cwd: process.cwd(),
       timeout: 30000 // 30 sekund timeout
     });
