@@ -1,9 +1,9 @@
-import { fetchPublishedPosts } from '@/lib/supabase/blog'
+import { fetchPublishedPosts, type BlogPostListing } from '@/lib/supabase/blog'
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   
-  let posts: any[] = []
+  let posts: BlogPostListing[] = []
   try {
     // Sprawdź czy Supabase jest skonfigurowany
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {

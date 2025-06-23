@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FiHome, FiTrendingUp, FiBarChart2, FiDollarSign } from 'react-icons/fi';
 import { HelpCircle } from 'lucide-react';
-import { fetchLatestPosts } from '@/lib/supabase/blog';
+import { fetchLatestPosts, type BlogPostListing } from '@/lib/supabase/blog';
 import BlogSlider from '@/components/blog/BlogSlider';
 import type { Metadata } from 'next'
 import { defaultMeta } from '@/lib/seo/defaultMeta'
@@ -59,7 +59,7 @@ export const generateMetadata = (): Metadata => {
 
 export default async function HomePage() {
   // Pobierz najnowsze posty z bloga
-  let latestPosts: any[] = []
+  let latestPosts: BlogPostListing[] = []
   try {
     // Sprawdź czy Supabase jest skonfigurowany
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://dummy.supabase.co') {
