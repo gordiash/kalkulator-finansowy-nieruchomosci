@@ -76,7 +76,7 @@ async function callEnsembleModel(inputData: {
     
     console.log('[Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))
     
-    const pythonProcess = spawn('bash', ['-c', `source venv/bin/activate && python ${scriptPath} ${modelPath} '${JSON.stringify(ensembleInput)}'`])
+    const pythonProcess = spawn('python', [scriptPath, modelPath, JSON.stringify(ensembleInput)])
     
     let output = ''
     let errorOutput = ''
@@ -183,7 +183,7 @@ async function callRandomForestModel(inputData: {
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
-    const pythonProcess = spawn('bash', ['-c', `source venv/bin/activate && python ${scriptPath} '${JSON.stringify(inputData)}'`])
+    const pythonProcess = spawn('python', [scriptPath, JSON.stringify(inputData)])
     
     let output = ''
     let errorOutput = ''

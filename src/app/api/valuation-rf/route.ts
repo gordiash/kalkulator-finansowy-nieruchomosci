@@ -24,7 +24,7 @@ async function callRandomForestModel(inputData: {
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
-    const pythonProcess = spawn('bash', ['-c', `source venv/bin/activate && python ${scriptPath} '${JSON.stringify(inputData)}'`])
+    const pythonProcess = spawn('python', [scriptPath, JSON.stringify(inputData)])
     
     let output = ''
     let errorOutput = ''
