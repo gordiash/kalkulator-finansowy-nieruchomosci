@@ -1,0 +1,36 @@
+feature,importance
+area,0.5358575120751885
+building_age,0.11019166977085736
+year,0.10365591777394348
+rooms,0.07086264008375168
+floor,0.06572565383203288
+rooms_per_area,0.06367552115324628
+district_Likusy,0.008980887839892274
+district_Osiedle Grunwaldzkie,0.00643799127991049
+district_Osiedle Kościuszki,0.004828284973247724
+district_Gutkowo,0.0046077889117738646
+district_Redykajny,0.0045692832466255676
+district_Osiedle Wojska Polskiego,0.0043958807542912644
+district_Podgrodzie,0.0028562009858600678
+district_Osiedle Generałów,0.0025450331095354583
+district_Osiedle Kętrzyńskiego,0.0019476006309650732
+city_Olsztyn,0.0016536835882467083
+district_Kormoran,0.0010165190957534271
+district_Brzeziny,0.0009320169055496878
+district_Śródmieście,0.000900962045082239
+district_Nagórki,0.0008975605047212623
+district_Jaroty,0.0006656270311104715
+district_Dajtki,0.0005013328695033167
+district_Podleśna,0.0004859196976174748
+district_Zatorze,0.0004680499731070072
+district_Pojezierze,0.00045842823939004537
+city_Stawiguda,0.0002525960475173509
+district_Pieczewo,0.00016042202016672795
+city_olsztyński,0.00013329306775737836
+district_Osiedle Mazurskie,0.0001095772277725734
+district_Dywity,0.00010346300086660051
+district_Stawiguda,7.111746563714844e-05
+district_Osiedle Nad Jeziorem Długim,2.7183144669277314e-05
+district_Zielona Górka,2.438165440931525e-05
+district_Kortowo,0.0
+district_Kieźliny,0.0

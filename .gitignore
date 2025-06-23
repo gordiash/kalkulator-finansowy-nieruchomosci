@@ -187,6 +187,7 @@ quick_*.py
 
 # Data files
 *.csv
+!models/*.csv
 *.xlsx
 *.json
 !package.json
