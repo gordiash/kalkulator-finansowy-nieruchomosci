@@ -26,19 +26,19 @@ const valuationSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Railway Valuation Request:', body);
+    console.log('🚂 Railway Valuation Request:', body);
 
     // Walidacja danych
     const validatedData = valuationSchema.parse(body);
 
     // Wywołaj Python script dla predykcji
-    const prediction = await callPythonModel(validatedData);
+    const prediction = await callPythonEnsembleModel(validatedData);
 
-    console.log('Railway Valuation Response:', prediction);
+    console.log('🚂 Railway Valuation Response:', prediction);
     return NextResponse.json(prediction);
 
   } catch (error) {
-    console.error('Railway Valuation Error:', error);
+    console.error('❌ Railway Valuation Error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -68,60 +68,131 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function callPythonModel(data: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    // Ścieżka do skryptu Python
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_railway.py');
+async function callPythonEnsembleModel(data: any): Promise<any> {
+  return new Promise((resolve) => {
+    console.log('🔬 Trying to call ensemble model...');
+    
+    // Użyj bardziej kompatybilnego skryptu
+    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
+    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.78pct.pkl');
+    
+    console.log('📍 Script path:', scriptPath);
+    console.log('📍 Model path:', modelPath);
     
     // Sprawdź czy skrypt istnieje
     const fs = require('fs');
     if (!fs.existsSync(scriptPath)) {
-      console.log('Python script not found, using heuristic');
+      console.log('❌ Python script not found, using heuristic');
+      resolve(calculateHeuristicPrice(data));
+      return;
+    }
+    
+    if (!fs.existsSync(modelPath)) {
+      console.log('❌ Model file not found, using heuristic');
       resolve(calculateHeuristicPrice(data));
       return;
     }
 
-    // Wywołaj Python script
-    const pythonProcess = spawn('python3', [scriptPath], {
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
+    // Przygotuj dane w formacie ensemble
+    const ensembleData = {
+      city: data.city,
+      district: data.district || 'inne',
+      area: data.area,
+      rooms: data.rooms,
+      year_built: data.year || 1990,
+      location_tier: data.locationTier || 'medium',
+      building_age_category: mapAgeCategory(data.year || 1990),
+      building_type: data.buildingType || 'apartment',
+      parking: data.parking || 'none',
+      finishing: data.finishing || 'standard',
+      elevator: data.elevator === 'yes' ? 'yes' : 'no',
+      balcony: data.balcony !== 'none' ? 'balcony' : 'none',
+      orientation: data.orientation || 'unknown',
+      transport: data.transport || 'medium',
+      total_floors: data.totalFloors || 5
+    };
 
-    // Wyślij dane do Python
-    pythonProcess.stdin.write(JSON.stringify(data));
-    pythonProcess.stdin.end();
+    console.log('🔧 Ensemble input data:', ensembleData);
+
+    // Wywołaj Python script z ensemble modelem
+    const pythonProcess = spawn('python3', [scriptPath, modelPath, JSON.stringify(ensembleData)], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: process.cwd()
+    });
 
     let output = '';
     let error = '';
 
     pythonProcess.stdout.on('data', (data) => {
       output += data.toString();
+      console.log('🐍 Python stdout:', data.toString());
     });
 
     pythonProcess.stderr.on('data', (data) => {
       error += data.toString();
+      console.log('🐍 Python stderr:', data.toString());
     });
 
     pythonProcess.on('close', (code) => {
+      console.log(`🐍 Python process closed with code: ${code}`);
+      
       if (code === 0) {
         try {
-          const result = JSON.parse(output);
-          resolve(result);
+          // Szukaj JSON w output
+          const jsonMatch = output.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const result = JSON.parse(jsonMatch[0]);
+            console.log('✅ Ensemble prediction success:', result);
+            
+            // Zwróć w standardowym formacie
+            resolve({
+              price: Math.round(result.ensemble_prediction / 1000) * 1000,
+              minPrice: Math.round(result.ensemble_prediction * 0.98 / 1000) * 1000,
+              maxPrice: Math.round(result.ensemble_prediction * 1.02 / 1000) * 1000,
+              currency: 'PLN',
+              method: 'ensemble_v2.0_railway',
+              confidence: '±2%',
+              note: 'Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE',
+              timestamp: new Date().toISOString(),
+              debug: {
+                individual_predictions: result.individual_predictions,
+                input_data: ensembleData
+              }
+            });
+          } else {
+            console.error('❌ No JSON found in Python output:', output);
+            resolve(calculateHeuristicPrice(data));
+          }
         } catch (parseError) {
-          console.error('Failed to parse Python output:', parseError);
+          console.error('❌ Failed to parse Python output:', parseError, 'Output:', output);
           resolve(calculateHeuristicPrice(data));
         }
       } else {
-        console.error('Python script error:', error);
+        console.error('❌ Python script error:', error);
         resolve(calculateHeuristicPrice(data));
       }
     });
 
+    pythonProcess.on('error', (err) => {
+      console.error('❌ Failed to spawn Python process:', err);
+      resolve(calculateHeuristicPrice(data));
+    });
+
     // Timeout po 30 sekundach
     setTimeout(() => {
+      console.log('⏰ Python process timeout');
       pythonProcess.kill();
       resolve(calculateHeuristicPrice(data));
     }, 30000);
   });
+}
+
+function mapAgeCategory(year: number): string {
+  if (year >= 2015) return 'very_new';
+  if (year >= 2010) return 'new';
+  if (year >= 2000) return 'modern';
+  if (year >= 1990) return 'renovated';
+  return 'old';
 }
 
 function calculateHeuristicPrice(data: any) {
