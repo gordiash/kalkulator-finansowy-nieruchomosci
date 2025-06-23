@@ -44,6 +44,14 @@ Kompletny test środowiska ML:
 - Test ładowania modeli pickle
 - Weryfikacja struktury katalogów
 
+### 5. **NOWY** - Debug Python Endpoint
+**Plik**: `src/app/api/debug-python/route.ts`
+
+Kompleksowa diagnostyka Python:
+- Test wszystkich ścieżek Python
+- Sprawdzenie PATH i środowiska
+- Lista plików modeli i skryptów
+
 ## 🧪 Testowanie
 
 ### 1. Health Check
@@ -56,7 +64,16 @@ curl https://your-railway-app.railway.app/api/health
 curl -X POST https://your-railway-app.railway.app/api/health
 ```
 
-### 3. Test Wyceny
+### 3. **NOWY** - Debug Python
+```bash
+# Test środowiska Python
+curl https://your-railway-app.railway.app/api/debug-python
+
+# Test spawn Python
+curl -X POST https://your-railway-app.railway.app/api/debug-python
+```
+
+### 4. Test Wyceny
 ```bash
 curl -X POST https://your-railway-app.railway.app/api/valuation-railway \
   -H "Content-Type: application/json" \
@@ -78,14 +95,26 @@ curl -X POST https://your-railway-app.railway.app/api/valuation-railway \
 - [x] Skopiowane modele ML do `railway-full-migration/models/`
 - [x] Zaktualizowane API endpoints
 - [x] Dodane testy diagnostyczne
+- [x] **NOWY** - Endpoint debug Python
 
 ### Po Deployment
 - [ ] Sprawdź `/api/health` - status modeli ML
 - [ ] Uruchom `POST /api/health` dla pełnego testu
+- [ ] **NOWY** - Sprawdź `/api/debug-python` dla diagnozy Python
+- [ ] **NOWY** - Uruchom `POST /api/debug-python` dla testu spawn
 - [ ] Przetestuj wycenę przez `/api/valuation-railway`
 - [ ] Sprawdź logi Railway pod kątem błędów Python
 
 ## 🔍 Debugging
+
+### **NOWY** - Python Debug Commands
+```bash
+# Check Python environment
+curl https://your-app.railway.app/api/debug-python
+
+# Test Python spawn
+curl -X POST https://your-app.railway.app/api/debug-python
+```
 
 ### Sprawdź Logi
 ```bash
@@ -97,6 +126,7 @@ railway logs
 ✅ Ensemble model loaded successfully
 🐍 Python packages OK
 🔧 Ensemble input data: {...}
+[Ensemble] Using Python command: /usr/bin/python3
 ```
 
 ### Błędy do Szukania
@@ -104,6 +134,14 @@ railway logs
 ❌ Python script not found
 ❌ Model file not found  
 ❌ Failed to load ensemble model
+❌ spawn python3 ENOENT
+```
+
+### **NOWY** - Błędy Python Environment
+```
+Error: spawn python3 ENOENT
+PATH: ...
+which python3: not found
 ```
 
 ## 🎯 Oczekiwane Rezultaty
@@ -134,6 +172,20 @@ Po naprawie API powinno zwracać:
 - **Fallback**: Heurystyka tylko w przypadku błędu
 - **Monitoring**: Health check pokazuje status ML
 
+## 🔧 **NOWY** - Rozwiązywanie Problemów Python
+
+### Problem: `spawn python3 ENOENT`
+**Rozwiązanie**:
+1. Sprawdź `/api/debug-python` - gdzie jest Python
+2. Ustaw pełną ścieżkę w kodzie
+3. Zweryfikuj PATH dla użytkownika `nextjs`
+
+### Problem: Model files not found
+**Rozwiązanie**:
+1. Sprawdź czy Dockerfile kopiuje modele
+2. Zweryfikuj uprawnienia plików
+3. Sprawdź `/api/debug-python` - lista plików
+
 ## 🚀 Dalsze Optymalizacje
 
 1. **Warm-up**: Pre-load modeli przy starcie
@@ -144,5 +196,5 @@ Po naprawie API powinno zwracać:
 ---
 
 **Status**: ✅ Ready for Railway deployment
-**Wersja**: 2.0
+**Wersja**: 2.1 - added Python debugging
 **Data**: $(date +%Y-%m-%d) 
