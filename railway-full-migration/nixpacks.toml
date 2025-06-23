@@ -1,2 +1,5 @@
 [phases.setup]
-nixPkgs = ["...", "python311", "poetry"] 
+nixPkgs = ["...", "python311", "poetry"]
+
+[phases.install]
+cmds = ["npm install", "pip install -r railway-full-migration/requirements-railway.txt"] 
