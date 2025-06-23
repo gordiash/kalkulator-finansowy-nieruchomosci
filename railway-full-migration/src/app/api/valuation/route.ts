@@ -75,8 +75,30 @@ async function callEnsembleModel(inputData: {
     }
     
     console.log('[Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))
+    console.log('[Ensemble] Script path:', scriptPath)
+    console.log('[Ensemble] Model path:', modelPath)
     
-    const pythonProcess = spawn('python3', [scriptPath, modelPath, JSON.stringify(ensembleInput)])
+    // Sprawdź czy pliki istnieją
+    const fs = require('fs')
+    if (!fs.existsSync(scriptPath)) {
+      console.error('[Ensemble] Script not found:', scriptPath)
+      resolve(null)
+      return
+    }
+    if (!fs.existsSync(modelPath)) {
+      console.error('[Ensemble] Model not found:', modelPath)
+      resolve(null)
+      return
+    }
+    
+    // Używaj pełnej ścieżki do python3
+    const pythonCmd = process.env.NODE_ENV === 'production' ? '/usr/bin/python3' : 'python3'
+    console.log('[Ensemble] Using Python command:', pythonCmd)
+    
+    const pythonProcess = spawn(pythonCmd, [scriptPath, modelPath, JSON.stringify(ensembleInput)], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, PATH: '/usr/local/bin:/usr/bin:/bin' }
+    })
     
     let output = ''
     let errorOutput = ''
@@ -183,7 +205,25 @@ async function callRandomForestModel(inputData: {
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
-    const pythonProcess = spawn('python3', [scriptPath, JSON.stringify(inputData)])
+    
+    console.log('[Random Forest] Script path:', scriptPath)
+    
+    // Sprawdź czy skrypt istnieje
+    const fs = require('fs')
+    if (!fs.existsSync(scriptPath)) {
+      console.error('[Random Forest] Script not found:', scriptPath)
+      resolve(null)
+      return
+    }
+    
+    // Używaj pełnej ścieżki do python3
+    const pythonCmd = process.env.NODE_ENV === 'production' ? '/usr/bin/python3' : 'python3'
+    console.log('[Random Forest] Using Python command:', pythonCmd)
+    
+    const pythonProcess = spawn(pythonCmd, [scriptPath, JSON.stringify(inputData)], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, PATH: '/usr/local/bin:/usr/bin:/bin' }
+    })
     
     let output = ''
     let errorOutput = ''
@@ -214,6 +254,11 @@ async function callRandomForestModel(inputData: {
         console.error('[Random Forest] Błąd wykonania:', errorOutput)
         resolve(null)
       }
+    })
+    
+    pythonProcess.on('error', (error) => {
+      console.error('[Random Forest] Process error:', error)
+      resolve(null)
     })
     
     // Timeout po 10 sekundach

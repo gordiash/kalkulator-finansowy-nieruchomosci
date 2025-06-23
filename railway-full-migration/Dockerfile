@@ -50,7 +50,13 @@ COPY --chown=nextjs:nodejs scripts ./scripts
 # Ustaw uprawnienia dla skryptów Python
 RUN chmod +x scripts/*.py
 
+# Ustaw PATH dla użytkownika nextjs
+ENV PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
+# Sprawdź dostęp do Python dla użytkownika nextjs
 USER nextjs
+RUN python3 --version || echo "Python3 not accessible for nextjs user"
+
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
