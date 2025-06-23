@@ -91,8 +91,8 @@ async function callEnsembleModel(inputData: {
       return
     }
     
-    // Używaj pełnej ścieżki do python3
-    const pythonCmd = process.env.NODE_ENV === 'production' ? '/usr/bin/python3' : 'python3'
+    // Używaj polecenia python
+    const pythonCmd = 'python'
     console.log('[Ensemble] Using Python command:', pythonCmd)
     
     const pythonProcess = spawn(pythonCmd, [scriptPath, modelPath, JSON.stringify(ensembleInput)], {
@@ -216,8 +216,8 @@ async function callRandomForestModel(inputData: {
       return
     }
     
-    // Używaj pełnej ścieżki do python3
-    const pythonCmd = process.env.NODE_ENV === 'production' ? '/usr/bin/python3' : 'python3'
+    // Używaj polecenia python
+    const pythonCmd = 'python'
     console.log('[Random Forest] Using Python command:', pythonCmd)
     
     const pythonProcess = spawn(pythonCmd, [scriptPath, JSON.stringify(inputData)], {
