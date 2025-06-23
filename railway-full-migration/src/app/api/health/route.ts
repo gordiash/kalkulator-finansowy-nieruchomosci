@@ -11,7 +11,12 @@ export async function GET() {
       environment: process.env.RAILWAY_ENVIRONMENT || 'development',
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
-      memory: process.memoryUsage()
+      memory: process.memoryUsage(),
+      services: {
+        nextjs: 'healthy',
+        ml_models: await checkMLModels(),
+        python_env: await checkPythonEnvironment(),
+      }
     };
 
     return NextResponse.json(status, { status: 200 });
@@ -73,7 +78,7 @@ async function checkMLModels(): Promise<{ status: string; details: any }> {
 async function checkPythonEnvironment(): Promise<{ status: string; details: any }> {
   return new Promise((resolve) => {
     try {
-      const pythonProcess = spawn('python3', ['--version'], {
+      const pythonProcess = spawn('python', ['--version'], {
         stdio: ['pipe', 'pipe', 'pipe']
       });
       
@@ -173,7 +178,7 @@ async function runMLTest(): Promise<any> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'test_models_railway.py');
     
-    const pythonProcess = spawn('python3', [scriptPath], {
+    const pythonProcess = spawn('python', [scriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: process.cwd()
     });

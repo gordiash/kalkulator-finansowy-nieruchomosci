@@ -115,7 +115,10 @@ async function callPythonEnsembleModel(data: any): Promise<any> {
     console.log('🔧 Ensemble input data:', ensembleData);
 
     // Wywołaj Python script z ensemble modelem
-    const pythonProcess = spawn('python3', [scriptPath, modelPath, JSON.stringify(ensembleData)], {
+    console.log(`[Ensemble] Używam skryptu: ${scriptPath}`);
+    console.log(`[Ensemble] Używam modelu: ${modelPath}`);
+
+    const pythonProcess = spawn('python', [scriptPath, modelPath, JSON.stringify(ensembleData)], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: process.cwd()
     });

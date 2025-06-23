@@ -13,72 +13,72 @@ export async function GET() {
       python_tests: []
     };
 
-    // Test 1: which python3
+    // Test 1: which python
     try {
-      const { stdout, stderr } = await execAsync('which python3');
+      const { stdout, stderr } = await execAsync('which python');
       results.python_tests.push({
-        test: 'which python3',
+        test: 'which python',
         success: true,
         output: stdout.trim(),
         error: stderr
       });
     } catch (error: any) {
       results.python_tests.push({
-        test: 'which python3',
+        test: 'which python',
         success: false,
         output: '',
         error: error.message
       });
     }
 
-    // Test 2: whereis python3
+    // Test 2: whereis python
     try {
-      const { stdout, stderr } = await execAsync('whereis python3');
+      const { stdout, stderr } = await execAsync('whereis python');
       results.python_tests.push({
-        test: 'whereis python3',
+        test: 'whereis python',
         success: true,
         output: stdout.trim(),
         error: stderr
       });
     } catch (error: any) {
       results.python_tests.push({
-        test: 'whereis python3',
+        test: 'whereis python',
         success: false,
         output: '',
         error: error.message
       });
     }
 
-    // Test 3: python3 --version
+    // Test 3: python --version
     try {
-      const { stdout, stderr } = await execAsync('python3 --version');
+      const { stdout, stderr } = await execAsync('python --version');
       results.python_tests.push({
-        test: 'python3 --version',
+        test: 'python --version',
         success: true,
         output: stdout.trim() || stderr.trim(),
         error: ''
       });
     } catch (error: any) {
       results.python_tests.push({
-        test: 'python3 --version',
+        test: 'python --version',
         success: false,
         output: '',
         error: error.message
       });
     }
 
-    // Test 4: /usr/bin/python3 --version
+    // Test 4: /usr/bin/python --version
     try {
-      const { stdout, stderr } = await execAsync('/usr/bin/python3 --version');
+      const { stdout, stderr } = await execAsync('/usr/bin/python --version');
       results.python_tests.push({
-        test: '/usr/bin/python3 --version',
+        test: '/usr/bin/python --version',
         success: true,
         output: stdout.trim() || stderr.trim(),
         error: ''
       });
     } catch (error: any) {
       results.python_tests.push({
-        test: '/usr/bin/python3 --version',
+        test: '/usr/bin/python --version',
         success: false,
         output: '',
         error: error.message
@@ -134,7 +134,7 @@ export async function GET() {
 
 export async function POST() {
   try {
-    // Test spawn python3 z prostym skryptem
+    // Test spawn python z prostym skryptem
     const testResult = await testPythonSpawn();
     
     return NextResponse.json({
@@ -153,7 +153,7 @@ export async function POST() {
 
 async function testPythonSpawn(): Promise<any> {
   return new Promise((resolve) => {
-    const pythonCommands = ['python3', '/usr/bin/python3', '/usr/local/bin/python3'];
+    const pythonCommands = ['python', '/usr/bin/python', '/usr/local/bin/python'];
     
     for (const pythonCmd of pythonCommands) {
       try {
