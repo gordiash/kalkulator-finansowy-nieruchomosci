@@ -1,0 +1,6 @@
+Model: XGBRegressor
+MAPE: 0.1570
+RMSE: 175396
+R²: 0.5410
+Features: 35
+Best params: {'subsample': 0.8, 'n_estimators': 300, 'max_depth': 4, 'learning_rate': 0.05, 'colsample_bytree': 0.8}

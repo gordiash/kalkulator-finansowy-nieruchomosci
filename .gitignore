@@ -48,9 +48,6 @@ next-env.d.ts
 #Cursor
 /cursor/
 
-# models
-models/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -160,7 +157,6 @@ Thumbs.db
 .vscode-test
 
 # Machine learning models and data
-*.pkl
 *.joblib
 *.h5
 *.pb
