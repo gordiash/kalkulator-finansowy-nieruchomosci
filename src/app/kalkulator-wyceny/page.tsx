@@ -40,39 +40,7 @@ export default async function ValuationPage({ searchParams }: PageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mb-32"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
-                <span className="text-4xl">🏠</span>
-              </div>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Kalkulator Wyceny
-              <span className="block text-emerald-300">Mieszkania</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed max-w-3xl mx-auto">
-              Oszacuj wartość rynkową mieszkania za pomocą <strong className="text-white">EstymatorAI</strong>
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <span className="text-emerald-300 font-semibold">7000+</span> ofert treningowych
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <span className="text-emerald-300 font-semibold">0.79%</span> błąd MAPE
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <span className="text-emerald-300 font-semibold">&lt;3s</span> czas wyceny
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     
 
       {/* Main Content */}
       <section className="container mx-auto px-4 py-16 max-w-5xl relative z-10 -mt-8">
