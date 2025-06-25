@@ -1,0 +1,13 @@
+Model: Random Forest Regressor
+MAPE: 0.1572
+RMSE: 170060
+R²: 0.5685
+Features: 35
+Trees: 300
+
+Top Features:
+- area: 0.5359
+- building_age: 0.1102
+- year: 0.1037
+- rooms: 0.0709
+- floor: 0.0657

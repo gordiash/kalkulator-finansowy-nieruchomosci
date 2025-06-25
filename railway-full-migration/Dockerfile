@@ -1,62 +1,56 @@
-# Etap 1: Budowanie aplikacji Next.js
-FROM node:18-alpine AS builder
+# Użyj oficjalnego obrazu Node.js z Python
+FROM python:3.11-slim-bookworm
+
+# Zainstaluj Node.js i wymagane biblioteki systemowe
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    build-essential \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ustaw katalog roboczy
 WORKDIR /app
-RUN apk add --no-cache libc6-compat
-# Kopiuj pliki zależności i zainstaluj
-COPY package.json package-lock.json* ./
-RUN npm ci
-# Kopiuj resztę plików aplikacji
-COPY . .
-# Uruchom build
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build
 
-# Etap 2: Finalny obraz produkcyjny
-FROM python:3.11-slim-bookworm AS runner
-WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Skopiuj package.json i zainstaluj zależności Node.js
+COPY package*.json ./
+RUN npm ci --only=production
 
-# Instalacja zależności systemowych: bash dla skryptu nodesource i curl dla healthcheck
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends bash curl ca-certificates gnupg && \
-    rm -rf /var/lib/apt/lists/*
-
-# Instalacja Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y --no-install-recommends nodejs
-
-# Sprawdzenie instalacji
-RUN node --version
-RUN python3 --version
-
-# Kopiowanie i instalacja zależności Python
-COPY requirements-railway.txt .
+# Skopiuj requirements.txt i zainstaluj zależności Python
+COPY requirements-railway.txt ./
 RUN pip install --break-system-packages --no-cache-dir -r requirements-railway.txt
 
-# Utworzenie użytkownika
-RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs nextjs
+# Skopiuj modele i skrypty ML PRZED budowaniem Next.js
+COPY models/ ./models/
+COPY scripts/ ./scripts/
 
-# Kopiowanie zbudowanej aplikacji z etapu 'builder'
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Kopiowanie modeli i skryptów ML
-COPY --chown=nextjs:nodejs models ./models
-COPY --chown=nextjs:nodejs scripts ./scripts
-
-# Ustawienie uprawnień dla skryptów
+# Ustaw uprawnienia dla skryptów
 RUN chmod +x scripts/*.py
 
-USER nextjs
-EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+# Skopiuj resztę kodu aplikacji
+COPY . .
 
+# Zbuduj aplikację Next.js
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# Sprawdź czy pliki zostały skopiowane
+RUN echo "=== Sprawdzanie plików ML ===" && \
+    ls -la models/ || echo "Brak katalogu models" && \
+    ls -la scripts/ || echo "Brak katalogu scripts" && \
+    python3 --version && \
+    which python3
+
+# Ustaw port
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"] 
+# Uruchom aplikację
+CMD ["npm", "start"] 

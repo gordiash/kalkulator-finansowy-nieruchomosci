@@ -1,0 +1,16 @@
+Optimized EstymatorAI
+========================
+Ensemble MAPE: 0.78%
+Ensemble RMSE: 4,716 PLN
+Ensemble R²: 0.9990
+Timestamp: 2025-06-21 20:01:52.092294
+
+Model Weights:
+- RF: 0.159
+- LGB: 0.722
+- CATBOOST: 0.119
+
+Individual Models:
+- RF: MAPE 2.73%, R² 0.988
+- LGB: MAPE 0.40%, R² 0.999
+- CATBOOST: MAPE 3.84%, R² 0.983

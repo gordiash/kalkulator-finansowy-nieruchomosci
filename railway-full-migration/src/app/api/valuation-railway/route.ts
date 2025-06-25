@@ -69,10 +69,10 @@ export async function POST(request: NextRequest) {
 }
 
 async function callPythonEnsembleModel(data: any): Promise<any> {
-  // Lista komend Python do przetestowania
+  // Lista komend Python do przetestowania (Railway Docker priority)
   const pythonCommands = [
-    'python',                    // system default
-    'python3',                   // Linux/Mac default
+    'python3',                   // Docker main
+    'python',                    // Docker alias
     '/usr/bin/python3',          // system Linux path
     '/usr/bin/python',           // system Linux path
     '/usr/local/bin/python3'     // alternative installations

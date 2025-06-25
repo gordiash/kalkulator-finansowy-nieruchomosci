@@ -145,7 +145,25 @@ export async function GET() {
       });
     }
 
-    // Test 3: python --version
+    // Test 3: python3 --version (Docker priority)
+    try {
+      const { stdout, stderr } = await execAsync('python3 --version');
+      results.python_tests.push({
+        test: 'python3 --version',
+        success: true,
+        output: stdout.trim() || stderr.trim(),
+        error: ''
+      });
+    } catch (error: unknown) {
+      results.python_tests.push({
+        test: 'python3 --version',
+        success: false,
+        output: '',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Test 4: python --version
     try {
       const { stdout, stderr } = await execAsync('python --version');
       results.python_tests.push({
@@ -163,7 +181,25 @@ export async function GET() {
       });
     }
 
-    // Test 4: /usr/bin/python --version
+    // Test 5: /usr/bin/python3 --version
+    try {
+      const { stdout, stderr } = await execAsync('/usr/bin/python3 --version');
+      results.python_tests.push({
+        test: '/usr/bin/python3 --version',
+        success: true,
+        output: stdout.trim() || stderr.trim(),
+        error: ''
+      });
+    } catch (error: unknown) {
+      results.python_tests.push({
+        test: '/usr/bin/python3 --version',
+        success: false,
+        output: '',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Test 6: /usr/bin/python --version
     try {
       const { stdout, stderr } = await execAsync('/usr/bin/python --version');
       results.python_tests.push({
@@ -181,13 +217,13 @@ export async function GET() {
       });
     }
 
-    // Test 5: $PATH
+    // Test 7: $PATH
     results.path = process.env.PATH;
 
-    // Test 6: current working directory
+    // Test 8: current working directory
     results.cwd = process.cwd();
 
-    // Test 7: Check files
+    // Test 9: Check files
     const fs = require('fs');
     results.file_checks = {
       scripts_dir: fs.existsSync(path.join(process.cwd(), 'scripts')),

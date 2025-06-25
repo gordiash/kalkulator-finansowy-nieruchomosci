@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 interface BlogPost {
   slug: string
@@ -81,8 +81,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    // Pobierz dynamiczne wpisy blogowe z bazy danych
-    const supabase = await getSupabaseServerClient()
+    // Użyj publicznego klienta Supabase (bez cookies) dla statycznego generowania
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Brak konfiguracji Supabase dla sitemap, zwracam tylko statyczne strony')
+      return staticRoutes
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    
     const { data: posts } = await supabase
       .from('posts')
       .select('slug, updated_at, published')
