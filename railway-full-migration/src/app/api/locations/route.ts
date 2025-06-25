@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mysql from 'mysql2/promise'
 
+// Fallback data dla regionu Olsztyn
+const FALLBACK_DATA = {
+  cities: ['Olsztyn', 'Stawiguda', 'Dywity', 'olsztyński'],
+  districts: [
+    'Brzeziny', 'Centrum', 'Dajtki', 'Gutkowo', 'Jaroty', 
+    'Kortowo', 'Likusy', 'Nagórki', 'Pieczewo', 'Podgrodzie',
+    'Redykajny', 'Śródmieście', 'Zatorze'
+  ]
+}
+
+// Sprawdź czy wszystkie wymagane zmienne środowiskowe MySQL są ustawione
+function checkMySQLConfig() {
+  const required = ['MYSQL_HOST', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE']
+  const missing = required.filter(key => !process.env[key])
+  
+  if (missing.length > 0) {
+    console.warn(`[Locations API] Brakuje zmiennych środowiskowych MySQL: ${missing.join(', ')}`)
+    return false
+  }
+  return true
+}
+
 // Konfiguracja połączenia z bazą danych
 const dbConfig = {
   host: process.env.MYSQL_HOST,
@@ -15,6 +37,19 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') // 'cities' lub 'districts'
     const city = searchParams.get('city') // dla filtrowania dzielnic po mieście
+
+    // Sprawdź konfigurację MySQL
+    if (!checkMySQLConfig()) {
+      console.warn('[Locations API] Używam fallback danych - MySQL nie skonfigurowany')
+      
+      if (type === 'cities') {
+        return NextResponse.json({ cities: FALLBACK_DATA.cities })
+      } else if (type === 'districts') {
+        return NextResponse.json({ districts: FALLBACK_DATA.districts })
+      } else {
+        return NextResponse.json(FALLBACK_DATA)
+      }
+    }
 
     const connection = await mysql.createConnection(dbConfig)
 
@@ -81,10 +116,19 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('[Locations API] Błąd:', error)
-    return NextResponse.json(
-      { error: 'Błąd pobierania danych lokalizacji' },
-      { status: 500 }
-    )
+    console.error('[Locations API] Błąd MySQL:', error)
+    console.warn('[Locations API] Przełączam na fallback dane')
+    
+    // W przypadku błędu MySQL, użyj fallback danych
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type')
+    
+    if (type === 'cities') {
+      return NextResponse.json({ cities: FALLBACK_DATA.cities })
+    } else if (type === 'districts') {
+      return NextResponse.json({ districts: FALLBACK_DATA.districts })
+    } else {
+      return NextResponse.json(FALLBACK_DATA)
+    }
   }
 } 
