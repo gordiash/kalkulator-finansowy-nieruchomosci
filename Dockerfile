@@ -32,16 +32,19 @@ RUN python3 -m venv venv && \
 # Skopiuj resztę kodu
 COPY . .
 
-# Ustaw prawidłowe dummy zmienne dla build-time (muszą być valid URLs)
-# Railway nadpisze je w runtime
-ENV NEXT_PUBLIC_SUPABASE_URL="https://build-dummy-project.supabase.co"
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.BUILD_TIME_DUMMY"
+# Użyj ARG dla build-time (można nadpisać przez Railway runtime vars)
+ARG NEXT_PUBLIC_SUPABASE_URL="https://build-dummy-project.supabase.co"
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.BUILD_TIME_DUMMY"
 ENV NEXT_PUBLIC_SITE_URL="https://example.com"
+
+# Ustaw ARG jako ENV tylko dla build
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Zbuduj aplikację Next.js
 RUN npm run build
 
-# Wyczyść dummy zmienne przed uruchomieniem (Railway dostarczy prawdziwe)
+# Po build, usuń ENV - Railway ustawi swoje
 ENV NEXT_PUBLIC_SUPABASE_URL=""
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 
