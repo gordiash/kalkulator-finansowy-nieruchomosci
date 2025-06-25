@@ -69,8 +69,16 @@ function heuristicValuation(data: ValuationRequest): number {
 
 // Sprawdź dostępne komendy Python
 function getPythonCommands(): string[] {
-  // Lista komend Python do przetestowania
-  return ['python', 'python3', '/usr/bin/python3', '/usr/bin/python', '/usr/local/bin/python3'];
+  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  return [
+    '/app/venv/bin/python',      // Docker venv (najważniejsze)
+    '/app/venv/bin/python3',     // Docker venv python3
+    'python',                    // lokalne/Windows
+    'python3',                   // Linux/Mac
+    '/usr/bin/python3',          // system Linux
+    '/usr/bin/python',           // system Linux
+    '/usr/local/bin/python3'     // inne instalacje
+  ];
 }
 
 async function runEnsemblePrediction(inputData: ValuationRequest): Promise<EnsembleResult | null> {

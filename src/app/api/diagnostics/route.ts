@@ -163,7 +163,25 @@ export async function GET() {
       });
     }
 
-    // Test 4: /usr/bin/python --version (dla Linux/Docker)
+    // Test 4: /app/venv/bin/python --version (dla Docker venv)
+    try {
+      const { stdout, stderr } = await execAsync('/app/venv/bin/python --version');
+      results.python_tests.push({
+        test: '/app/venv/bin/python --version',
+        success: true,
+        output: stdout.trim() || stderr.trim(),
+        error: ''
+      });
+    } catch (error: unknown) {
+      results.python_tests.push({
+        test: '/app/venv/bin/python --version',
+        success: false,
+        output: '',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+
+    // Test 5: /usr/bin/python --version (dla Linux/Docker)
     try {
       const { stdout, stderr } = await execAsync('/usr/bin/python --version');
       results.python_tests.push({
@@ -181,7 +199,7 @@ export async function GET() {
       });
     }
 
-    // Test 5: python3 --version
+    // Test 6: python3 --version
     try {
       const { stdout, stderr } = await execAsync('python3 --version');
       results.python_tests.push({
@@ -199,13 +217,13 @@ export async function GET() {
       });
     }
 
-    // Test 6: $PATH
+    // Test 7: $PATH
     results.path = process.env.PATH;
 
-    // Test 7: current working directory
+    // Test 8: current working directory
     results.cwd = process.cwd();
 
-    // Test 8: Check files
+    // Test 9: Check files
     const fs = require('fs');
     results.file_checks = {
       scripts_dir: fs.existsSync(path.join(process.cwd(), 'scripts')),
@@ -216,7 +234,7 @@ export async function GET() {
       rf_model: fs.existsSync(path.join(process.cwd(), 'models', 'valuation_rf.pkl'))
     };
 
-    // Test 9: List scripts files
+    // Test 10: List scripts files
     try {
       const scriptsDir = path.join(process.cwd(), 'scripts');
       if (fs.existsSync(scriptsDir)) {
@@ -228,7 +246,7 @@ export async function GET() {
       results.scripts_files_error = error instanceof Error ? error.message : 'Unknown error';
     }
 
-    // Test 10: List models files
+    // Test 11: List models files
     try {
       const modelsDir = path.join(process.cwd(), 'models');
       if (fs.existsSync(modelsDir)) {
@@ -285,7 +303,14 @@ export async function POST() {
 }
 
 async function testPythonSpawn(): Promise<PythonSpawnResult | { success: false; error: string }> {
-  const pythonCommands = ['python', 'python3', '/usr/bin/python3', '/usr/bin/python'];
+  const pythonCommands = [
+    '/app/venv/bin/python',      // Docker venv (najważniejsze)
+    '/app/venv/bin/python3',     // Docker venv python3
+    'python', 
+    'python3', 
+    '/usr/bin/python3', 
+    '/usr/bin/python'
+  ];
   
   for (const pythonCmd of pythonCommands) {
     try {

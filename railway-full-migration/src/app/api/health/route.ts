@@ -76,9 +76,44 @@ async function checkMLModels(): Promise<{ status: string; details: any }> {
 }
 
 async function checkPythonEnvironment(): Promise<{ status: string; details: any }> {
+  // Lista komend Python do przetestowania
+  const pythonCommands = [
+    'python',                    // system default
+    'python3',                   // Linux/Mac default
+    '/usr/bin/python3',          // system Linux path
+    '/usr/bin/python',           // system Linux path
+    '/usr/local/bin/python3'     // alternative installations
+  ];
+
+  for (const pythonCmd of pythonCommands) {
+    const result = await testSinglePythonCommand(pythonCmd);
+    if (result.success) {
+      return {
+        status: 'healthy',
+        details: {
+          version: result.version,
+          python_available: true,
+          command_used: pythonCmd
+        }
+      };
+    }
+  }
+
+  return {
+    status: 'error',
+    details: {
+      python_available: false,
+      error: 'No working Python command found'
+    }
+  };
+}
+
+async function testSinglePythonCommand(pythonCmd: string): Promise<{ success: boolean; version?: string; error?: string }> {
   return new Promise((resolve) => {
     try {
-      const pythonProcess = spawn('python', ['--version'], {
+      console.log(`🐍 [Health] Testing: ${pythonCmd}`);
+      
+      const pythonProcess = spawn(pythonCmd, ['--version'], {
         stdio: ['pipe', 'pipe', 'pipe']
       });
       
@@ -96,30 +131,21 @@ async function checkPythonEnvironment(): Promise<{ status: string; details: any 
       pythonProcess.on('close', (code) => {
         if (code === 0) {
           resolve({
-            status: 'healthy',
-            details: {
-              version: output.trim() || error.trim(),
-              python_available: true
-            }
+            success: true,
+            version: output.trim() || error.trim()
           });
         } else {
           resolve({
-            status: 'error',
-            details: {
-              python_available: false,
-              error: error || 'Python not found'
-            }
+            success: false,
+            error: error || 'Python command failed'
           });
         }
       });
       
       pythonProcess.on('error', (err) => {
         resolve({
-          status: 'error',
-          details: {
-            python_available: false,
-            error: err.message
-          }
+          success: false,
+          error: err.message
         });
       });
       
@@ -127,27 +153,21 @@ async function checkPythonEnvironment(): Promise<{ status: string; details: any 
       setTimeout(() => {
         pythonProcess.kill();
         resolve({
-          status: 'timeout',
-          details: {
-            python_available: false,
-            error: 'Python check timeout'
-          }
+          success: false,
+          error: 'Python check timeout'
         });
       }, 5000);
       
     } catch (error) {
       resolve({
-        status: 'error',
-        details: {
-          python_available: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
 }
 
-// Endpoint GET do testowania modeli
+// Endpoint POST do testowania modeli
 export async function POST() {
   try {
     console.log('🧪 Running ML models test...');
@@ -175,10 +195,38 @@ export async function POST() {
 }
 
 async function runMLTest(): Promise<any> {
+  // Lista komend Python do przetestowania
+  const pythonCommands = [
+    'python',                    // system default
+    'python3',                   // Linux/Mac default
+    '/usr/bin/python3',          // system Linux path
+    '/usr/bin/python',           // system Linux path
+    '/usr/local/bin/python3'     // alternative installations
+  ];
+
+  const scriptPath = path.join(process.cwd(), 'scripts', 'test_models_railway.py');
+
+  for (const pythonCmd of pythonCommands) {
+    const result = await testMLWithCommand(pythonCmd, scriptPath);
+    if (result.success) {
+      return result;
+    }
+  }
+
+  // Jeśli wszystkie komendy zawiodą
+  return {
+    exit_code: -1,
+    output: '',
+    error: 'No working Python command found for ML test',
+    success: false
+  };
+}
+
+async function testMLWithCommand(pythonCmd: string, scriptPath: string): Promise<any> {
   return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'test_models_railway.py');
+    console.log(`🧪 [Health] Testing ML with: ${pythonCmd}`);
     
-    const pythonProcess = spawn('python', [scriptPath], {
+    const pythonProcess = spawn(pythonCmd, [scriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: process.cwd()
     });
@@ -199,7 +247,8 @@ async function runMLTest(): Promise<any> {
         exit_code: code,
         output: output,
         error: error,
-        success: code === 0
+        success: code === 0,
+        command_used: pythonCmd
       });
     });
     
@@ -208,7 +257,8 @@ async function runMLTest(): Promise<any> {
         exit_code: -1,
         output: '',
         error: err.message,
-        success: false
+        success: false,
+        command_used: pythonCmd
       });
     });
     
@@ -219,7 +269,8 @@ async function runMLTest(): Promise<any> {
         exit_code: -1,
         output: output,
         error: 'Test timeout',
-        success: false
+        success: false,
+        command_used: pythonCmd
       });
     }, 30000);
   });

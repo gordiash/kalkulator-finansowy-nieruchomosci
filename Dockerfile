@@ -5,6 +5,7 @@ FROM node:18-slim
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     build-essential \
     curl \
     && ln -s /usr/bin/python3 /usr/bin/python \
@@ -17,10 +18,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Skopiuj requirements.txt i zainstaluj zależności Python globalnie
+# Skopiuj requirements.txt i zainstaluj zależności Python
 COPY requirements-railway.txt ./
-RUN pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements-railway.txt
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --upgrade pip && \
+    /app/venv/bin/pip install --no-cache-dir -r requirements-railway.txt
 
 # Skopiuj modele i skrypty ML
 COPY models/ ./models/
@@ -45,8 +47,9 @@ RUN npm run build
 ENV NEXT_PUBLIC_SUPABASE_URL=""
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 
-# Ustaw PATH dla Python
-ENV PATH="/usr/bin:$PATH"
+# Ustaw PATH dla Python venv
+ENV PATH="/app/venv/bin:$PATH"
+ENV VIRTUAL_ENV="/app/venv"
 
 # Ustaw port
 EXPOSE 3000

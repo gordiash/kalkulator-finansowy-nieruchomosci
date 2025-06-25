@@ -14,197 +14,107 @@ const ValuationSchema = z.object({
   year: z.number().int().optional(),
 })
 
-async function callRandomForestModel(inputData: {
-  city: string;
-  district: string;
-  area: number;
-  rooms: number;
-  floor: number;
-  year: number;
-}): Promise<number | null> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
-    const pythonProcess = spawn('python', [scriptPath, JSON.stringify(inputData)])
-    
-    let output = ''
-    let errorOutput = ''
-    
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString()
-    })
-    
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString()
-    })
-    
-    pythonProcess.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output.trim())
-          if (result.predicted_price) {
-            resolve(result.predicted_price)
-          } else {
-            console.error('[Random Forest] Brak predicted_price w odpowiedzi:', result)
-            resolve(null)
-          }
-        } catch (parseError) {
-          console.error('[Random Forest] Błąd parsowania JSON:', parseError, 'Output:', output)
-          resolve(null)
-        }
-      } else {
-        console.error('[Random Forest] Błąd wykonania:', errorOutput)
-        resolve(null)
-      }
-    })
-    
-    // Timeout po 10 sekundach
-    setTimeout(() => {
-      pythonProcess.kill()
-      console.error('[Random Forest] Timeout')
-      resolve(null)
-    }, 10000)
-  })
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const parsed = ValuationSchema.safeParse(body)
+    const { city, district, area, rooms, floor, year } = await request.json()
+    
+    console.log('[Random Forest] Input:', { city, district, area, rooms, floor, year })
+    
+    const inputData = { city, district, area, rooms, floor, year }
+    
+    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
+    
+    // Lista komend Python do przetestowania
+    const pythonCommands = [
+      'python',                    // system default
+      'python3',                   // Linux/Mac default
+      '/usr/bin/python3',          // system Linux path
+      '/usr/bin/python',           // system Linux path
+      '/usr/local/bin/python3'     // alternative installations
+    ];
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Nieprawidłowe dane wejściowe', details: parsed.error.format() },
-        { status: 400 }
-      )
+    // Funkcja do próbowania pojedynczej komendy Python
+    async function tryPythonCommand(pythonCmd: string): Promise<number | null> {
+      return new Promise((resolve) => {
+        console.log(`🌳 [RF] Próbuję: ${pythonCmd}`)
+        
+        const pythonProcess = spawn(pythonCmd, [scriptPath, JSON.stringify(inputData)])
+        
+        let output = ''
+        let errorOutput = ''
+        
+        pythonProcess.stdout.on('data', (data) => {
+          output += data.toString()
+          console.log(`📤 [RF] stdout: ${data.toString()}`)
+        })
+        
+        pythonProcess.stderr.on('data', (data) => {
+          errorOutput += data.toString()
+          console.log(`📥 [RF] stderr: ${data.toString()}`)
+        })
+        
+        pythonProcess.on('close', (code) => {
+          console.log(`🏁 [RF] Process closed with code: ${code}`)
+          
+          if (code === 0) {
+            try {
+              const lines = output.split('\n')
+              const lastLine = lines[lines.length - 2] || lines[lines.length - 1]
+              const price = parseFloat(lastLine.trim())
+              
+              if (!isNaN(price) && price > 0) {
+                console.log('✅ [RF] Success:', price)
+                resolve(price)
+              } else {
+                console.error('❌ [RF] Nieprawidłowa wycena:', lastLine)
+                resolve(null)
+              }
+            } catch (e) {
+              console.error('💥 [RF] Błąd parsowania:', e)
+              resolve(null)
+            }
+          } else {
+            console.error(`❌ [RF] Błąd wykonania, kod: ${code}, Error: ${errorOutput}`)
+            resolve(null)
+          }
+        })
+        
+        pythonProcess.on('error', (error) => {
+          console.error(`⏰ [RF] ${pythonCmd} error:`, error)
+          resolve(null);
+        });
+        
+        // Timeout po 10 sekund
+        setTimeout(() => {
+          pythonProcess.kill()
+          console.error(`⏰ [RF] ${pythonCmd} timeout`)
+          resolve(null)
+        }, 10000)
+      })
     }
 
-    const { city, district, area, rooms, floor, year } = parsed.data
-
-    // === Prepare features for Random Forest model ===
-    const features = {
-      city: city.toLowerCase(),
-      district: district?.toLowerCase() || '',
-      area,
-      rooms,
-      floor: floor || 0,
-      year: year || 1990,
-      building_age: 2024 - (year || 1990),
-      rooms_per_area: rooms / area
-    }
-
-    try {
-      // Call Random Forest model
-      const predicted_price = await callRandomForestModel(features)
-      
-      if (predicted_price === null) {
-        // Fallback do heurystyki jeśli model nie działa
-        let pricePerSqm = 8000 // domyślna średnia PLN/m²
-        switch (city.toLowerCase()) {
-          case 'warszawa':
-            pricePerSqm = 12000
-            break
-          case 'kraków':
-          case 'krakow':
-            pricePerSqm = 10000
-            break
-          case 'wrocław':
-          case 'wroclaw':
-            pricePerSqm = 9500
-            break
-          case 'poznan':
-          case 'poznań':
-            pricePerSqm = 9000
-            break
-        }
-
-        let price = area * pricePerSqm
-        if (rooms > 2) price += (rooms - 2) * 20000
-        if (year) {
-          if (year > 2010) price *= 1.05
-          else if (year < 1970) price *= 0.9
-        }
-
-        price = Math.round(price / 1000) * 1000
-        const minPrice = Math.round(price * 0.95 / 1000) * 1000
-        const maxPrice = Math.round(price * 1.05 / 1000) * 1000
-
+    // Próbuj kolejne komendy Python
+    for (const pythonCmd of pythonCommands) {
+      const result = await tryPythonCommand(pythonCmd);
+      if (result !== null) {
+        const price = Math.round(result);
         return NextResponse.json({
           price,
-          minPrice,
-          maxPrice,
+          minPrice: Math.round(price * 0.95),
+          maxPrice: Math.round(price * 1.05),
           currency: 'PLN',
-          method: 'heuristic_fallback',
-          model: 'fallback',
-          error: 'Random Forest model unavailable',
-          note: 'Szacunek na podstawie heurystyki (model ML niedostępny)',
-        })
+          method: 'random_forest',
+          confidence: '±5%',
+          timestamp: new Date().toISOString()
+        });
       }
-
-      // Calculate confidence interval (±7% for Random Forest)
-      const minPrice = Math.round(predicted_price * 0.93 / 1000) * 1000
-      const maxPrice = Math.round(predicted_price * 1.07 / 1000) * 1000
-      const price = Math.round(predicted_price / 1000) * 1000
-
-      return NextResponse.json({
-        price,
-        minPrice,
-        maxPrice,
-        currency: 'PLN',
-        method: 'random_forest',
-        model: 'RandomForestRegressor',
-        confidence: '±7%',
-        features_used: Object.keys(features),
-        note: 'Predykcja z modelu Random Forest wytrenowanego na danych transakcyjnych',
-      })
-
-    } catch (modelError) {
-      console.error('[Random Forest] Model error:', modelError)
-      
-      // Fallback do heurystyki jeśli model nie działa
-      let pricePerSqm = 8000 // domyślna średnia PLN/m²
-      switch (city.toLowerCase()) {
-        case 'warszawa':
-          pricePerSqm = 12000
-          break
-        case 'kraków':
-        case 'krakow':
-          pricePerSqm = 10000
-          break
-        case 'wrocław':
-        case 'wroclaw':
-          pricePerSqm = 9500
-          break
-        case 'poznan':
-        case 'poznań':
-          pricePerSqm = 9000
-          break
-      }
-
-      let price = area * pricePerSqm
-      if (rooms > 2) price += (rooms - 2) * 20000
-      if (year) {
-        if (year > 2010) price *= 1.05
-        else if (year < 1970) price *= 0.9
-      }
-
-      price = Math.round(price / 1000) * 1000
-      const minPrice = Math.round(price * 0.95 / 1000) * 1000
-      const maxPrice = Math.round(price * 1.05 / 1000) * 1000
-
-      return NextResponse.json({
-        price,
-        minPrice,
-        maxPrice,
-        currency: 'PLN',
-        method: 'heuristic_fallback',
-        model: 'fallback',
-        error: 'Random Forest model unavailable',
-        note: 'Szacunek na podstawie heurystyki (model ML niedostępny)',
-      })
     }
 
+    console.log('💀 [RF] All Python commands failed, returning error')
+    return NextResponse.json({ error: 'Model ML niedostępny' }, { status: 500 })
+    
   } catch (error) {
-    console.error('[Valuation RF API] Błąd:', error)
+    console.error('[Random Forest] Error:', error)
     return NextResponse.json({ error: 'Błąd serwera' }, { status: 500 })
   }
 } 

@@ -33,7 +33,7 @@ RUN python3 --version
 
 # Kopiowanie i instalacja zależności Python
 COPY requirements-railway.txt .
-RUN pip install --no-cache-dir -r requirements-railway.txt
+RUN pip install --break-system-packages --no-cache-dir -r requirements-railway.txt
 
 # Utworzenie użytkownika
 RUN groupadd --system --gid 1001 nodejs && \

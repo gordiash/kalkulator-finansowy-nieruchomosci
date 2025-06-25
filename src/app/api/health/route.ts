@@ -15,7 +15,14 @@ interface HealthStatus {
 }
 
 async function checkPython(): Promise<{ status: string; version?: string; error?: string }> {
-  const pythonCommands = ['python', 'python3', '/usr/bin/python3', '/usr/bin/python'];
+  const pythonCommands = [
+    '/app/venv/bin/python',      // Docker venv (najważniejsze)
+    '/app/venv/bin/python3',     // Docker venv python3
+    'python', 
+    'python3', 
+    '/usr/bin/python3', 
+    '/usr/bin/python'
+  ];
   
   for (const pythonCmd of pythonCommands) {
     try {

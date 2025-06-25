@@ -256,7 +256,14 @@ interface PythonSpawnResult {
 
 async function testPythonSpawn(): Promise<PythonSpawnResult | { success: false; error: string }> {
   return new Promise((resolve) => {
-    const pythonCommands = ['python', '/usr/bin/python', '/usr/local/bin/python'];
+    const pythonCommands = [
+      'python',                    // system default
+      'python3',                   // Linux/Mac default
+      '/usr/bin/python3',          // system Linux path
+      '/usr/bin/python',           // system Linux path
+      '/usr/local/bin/python3',    // alternative installations
+      '/usr/local/bin/python'      // alternative installations
+    ];
     
     for (const pythonCmd of pythonCommands) {
       try {

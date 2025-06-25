@@ -69,125 +69,146 @@ export async function POST(request: NextRequest) {
 }
 
 async function callPythonEnsembleModel(data: any): Promise<any> {
-  return new Promise((resolve) => {
-    console.log('🔬 Trying to call ensemble model...');
-    
-    // Użyj bardziej kompatybilnego skryptu
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
-    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl');
-    
-    console.log('📍 Script path:', scriptPath);
-    console.log('📍 Model path:', modelPath);
-    
-    // Sprawdź czy skrypt istnieje
-    const fs = require('fs');
-    if (!fs.existsSync(scriptPath)) {
-      console.log('❌ Python script not found, using heuristic');
-      resolve(calculateHeuristicPrice(data));
-      return;
-    }
-    
-    if (!fs.existsSync(modelPath)) {
-      console.log('❌ Model file not found, using heuristic');
-      resolve(calculateHeuristicPrice(data));
-      return;
-    }
+  // Lista komend Python do przetestowania
+  const pythonCommands = [
+    'python',                    // system default
+    'python3',                   // Linux/Mac default
+    '/usr/bin/python3',          // system Linux path
+    '/usr/bin/python',           // system Linux path
+    '/usr/local/bin/python3'     // alternative installations
+  ];
 
-    // Przygotuj dane w formacie ensemble
-    const ensembleData = {
-      city: data.city,
-      district: data.district || 'inne',
-      area: data.area,
-      rooms: data.rooms,
-      year_built: data.year || 1990,
-      location_tier: data.locationTier || 'medium',
-      building_age_category: mapAgeCategory(data.year || 1990),
-      building_type: data.buildingType || 'apartment',
-      parking: data.parking || 'none',
-      finishing: data.finishing || 'standard',
-      elevator: data.elevator === 'yes' ? 'yes' : 'no',
-      balcony: data.balcony !== 'none' ? 'balcony' : 'none',
-      orientation: data.orientation || 'unknown',
-      transport: data.transport || 'medium',
-      total_floors: data.totalFloors || 5
-    };
+  console.log('🔬 Trying to call ensemble model...');
+  
+  // Użyj bardziej kompatybilnego skryptu
+  const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
+  const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl');
+  
+  console.log('📍 Script path:', scriptPath);
+  console.log('📍 Model path:', modelPath);
+  
+  // Sprawdź czy skrypt istnieje
+  const fs = require('fs');
+  if (!fs.existsSync(scriptPath)) {
+    console.log('❌ Python script not found, using heuristic');
+    return calculateHeuristicPrice(data);
+  }
+  
+  if (!fs.existsSync(modelPath)) {
+    console.log('❌ Model file not found, using heuristic');
+    return calculateHeuristicPrice(data);
+  }
 
-    console.log('🔧 Ensemble input data:', ensembleData);
+  // Przygotuj dane w formacie ensemble
+  const ensembleData = {
+    city: data.city,
+    district: data.district || 'inne',
+    area: data.area,
+    rooms: data.rooms,
+    year_built: data.year || 1990,
+    location_tier: data.locationTier || 'medium',
+    building_age_category: mapAgeCategory(data.year || 1990),
+    building_type: data.buildingType || 'apartment',
+    parking: data.parking || 'none',
+    finishing: data.finishing || 'standard',
+    elevator: data.elevator === 'yes' ? 'yes' : 'no',
+    balcony: data.balcony !== 'none' ? 'balcony' : 'none',
+    orientation: data.orientation || 'unknown',
+    transport: data.transport || 'medium',
+    total_floors: data.totalFloors || 5
+  };
 
-    // Wywołaj Python script z ensemble modelem
-    console.log(`[Ensemble] Używam skryptu: ${scriptPath}`);
-    console.log(`[Ensemble] Używam modelu: ${modelPath}`);
+  console.log('🔧 Ensemble input data:', ensembleData);
 
-    const pythonProcess = spawn('python', [scriptPath, modelPath, JSON.stringify(ensembleData)], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: process.cwd()
-    });
+  // Funkcja do próbowania pojedynczej komendy Python
+  async function tryPythonCommand(pythonCmd: string): Promise<any> {
+    return new Promise((resolve) => {
+      console.log(`🐍 [Railway] Próbuję: ${pythonCmd}`);
+      console.log(`[Ensemble] Używam skryptu: ${scriptPath}`);
+      console.log(`[Ensemble] Używam modelu: ${modelPath}`);
 
-    let output = '';
-    let error = '';
+      const pythonProcess = spawn(pythonCmd, [scriptPath, modelPath, JSON.stringify(ensembleData)], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: process.cwd()
+      });
 
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString();
-      console.log('🐍 Python stdout:', data.toString());
-    });
+      let output = '';
+      let error = '';
 
-    pythonProcess.stderr.on('data', (data) => {
-      error += data.toString();
-      console.log('🐍 Python stderr:', data.toString());
-    });
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+        console.log(`📤 [Railway] Python stdout: ${data.toString()}`);
+      });
 
-    pythonProcess.on('close', (code) => {
-      console.log(`🐍 Python process closed with code: ${code}`);
-      
-      if (code === 0) {
-        try {
-          // Szukaj JSON w output
-          const jsonMatch = output.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const result = JSON.parse(jsonMatch[0]);
-            console.log('✅ Ensemble prediction success:', result);
-            
-            // Zwróć w standardowym formacie
-            resolve({
-              price: Math.round(result.ensemble_prediction / 1000) * 1000,
-              minPrice: Math.round(result.ensemble_prediction * 0.98 / 1000) * 1000,
-              maxPrice: Math.round(result.ensemble_prediction * 1.02 / 1000) * 1000,
-              currency: 'PLN',
-              method: 'ensemble_EstymatorAI_railway',
-              confidence: '±2%',
-              note: 'Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE',
-              timestamp: new Date().toISOString(),
-              debug: {
-                individual_predictions: result.individual_predictions,
-                input_data: ensembleData
-              }
-            });
-          } else {
-            console.error('❌ No JSON found in Python output:', output);
-            resolve(calculateHeuristicPrice(data));
+      pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+        console.log(`📥 [Railway] Python stderr: ${data.toString()}`);
+      });
+
+      pythonProcess.on('close', (code) => {
+        console.log(`🏁 [Railway] Python process closed with code: ${code}`);
+        
+        if (code === 0) {
+          try {
+            // Szukaj JSON w output
+            const jsonMatch = output.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const result = JSON.parse(jsonMatch[0]);
+              console.log('✅ Ensemble prediction success:', result);
+              
+              // Zwróć w standardowym formacie
+              resolve({
+                price: Math.round(result.ensemble_prediction / 1000) * 1000,
+                minPrice: Math.round(result.ensemble_prediction * 0.98 / 1000) * 1000,
+                maxPrice: Math.round(result.ensemble_prediction * 1.02 / 1000) * 1000,
+                currency: 'PLN',
+                method: 'ensemble_EstymatorAI_railway',
+                confidence: '±2%',
+                note: 'Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE',
+                timestamp: new Date().toISOString(),
+                debug: {
+                  individual_predictions: result.individual_predictions,
+                  input_data: ensembleData
+                }
+              });
+            } else {
+              console.error('❌ No JSON found in Python output:', output);
+              resolve(null);
+            }
+          } catch (parseError) {
+            console.error('❌ Failed to parse Python output:', parseError, 'Output:', output);
+            resolve(null);
           }
-        } catch (parseError) {
-          console.error('❌ Failed to parse Python output:', parseError, 'Output:', output);
-          resolve(calculateHeuristicPrice(data));
+        } else {
+          console.error(`❌ Python script error: ${error}`);
+          resolve(null);
         }
-      } else {
-        console.error('❌ Python script error:', error);
-        resolve(calculateHeuristicPrice(data));
-      }
-    });
+      });
 
-    pythonProcess.on('error', (err) => {
-      console.error('❌ Failed to spawn Python process:', err);
-      resolve(calculateHeuristicPrice(data));
-    });
+      pythonProcess.on('error', (err) => {
+        console.error(`❌ Failed to spawn Python process: ${err}`);
+        resolve(null);
+      });
 
-    // Timeout po 30 sekundach
-    setTimeout(() => {
-      console.log('⏰ Python process timeout');
-      pythonProcess.kill();
-      resolve(calculateHeuristicPrice(data));
-    }, 30000);
-  });
+      // Timeout po 30 sekundach
+      setTimeout(() => {
+        console.log(`⏰ [Railway] ${pythonCmd} timeout`);
+        pythonProcess.kill();
+        resolve(null);
+      }, 30000);
+    });
+  }
+
+  // Próbuj kolejne komendy Python
+  for (const pythonCmd of pythonCommands) {
+    const result = await tryPythonCommand(pythonCmd);
+    if (result !== null) {
+      return result;
+    }
+  }
+
+  console.log('💀 [Railway] All Python commands failed, using heuristic');
+  return calculateHeuristicPrice(data);
 }
 
 function mapAgeCategory(year: number): string {

@@ -32,7 +32,7 @@ const ValuationSchema = z.object({
   lastRenovation: z.number().int().min(1990).max(2024).optional(),
 })
 
-// === Funkcja do wywołania EstymatorAI ===
+// === Główny Ensemble Model ===
 async function callEnsembleModel(inputData: {
   city: string;
   district: string;
@@ -59,170 +59,202 @@ async function callEnsembleModel(inputData: {
   balconyArea?: number;
   lastRenovation?: number;
 }): Promise<number | null> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
-    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl')
-    
-    // Mapowanie condition -> building_age_category
-    const conditionToAgeCategory = {
-      'excellent': 'very_new',
-      'good': inputData.year >= 2010 ? 'new' : inputData.year >= 2000 ? 'modern' : 'renovated',
-      'average': 'renovated',
-      'poor': 'old'
-    }
-    
-    // Mapowanie buildingType frontend -> API
-    const buildingTypeMapping = {
-      'blok': 'apartment',
-      'kamienica': 'tenement', 
-      'dom': 'house',
-      'loft': 'house'
-    }
+  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  const pythonCommands = [
+    '/app/venv/bin/python',      // Docker venv (najważniejsze)
+    '/app/venv/bin/python3',     // Docker venv python3
+    'python',                    // lokalne/Windows
+    'python3',                   // Linux/Mac
+    '/usr/bin/python3',          // system Linux
+    '/usr/bin/python',           // system Linux
+    '/usr/local/bin/python3'     // inne instalacje
+  ];
 
-    // Mapowanie parking frontend -> API
-    const parkingMapping = {
-      'none': 'none',
-      'street': 'street',
-      'courtyard': 'street',
-      'garage': 'included'
-    }
+  const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
+  const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl')
+  
+  // Mapowanie condition -> building_age_category
+  const conditionToAgeCategory = {
+    'excellent': 'very_new',
+    'good': inputData.year >= 2010 ? 'new' : inputData.year >= 2000 ? 'modern' : 'renovated',
+    'average': 'renovated',
+    'poor': 'old'
+  }
+  
+  // Mapowanie buildingType frontend -> API
+  const buildingTypeMapping = {
+    'blok': 'apartment',
+    'kamienica': 'tenement', 
+    'dom': 'house',
+    'loft': 'house'
+  }
 
-    // Mapowanie finishing frontend -> API
-    const finishingMapping = {
-      'high': 'premium',
-      'standard': 'standard', 
-      'basic': 'to_finish'
-    }
+  // Mapowanie parking frontend -> API
+  const parkingMapping = {
+    'none': 'none',
+    'street': 'street',
+    'courtyard': 'street',
+    'garage': 'included'
+  }
 
-    // Mapowanie balcony frontend -> API
-    const balconyMapping = {
-      'yes': 'balcony',
-      'no': 'none'
-    }
+  // Mapowanie finishing frontend -> API
+  const finishingMapping = {
+    'high': 'premium',
+    'standard': 'standard', 
+    'basic': 'to_finish'
+  }
 
-    // Przygotuj dane w formacie oczekiwanym przez ensemble
-    const ensembleInput = {
-      city: inputData.city,
-      district: inputData.district,
-      area: inputData.area,
-      rooms: inputData.rooms,
-      year_built: inputData.year,
-      location_tier: inputData.locationTier || 'medium',
-      building_age_category: conditionToAgeCategory[inputData.condition as keyof typeof conditionToAgeCategory] || 'modern',
-      building_type: buildingTypeMapping[inputData.buildingType as keyof typeof buildingTypeMapping] || 'apartment',
-      parking: parkingMapping[inputData.parking as keyof typeof parkingMapping] || 'none',
-      finishing: finishingMapping[inputData.finishing as keyof typeof finishingMapping] || 'standard',
-      elevator: inputData.elevator || 'no',
-      balcony: balconyMapping[inputData.balcony as keyof typeof balconyMapping] || 'none',
-      orientation: inputData.orientation || 'unknown',
-      transport: inputData.transport || 'medium',
-      total_floors: inputData.totalFloors || 0,
-      heating: inputData.heating || '',
-      bathrooms: inputData.bathrooms || 0,
-      kitchen_type: inputData.kitchenType || '',
-      basement: inputData.basement || '',
-      building_material: inputData.buildingMaterial || '',
-      ownership: inputData.ownership || '',
-      balcony_area: inputData.balconyArea || 0,
-      last_renovation: inputData.lastRenovation || 0
-    }
-    
-    console.log('[Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))
-    
-    const pythonProcess = spawn('python', [scriptPath, modelPath, JSON.stringify(ensembleInput)])
-    
-    let output = ''
-    let errorOutput = ''
-    
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString()
-      console.log('[Ensemble] stdout:', data.toString())
-    })
-    
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString()
-      console.log('[Ensemble] stderr:', data.toString())
-    })
-    
-    pythonProcess.on('close', (code) => {
-      console.log('[Ensemble] Process closed with code:', code)
-      console.log('[Ensemble] Full output:', output)
-      console.log('[Ensemble] Full error:', errorOutput)
+  // Mapowanie balcony frontend -> API
+  const balconyMapping = {
+    'yes': 'balcony',
+    'no': 'none'
+  }
+
+  // Przygotuj dane w formacie oczekiwanym przez ensemble
+  const ensembleInput = {
+    city: inputData.city,
+    district: inputData.district,
+    area: inputData.area,
+    rooms: inputData.rooms,
+    year_built: inputData.year,
+    location_tier: inputData.locationTier || 'medium',
+    building_age_category: conditionToAgeCategory[inputData.condition as keyof typeof conditionToAgeCategory] || 'modern',
+    building_type: buildingTypeMapping[inputData.buildingType as keyof typeof buildingTypeMapping] || 'apartment',
+    parking: parkingMapping[inputData.parking as keyof typeof parkingMapping] || 'none',
+    finishing: finishingMapping[inputData.finishing as keyof typeof finishingMapping] || 'standard',
+    elevator: inputData.elevator || 'no',
+    balcony: balconyMapping[inputData.balcony as keyof typeof balconyMapping] || 'none',
+    orientation: inputData.orientation || 'unknown',
+    transport: inputData.transport || 'medium',
+    total_floors: inputData.totalFloors || 0,
+    heating: inputData.heating || '',
+    bathrooms: inputData.bathrooms || 0,
+    kitchen_type: inputData.kitchenType || '',
+    basement: inputData.basement || '',
+    building_material: inputData.buildingMaterial || '',
+    ownership: inputData.ownership || '',
+    balcony_area: inputData.balconyArea || 0,
+    last_renovation: inputData.lastRenovation || 0
+  }
+  
+  console.log('🔧 [Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))
+
+  // Funkcja do próbowania pojedynczej komendy Python
+  async function tryPythonCommand(pythonCmd: string): Promise<number | null> {
+    return new Promise((resolve) => {
+      console.log(`🐍 [Ensemble] Próbuję: ${pythonCmd}`)
       
-      if (code === 0) {
-        try {
-          // Szukaj JSON block - od "JSON:" do końca lub najbliższego newline po }
-          let jsonResult = null;
-          
-          // Szukaj sekcji JSON:
-          const jsonSectionMatch = output.match(/JSON:\s*(\{[\s\S]*?\})\s*$/m);
-          if (jsonSectionMatch) {
-            try {
-              jsonResult = JSON.parse(jsonSectionMatch[1]);
-              console.log('[Ensemble] Found JSON section:', jsonResult);
-            } catch (e) {
-              console.error('[Ensemble] Błąd parsowania JSON section:', e);
-            }
-          }
-          
-          // Fallback - szukaj ostatniego kompletnego JSON block
-          if (!jsonResult) {
-            const lines = output.split('\n');
-            let jsonLines: string[] = [];
-            let inJson = false;
-            let braceCount = 0;
+      const pythonProcess = spawn(pythonCmd, [scriptPath, modelPath, JSON.stringify(ensembleInput)])
+      
+      let output = ''
+      let errorOutput = ''
+      
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString()
+        console.log(`📤 [Ensemble] stdout: ${data.toString()}`)
+      })
+      
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString()
+        console.log(`📥 [Ensemble] stderr: ${data.toString()}`)
+      })
+      
+      pythonProcess.on('close', (code) => {
+        console.log(`🏁 [Ensemble] Process closed with code: ${code}`)
+        console.log(`📋 [Ensemble] Full output: ${output}`)
+        console.log(`❌ [Ensemble] Full error: ${errorOutput}`)
+        
+        if (code === 0) {
+          try {
+            // Szukaj JSON block - od "JSON:" do końca lub najbliższego newline po }
+            let jsonResult = null;
             
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('{')) {
-                inJson = true;
-                jsonLines = [trimmed];
-                braceCount = (trimmed.match(/\{/g) || []).length - (trimmed.match(/\}/g) || []).length;
-              } else if (inJson) {
-                jsonLines.push(trimmed);
-                braceCount += (trimmed.match(/\{/g) || []).length - (trimmed.match(/\}/g) || []).length;
-                
-                if (braceCount === 0) {
-                  // Kompletny JSON block
-                  try {
-                    const jsonString = jsonLines.join('');
-                    jsonResult = JSON.parse(jsonString);
-                    console.log('[Ensemble] Found complete JSON block:', jsonResult);
-                    break;
-                  } catch (e) {
-                    console.error('[Ensemble] Błąd parsowania JSON block:', e);
-                    inJson = false;
-                    jsonLines = [];
+            // Szukaj sekcji JSON:
+            const jsonSectionMatch = output.match(/JSON:\s*(\{[\s\S]*?\})\s*$/m);
+            if (jsonSectionMatch) {
+              try {
+                jsonResult = JSON.parse(jsonSectionMatch[1]);
+                console.log('📦 [Ensemble] Found JSON section:', jsonResult);
+              } catch (e) {
+                console.error('💥 [Ensemble] Błąd parsowania JSON section:', e);
+              }
+            }
+            
+            // Fallback - szukaj ostatniego kompletnego JSON block
+            if (!jsonResult) {
+              const lines = output.split('\n');
+              let jsonLines: string[] = [];
+              let inJson = false;
+              let braceCount = 0;
+              
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('{')) {
+                  inJson = true;
+                  jsonLines = [trimmed];
+                  braceCount = (trimmed.match(/\{/g) || []).length - (trimmed.match(/\}/g) || []).length;
+                } else if (inJson) {
+                  jsonLines.push(trimmed);
+                  braceCount += (trimmed.match(/\{/g) || []).length - (trimmed.match(/\}/g) || []).length;
+                  
+                  if (braceCount === 0) {
+                    // Kompletny JSON block
+                    try {
+                      const jsonString = jsonLines.join('');
+                      jsonResult = JSON.parse(jsonString);
+                      console.log('📦 [Ensemble] Found complete JSON block:', jsonResult);
+                      break;
+                    } catch (e) {
+                      console.error('💥 [Ensemble] Błąd parsowania JSON block:', e);
+                      inJson = false;
+                      jsonLines = [];
+                    }
                   }
                 }
               }
             }
-          }
-          
-          if (jsonResult && jsonResult.ensemble_prediction) {
-            console.log('[Ensemble] Success:', jsonResult.ensemble_prediction);
-            resolve(jsonResult.ensemble_prediction);
-          } else {
-            console.error('[Ensemble] Brak ensemble_prediction w odpowiedzi:', jsonResult);
+            
+            if (jsonResult && jsonResult.ensemble_prediction) {
+              console.log('✅ [Ensemble] Success:', jsonResult.ensemble_prediction);
+              resolve(jsonResult.ensemble_prediction);
+            } else {
+              console.error('❌ [Ensemble] Brak ensemble_prediction w odpowiedzi:', jsonResult);
+              resolve(null);
+            }
+          } catch (e) {
+            console.error('💥 [Ensemble] Błąd parsowania JSON:', e, 'Output:', output);
             resolve(null);
           }
-        } catch (e) {
-          console.error('[Ensemble] Błąd parsowania JSON:', e, 'Output:', output);
+        } else {
+          console.error(`❌ [Ensemble] Błąd wykonania, kod: ${code}, Error: ${errorOutput}`);
           resolve(null);
         }
-      } else {
-        console.error('[Ensemble] Błąd wykonania, kod:', code, 'Error:', errorOutput);
+      })
+      
+      pythonProcess.on('error', (error) => {
+        console.error(`⏰ [Ensemble] ${pythonCmd} timeout`)
         resolve(null);
-      }
+      });
+      
+      // Timeout po 15 sekund (ensemble może być wolniejszy)
+      setTimeout(() => {
+        pythonProcess.kill()
+        console.error(`⏰ [Ensemble] ${pythonCmd} timeout`)
+        resolve(null)
+      }, 15000)
     })
-    
-    // Timeout po 15 sekund (ensemble może być wolniejszy)
-    setTimeout(() => {
-      pythonProcess.kill()
-      console.error('[Ensemble] Timeout')
-      resolve(null)
-    }, 15000)
-  })
+  }
+
+  // Próbuj kolejne komendy Python
+  for (const pythonCmd of pythonCommands) {
+    const result = await tryPythonCommand(pythonCmd);
+    if (result !== null) {
+      return result;
+    }
+  }
+
+  console.log('💀 [Ensemble] Timeout');
+  return null;
 }
 
 // === Fallback do Random Forest ===
@@ -234,48 +266,89 @@ async function callRandomForestModel(inputData: {
   floor: number;
   year: number;
 }): Promise<number | null> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
-    const pythonProcess = spawn('python', [scriptPath, JSON.stringify(inputData)])
-    
-    let output = ''
-    let errorOutput = ''
-    
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString()
-    })
-    
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString()
-    })
-    
-    pythonProcess.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output.trim())
-          if (result.predicted_price) {
-            resolve(result.predicted_price)
-          } else {
-            console.error('[Random Forest] Brak predicted_price w odpowiedzi:', result)
+  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  const pythonCommands = [
+    '/app/venv/bin/python',      // Docker venv (najważniejsze)
+    '/app/venv/bin/python3',     // Docker venv python3
+    'python',                    // lokalne/Windows
+    'python3',                   // Linux/Mac
+    '/usr/bin/python3',          // system Linux
+    '/usr/bin/python',           // system Linux
+    '/usr/local/bin/python3'     // inne instalacje
+  ];
+
+  const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
+
+  // Funkcja do próbowania pojedynczej komendy Python
+  async function tryPythonCommand(pythonCmd: string): Promise<number | null> {
+    return new Promise((resolve) => {
+      console.log(`🌳 [RF] Próbuję: ${pythonCmd}`)
+      
+      const pythonProcess = spawn(pythonCmd, [scriptPath, JSON.stringify(inputData)])
+      
+      let output = ''
+      let errorOutput = ''
+      
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString()
+        console.log(`📤 [RF] stdout: ${data.toString()}`)
+      })
+      
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString()
+        console.log(`📥 [RF] stderr: ${data.toString()}`)
+      })
+      
+      pythonProcess.on('close', (code) => {
+        console.log(`🏁 [RF] Process closed with code: ${code}`)
+        
+        if (code === 0) {
+          try {
+            const lines = output.split('\n')
+            const lastLine = lines[lines.length - 2] || lines[lines.length - 1]
+            const price = parseFloat(lastLine.trim())
+            
+            if (!isNaN(price) && price > 0) {
+              console.log('✅ [RF] Success:', price)
+              resolve(price)
+            } else {
+              console.error('❌ [RF] Nieprawidłowa wycena:', lastLine)
+              resolve(null)
+            }
+          } catch (e) {
+            console.error('💥 [RF] Błąd parsowania:', e)
             resolve(null)
           }
-        } catch (e) {
-          console.error('[Random Forest] Błąd parsowania JSON:', e, 'Output:', output)
+        } else {
+          console.error(`❌ [RF] Błąd wykonania, kod: ${code}, Error: ${errorOutput}`)
           resolve(null)
         }
-      } else {
-        console.error('[Random Forest] Błąd wykonania:', errorOutput)
+      })
+      
+      pythonProcess.on('error', (error) => {
+        console.error(`⏰ [RF] ${pythonCmd} error:`, error)
+        resolve(null);
+      });
+      
+      // Timeout po 10 sekund
+      setTimeout(() => {
+        pythonProcess.kill()
+        console.error(`⏰ [RF] ${pythonCmd} timeout`)
         resolve(null)
-      }
+      }, 10000)
     })
-    
-    // Timeout po 10 sekundach
-    setTimeout(() => {
-      pythonProcess.kill()
-      console.error('[Random Forest] Timeout')
-      resolve(null)
-    }, 10000)
-  })
+  }
+
+  // Próbuj kolejne komendy Python
+  for (const pythonCmd of pythonCommands) {
+    const result = await tryPythonCommand(pythonCmd);
+    if (result !== null) {
+      return result;
+    }
+  }
+
+  console.log('💀 [RF] Timeout');
+  return null;
 }
 
 // === Fallback heurystyka ===
