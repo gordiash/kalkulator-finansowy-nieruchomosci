@@ -40,6 +40,14 @@ interface ValuationCalculatorProps {
     orientation?: string
     transport?: string
     totalFloors?: string
+    heating?: string
+    bathrooms?: string
+    kitchenType?: string
+    basement?: string
+    buildingMaterial?: string
+    ownership?: string
+    balconyArea?: string
+    lastRenovation?: string
   }
 }
 
@@ -48,6 +56,7 @@ const STEPS = [
   { id: 'basic', title: 'Podstawowe dane', description: 'Lokalizacja i podstawowe informacje' },
   { id: 'property', title: 'Opis nieruchomości', description: 'Szczegóły techniczne mieszkania' },
   { id: 'additional', title: 'Dodatkowe cechy', description: 'Udogodnienia i wyposażenie' },
+  { id: 'details', title: 'Szczegóły', description: 'Dodatkowe informacje zwiększające dokładność' },
   { id: 'result', title: 'Wycena', description: 'Oszacowana wartość mieszkania' }
 ]
 
@@ -69,7 +78,15 @@ const tooltips = {
   balcony: 'Posiadanie balkonu, tarasu lub loggi. Zwiększa atrakcyjność mieszkania.',
   orientation: 'Strona świata, na którą wychodzą główne okna. Wpływa na nasłonecznienie.',
   transport: 'Dostęp do komunikacji publicznej. Ważny czynnik dla mieszkańców bez samochodu.',
-  totalFloors: 'Liczba pięter w budynku. Wpływa na prestiż i dostępność mieszkania.'
+  totalFloors: 'Liczba pięter w budynku. Wpływa na prestiż i dostępność mieszkania.',
+  heating: 'Typ ogrzewania w mieszkaniu. Centralne jest najwygodniejsze i najczęściej preferowane.',
+  bathrooms: 'Liczba łazienek w mieszkaniu. Więcej łazienek zwiększa komfort i wartość.',
+  kitchenType: 'Typ kuchni - osobna, aneks czy otwarta. Wpływa na funkcjonalność mieszkania.',
+  basement: 'Dodatkowa powierzchnia - piwnica, komórka lokatorska lub schowek.',
+  buildingMaterial: 'Materiał z którego zbudowany jest budynek. Wpływa na izolację i trwałość.',
+  ownership: 'Forma własności mieszkania. Pełna własność vs prawo spółdzielcze.',
+  balconyArea: 'Powierzchnia balkonu lub tarasu w metrach kwadratowych.',
+  lastRenovation: 'Rok ostatniego remontu. Świeży remont zwiększa wartość mieszkania.'
 }
 
 export default function ValuationCalculator({ initialData }: ValuationCalculatorProps = {}) {
@@ -94,7 +111,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
     balcony: initialData?.balcony || 'no',
     orientation: initialData?.orientation || 'south',
     transport: initialData?.transport || 'medium',
-    totalFloors: initialData?.totalFloors || ''
+    totalFloors: initialData?.totalFloors || '',
+    heating: initialData?.heating || '',
+    bathrooms: initialData?.bathrooms || '',
+    kitchenType: initialData?.kitchenType || '',
+    basement: initialData?.basement || '',
+    buildingMaterial: initialData?.buildingMaterial || '',
+    ownership: initialData?.ownership || '',
+    balconyArea: initialData?.balconyArea || '',
+    lastRenovation: initialData?.lastRenovation || ''
   })
 
   // API state
@@ -182,6 +207,33 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           setForm({ ...form, [name]: value })
         }
       }
+    } else if (name === 'bathrooms') {
+      if (value === '') {
+        setForm({ ...form, [name]: value })
+      } else {
+        const numValue = parseInt(value)
+        if (numValue > 0 && numValue <= 10) {
+          setForm({ ...form, [name]: value })
+        }
+      }
+    } else if (name === 'balconyArea') {
+      if (value === '') {
+        setForm({ ...form, [name]: value })
+      } else {
+        const numValue = parseFloat(value)
+        if (numValue > 0 && numValue <= 100) {
+          setForm({ ...form, [name]: value })
+        }
+      }
+    } else if (name === 'lastRenovation') {
+      if (value === '') {
+        setForm({ ...form, [name]: value })
+      } else {
+        const numValue = parseInt(value)
+        if (value.length <= 4 && (numValue >= 1990 && numValue <= new Date().getFullYear() || value.length < 4)) {
+          setForm({ ...form, [name]: value })
+        }
+      }
     } else {
       setForm({ ...form, [name]: value })
     }
@@ -240,7 +292,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           balcony: form.balcony,
           orientation: form.orientation,
           transport: form.transport,
-          totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined
+          totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined,
+          heating: form.heating,
+          bathrooms: form.bathrooms,
+          kitchenType: form.kitchenType,
+          basement: form.basement,
+          buildingMaterial: form.buildingMaterial,
+          ownership: form.ownership,
+          balconyArea: form.balconyArea,
+          lastRenovation: form.lastRenovation
         }),
       })
 
@@ -325,7 +385,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
-              <div className="text-lg font-bold text-blue-600">566</div>
+              <div className="text-lg font-bold text-blue-600">7000+</div>
               <div className="text-blue-700">Ofert treningowych</div>
             </div>
             <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
@@ -778,8 +838,182 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           </Card>
         )}
 
-        {/* Step 3: Results */}
+        {/* Step 3: Additional Details */}
         {currentStep === 3 && (
+          <Card>
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Szczegółowe informacje</h2>
+                <p className="text-gray-600">Te informacje są opcjonalne, ale zwiększają dokładność wyceny</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Ogrzewanie */}
+                <FieldWithTooltip
+                  label="Typ ogrzewania"
+                  tooltip={tooltips.heating}
+                  htmlFor="heating"
+                >
+                  <select
+                    id="heating"
+                    name="heating"
+                    value={form.heating}
+                    onChange={(e) => setForm({ ...form, heating: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Wybierz typ ogrzewania</option>
+                    <option value="central">🏢 Centralne miejskie</option>
+                    <option value="gas">🔥 Gazowe</option>
+                    <option value="electric">⚡ Elektryczne</option>
+                    <option value="coal">⚫ Węglowe</option>
+                    <option value="heat_pump">🌡️ Pompa ciepła</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Liczba łazienek */}
+                <FieldWithTooltip
+                  label="Liczba łazienek"
+                  tooltip={tooltips.bathrooms}
+                  htmlFor="bathrooms"
+                >
+                  <Input
+                    id="bathrooms"
+                    name="bathrooms"
+                    value={form.bathrooms}
+                    onChange={handleChange}
+                    type="number"
+                    min="1"
+                    max="10"
+                    placeholder="np. 1"
+                  />
+                </FieldWithTooltip>
+
+                {/* Typ kuchni */}
+                <FieldWithTooltip
+                  label="Typ kuchni"
+                  tooltip={tooltips.kitchenType}
+                  htmlFor="kitchenType"
+                >
+                  <select
+                    id="kitchenType"
+                    name="kitchenType"
+                    value={form.kitchenType}
+                    onChange={(e) => setForm({ ...form, kitchenType: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Wybierz typ kuchni</option>
+                    <option value="separate">🍽️ Osobna kuchnia</option>
+                    <option value="kitchenette">🏠 Aneks kuchenny</option>
+                    <option value="open">🌐 Otwarta kuchnia</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Piwnica/komórka */}
+                <FieldWithTooltip
+                  label="Piwnica/komórka"
+                  tooltip={tooltips.basement}
+                  htmlFor="basement"
+                >
+                  <select
+                    id="basement"
+                    name="basement"
+                    value={form.basement}
+                    onChange={(e) => setForm({ ...form, basement: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Wybierz opcję</option>
+                    <option value="none">❌ Brak</option>
+                    <option value="basement">🏠 Piwnica</option>
+                    <option value="storage">📦 Komórka lokatorska</option>
+                    <option value="both">🏠📦 Piwnica + komórka</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Materiał budynku */}
+                <FieldWithTooltip
+                  label="Materiał budynku"
+                  tooltip={tooltips.buildingMaterial}
+                  htmlFor="buildingMaterial"
+                >
+                  <select
+                    id="buildingMaterial"
+                    name="buildingMaterial"
+                    value={form.buildingMaterial}
+                    onChange={(e) => setForm({ ...form, buildingMaterial: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Wybierz materiał</option>
+                    <option value="brick">🧱 Cegła</option>
+                    <option value="concrete">🏗️ Beton</option>
+                    <option value="reinforced_concrete">🏢 Żelbet</option>
+                    <option value="brick_concrete">🧱🏗️ Cegła + beton</option>
+                    <option value="other">❓ Inny</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Forma własności */}
+                <FieldWithTooltip
+                  label="Forma własności"
+                  tooltip={tooltips.ownership}
+                  htmlFor="ownership"
+                >
+                  <select
+                    id="ownership"
+                    name="ownership"
+                    value={form.ownership}
+                    onChange={(e) => setForm({ ...form, ownership: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Wybierz formę własności</option>
+                    <option value="full">📜 Pełna własność</option>
+                    <option value="cooperative">🏢 Spółdzielcze lokatorskie</option>
+                    <option value="cooperative_ownership">🏢📜 Spółdzielcze własnościowe</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Powierzchnia balkonu */}
+                <FieldWithTooltip
+                  label="Powierzchnia balkonu (m²)"
+                  tooltip={tooltips.balconyArea}
+                  htmlFor="balconyArea"
+                >
+                  <Input
+                    id="balconyArea"
+                    name="balconyArea"
+                    value={form.balconyArea}
+                    onChange={handleChange}
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="100"
+                    placeholder="np. 6.5"
+                  />
+                </FieldWithTooltip>
+
+                {/* Ostatni remont */}
+                <FieldWithTooltip
+                  label="Ostatni remont"
+                  tooltip={tooltips.lastRenovation}
+                  htmlFor="lastRenovation"
+                >
+                  <Input
+                    id="lastRenovation"
+                    name="lastRenovation"
+                    value={form.lastRenovation}
+                    onChange={handleChange}
+                    type="number"
+                    min="1990"
+                    max={new Date().getFullYear()}
+                    placeholder="np. 2020"
+                  />
+                </FieldWithTooltip>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Step 4: Results */}
+        {currentStep === 4 && (
           <Card>
             <div className="p-6">
               {status === 'loading' && (
@@ -895,7 +1129,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     onClick={() => {
                       setStatus('idle')
                       setError(null)
-                      setCurrentStep(2)
+                      setCurrentStep(3)
                     }}
                     variant="outline"
                   >
@@ -907,8 +1141,8 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           </Card>
         )}
 
-        {/* Navigation Buttons */}
-        {currentStep < 3 && (
+        {        /* Navigation Buttons */}
+        {currentStep < 4 && (
           <Card>
             <div className="p-6">
               <div className="flex justify-between items-center">
@@ -933,7 +1167,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   )}
                 </div>
 
-                {currentStep === 2 ? (
+                {currentStep === 3 ? (
                   <Button
                     type="submit"
                     disabled={!isFormValid || status === 'loading'}

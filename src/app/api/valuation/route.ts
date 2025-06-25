@@ -22,6 +22,14 @@ const ValuationSchema = z.object({
   orientation: z.enum(['north', 'south', 'east', 'west']).optional(),
   transport: z.enum(['poor', 'medium', 'good', 'excellent']).optional(),
   totalFloors: z.number().int().positive().optional(),
+  heating: z.string().optional(),
+  bathrooms: z.string().optional(),
+  kitchenType: z.string().optional(),
+  basement: z.string().optional(),
+  buildingMaterial: z.string().optional(),
+  ownership: z.string().optional(),
+  balconyArea: z.string().optional(),
+  lastRenovation: z.string().optional(),
 })
 
 // === Funkcja do wywołania EstymatorAI ===
@@ -42,6 +50,14 @@ async function callEnsembleModel(inputData: {
   orientation?: string;
   transport?: string;
   totalFloors?: number;
+  heating?: string;
+  bathrooms?: string;
+  kitchenType?: string;
+  basement?: string;
+  buildingMaterial?: string;
+  ownership?: string;
+  balconyArea?: string;
+  lastRenovation?: string;
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
@@ -100,7 +116,15 @@ async function callEnsembleModel(inputData: {
       balcony: balconyMapping[inputData.balcony as keyof typeof balconyMapping] || 'none',
       orientation: inputData.orientation || 'unknown',
       transport: inputData.transport || 'medium',
-      total_floors: inputData.totalFloors || 0
+      total_floors: inputData.totalFloors || 0,
+      heating: inputData.heating || '',
+      bathrooms: inputData.bathrooms || '',
+      kitchen_type: inputData.kitchenType || '',
+      basement: inputData.basement || '',
+      building_material: inputData.buildingMaterial || '',
+      ownership: inputData.ownership || '',
+      balcony_area: inputData.balconyArea || '',
+      last_renovation: inputData.lastRenovation || ''
     }
     
     console.log('[Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))

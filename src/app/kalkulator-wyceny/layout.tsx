@@ -101,7 +101,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
               'Wycena oparta o EstymatorAI',
               'Model ensemble (LightGBM+RF+CatBoost)',
               'MAPE 0.79%',
-              '566 próbek treningowych',
+              '7000+ próbek treningowych',
               'Integracja z kalkulatorami',
               'Responsywny interfejs'
             ],
