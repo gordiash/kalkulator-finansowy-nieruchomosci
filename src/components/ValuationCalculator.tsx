@@ -358,7 +358,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-6">
       {/* Model Info Header - Modernized */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"></div>
@@ -418,16 +418,16 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
       {/* Progress Steps - Modernized */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="p-8">
-          <div className="flex items-center justify-between">
+        <div className="px-8 py-10">
+          <div className="flex items-start justify-between max-w-5xl mx-auto">
             {STEPS.map((step, index) => (
               <div 
                 key={step.id}
-                className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : ''}`}
+                className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : 'flex-none'}`}
               >
-                <div className="flex flex-col items-center relative z-10">
+                <div className="flex flex-col items-center relative z-10 min-w-0">
                   <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 shadow-lg
+                    w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 shadow-lg mb-4
                     ${index < currentStep 
                       ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white ring-4 ring-emerald-100' 
                       : index === currentStep
@@ -436,21 +436,21 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     }
                   `}>
                     {index < currentStep ? (
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     ) : (
                       index + 1
                     )}
                   </div>
-                  <div className="mt-3 text-center">
-                    <div className={`text-sm font-semibold transition-colors duration-300 ${
+                  <div className="text-center max-w-[120px]">
+                    <div className={`text-sm font-bold transition-colors duration-300 mb-1 ${
                       index < currentStep ? 'text-emerald-600' : 
                       index === currentStep ? 'text-blue-600' : 'text-gray-400'
                     }`}>
                       {step.title}
                     </div>
-                    <div className={`text-xs mt-1 hidden md:block transition-colors duration-300 ${
+                    <div className={`text-xs leading-tight transition-colors duration-300 ${
                       index <= currentStep ? 'text-gray-600' : 'text-gray-400'
                     }`}>
                       {step.description}
@@ -458,7 +458,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   </div>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className="flex-1 px-4 flex items-center">
+                  <div className="flex-1 px-6 flex items-center" style={{ marginTop: '-60px' }}>
                     <div className={`
                       w-full h-2 rounded-full transition-all duration-700 relative overflow-hidden
                       ${index < currentStep ? 'bg-emerald-200' : 'bg-gray-200'}
