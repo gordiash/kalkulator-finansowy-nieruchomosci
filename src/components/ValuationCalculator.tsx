@@ -360,211 +360,301 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Model Info Header */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xl">🤖</span>
+      {/* Model Info Header - Modernized */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+        
+        <div className="relative p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+                <span className="text-white text-2xl">🤖</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-blue-900">
-                  Wycena AI 
-                  <span className="ml-2 text-sm font-normal bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                    EstymatorAI
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-2xl font-bold text-white">EstymatorAI</h3>
+                  <span className="bg-emerald-500/90 text-white text-xs font-semibold px-3 py-1 rounded-full border border-emerald-400/50">
+                    v2.1
                   </span>
-                </h3>
-                <p className="text-blue-700 text-sm">Najdokładniejszy model wyceny na rynku</p>
+                </div>
+                <p className="text-blue-100 text-sm mt-1">Najdokładniejszy model wyceny w Polsce</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">0.79%</div>
-              <div className="text-xs text-blue-600">Błąd MAPE</div>
+              <div className="text-3xl font-bold text-emerald-400">0.79%</div>
+              <div className="text-xs text-blue-200 uppercase tracking-wide">Błąd MAPE</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
-              <div className="text-lg font-bold text-blue-600">7000+</div>
-              <div className="text-blue-700">Ofert treningowych</div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="group">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                <div className="text-2xl font-bold text-white">7000+</div>
+                <div className="text-blue-200 text-sm">Ofert treningowych</div>
+              </div>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
-              <div className="text-lg font-bold text-green-600">0.95+</div>
-              <div className="text-blue-700">Współczynnik R²</div>
+            <div className="group">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                <div className="text-2xl font-bold text-emerald-400">0.95+</div>
+                <div className="text-blue-200 text-sm">Współczynnik R²</div>
+              </div>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
-              <div className="text-lg font-bold text-purple-600">&lt;3s</div>
-              <div className="text-blue-700">Czas odpowiedzi</div>
+            <div className="group">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                <div className="text-2xl font-bold text-purple-300">&lt;3s</div>
+                <div className="text-blue-200 text-sm">Czas odpowiedzi</div>
+              </div>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
-              <div className="text-lg font-bold text-orange-600">3</div>
-              <div className="text-blue-700">Algorytmy ML</div>
+            <div className="group">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                <div className="text-2xl font-bold text-orange-300">3</div>
+                <div className="text-blue-200 text-sm">Algorytmy ML</div>
+              </div>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Progress Steps */}
-      <Card>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+      {/* Progress Steps - Modernized */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="p-8">
+          <div className="flex items-center justify-between">
             {STEPS.map((step, index) => (
               <div 
                 key={step.id}
                 className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : ''}`}
               >
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center relative z-10">
                   <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                    ${index <= currentStep 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-200 text-gray-500'
+                    w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 shadow-lg
+                    ${index < currentStep 
+                      ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white ring-4 ring-emerald-100' 
+                      : index === currentStep
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white ring-4 ring-blue-100 scale-110'
+                      : 'bg-gray-100 text-gray-400 border-2 border-gray-200'
                     }
                   `}>
-                    {index < currentStep ? '✓' : index + 1}
+                    {index < currentStep ? (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
                   </div>
-                  <div className="mt-2 text-center">
-                    <div className={`text-sm font-medium ${
-                      index <= currentStep ? 'text-blue-600' : 'text-gray-500'
+                  <div className="mt-3 text-center">
+                    <div className={`text-sm font-semibold transition-colors duration-300 ${
+                      index < currentStep ? 'text-emerald-600' : 
+                      index === currentStep ? 'text-blue-600' : 'text-gray-400'
                     }`}>
                       {step.title}
                     </div>
-                    <div className="text-xs text-gray-500 hidden md:block">
+                    <div className={`text-xs mt-1 hidden md:block transition-colors duration-300 ${
+                      index <= currentStep ? 'text-gray-600' : 'text-gray-400'
+                    }`}>
                       {step.description}
                     </div>
                   </div>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className={`
-                    flex-1 h-1 mx-4 rounded transition-all
-                    ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}
-                  `} />
+                  <div className="flex-1 px-4 flex items-center">
+                    <div className={`
+                      w-full h-2 rounded-full transition-all duration-700 relative overflow-hidden
+                      ${index < currentStep ? 'bg-emerald-200' : 'bg-gray-200'}
+                    `}>
+                      <div className={`
+                        h-full rounded-full transition-all duration-700
+                        ${index < currentStep 
+                          ? 'w-full bg-gradient-to-r from-emerald-500 to-emerald-600' 
+                          : 'w-0 bg-gradient-to-r from-blue-500 to-blue-600'
+                        }
+                      `} />
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* Step 0: Basic Data */}
+        {/* Step 0: Basic Data - Modernized */}
         {currentStep === 0 && (
-          <Card>
-            <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Podstawowe dane mieszkania</h2>
-                <p className="text-gray-600">Podaj lokalizację i podstawowe informacje o mieszkaniu</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Miasto */}
-                <FieldWithTooltip
-                  label="Miasto"
-                  tooltip={tooltips.city}
-                  required
-                  htmlFor="city"
-                >
-                  <Autocomplete
-                    name="city"
-                    value={form.city}
-                    onChange={handleChange}
-                    options={cities}
-                    loading={locationsLoading}
-                    required
-                    placeholder="np. Olsztyn"
-                    className="text-lg"
-                  />
-                </FieldWithTooltip>
-
-                {/* Dzielnica */}
-                <FieldWithTooltip
-                  label="Dzielnica"
-                  tooltip={tooltips.district}
-                  htmlFor="district"
-                >
-                  <Autocomplete
-                    name="district"
-                    value={form.district}
-                    onChange={handleChange}
-                    options={districts}
-                    placeholder="np. Kortowo"
-                    className="text-lg"
-                  />
-                </FieldWithTooltip>
-
-                {/* Metraż */}
-                <FieldWithTooltip
-                  label="Metraż (m²)"
-                  tooltip={tooltips.area}
-                  required
-                  htmlFor="area"
-                >
-                  <Input
-                    id="area"
-                    name="area"
-                    value={form.area}
-                    onChange={handleChange}
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="1000"
-                    required
-                    placeholder="np. 60"
-                    className="text-lg text-center font-bold"
-                  />
-                </FieldWithTooltip>
-
-                {/* Liczba pokoi */}
-                <FieldWithTooltip
-                  label="Liczba pokoi"
-                  tooltip={tooltips.rooms}
-                  required
-                  htmlFor="rooms"
-                >
-                  <div className="grid grid-cols-4 gap-2">
-                    {[1, 2, 3, 4].map(num => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setForm({ ...form, rooms: num.toString() })}
-                        className={`
-                          p-3 rounded-lg border-2 transition-all text-lg font-bold
-                          ${form.rooms === num.toString()
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                          }
-                        `}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                  <Input
-                    name="rooms"
-                    value={form.rooms}
-                    onChange={handleChange}
-                    type="number"
-                    min="1"
-                    max="20"
-                    placeholder="lub wpisz inną liczbę"
-                    className="mt-2 text-center"
-                  />
-                </FieldWithTooltip>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <span className="text-blue-600 text-lg">🏠</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Podstawowe dane mieszkania</h2>
+                  <p className="text-gray-600 mt-1">Podaj lokalizację i podstawowe informacje o mieszkaniu</p>
+                </div>
               </div>
             </div>
-          </Card>
+            
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Miasto */}
+                <div className="group">
+                  <FieldWithTooltip
+                    label="Miasto"
+                    tooltip={tooltips.city}
+                    required
+                    htmlFor="city"
+                  >
+                    <div className="relative">
+                      <Autocomplete
+                        name="city"
+                        value={form.city}
+                        onChange={handleChange}
+                        options={cities}
+                        loading={locationsLoading}
+                        required
+                        placeholder="np. Olsztyn"
+                        className="text-lg h-14 pl-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
+                      />
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  </FieldWithTooltip>
+                </div>
+
+                {/* Dzielnica */}
+                <div className="group">
+                  <FieldWithTooltip
+                    label="Dzielnica"
+                    tooltip={tooltips.district}
+                    htmlFor="district"
+                  >
+                    <div className="relative">
+                      <Autocomplete
+                        name="district"
+                        value={form.district}
+                        onChange={handleChange}
+                        options={districts}
+                        placeholder="np. Kortowo"
+                        className="text-lg h-14 pl-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
+                      />
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  </FieldWithTooltip>
+                </div>
+
+                {/* Metraż */}
+                <div className="group">
+                  <FieldWithTooltip
+                    label="Metraż (m²)"
+                    tooltip={tooltips.area}
+                    required
+                    htmlFor="area"
+                  >
+                    <div className="relative">
+                      <Input
+                        id="area"
+                        name="area"
+                        value={form.area}
+                        onChange={handleChange}
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="1000"
+                        required
+                        placeholder="60"
+                        className="text-xl font-bold text-center h-14 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-indigo-50"
+                      />
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                        m²
+                      </div>
+                    </div>
+                  </FieldWithTooltip>
+                </div>
+
+                {/* Liczba pokoi */}
+                <div className="group">
+                  <FieldWithTooltip
+                    label="Liczba pokoi"
+                    tooltip={tooltips.rooms}
+                    required
+                    htmlFor="rooms"
+                  >
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map(num => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setForm({ ...form, rooms: num.toString() })}
+                            className={`
+                              relative p-4 rounded-xl border-2 transition-all duration-300 text-xl font-bold group-hover:scale-105
+                              ${form.rooms === num.toString()
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 shadow-lg scale-105'
+                                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700'
+                              }
+                            `}
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-1">{num}</div>
+                              <div className="text-xs text-gray-500">
+                                {num === 1 ? 'pokój' : 'pokoje'}
+                              </div>
+                            </div>
+                            {form.rooms === num.toString() && (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <Input
+                        name="rooms"
+                        value={form.rooms}
+                        onChange={handleChange}
+                        type="number"
+                        min="1"
+                        max="20"
+                        placeholder="lub wpisz inną liczbę"
+                        className="text-center h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
+                      />
+                    </div>
+                  </FieldWithTooltip>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Step 1: Property Details */}
+        {/* Step 1: Property Details - Modernized */}
         {currentStep === 1 && (
-          <Card>
-            <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Opis nieruchomości</h2>
-                <p className="text-gray-600">Dodatkowe informacje zwiększające dokładność wyceny</p>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                  <span className="text-indigo-600 text-lg">📋</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Opis nieruchomości</h2>
+                  <p className="text-gray-600 mt-1">Dodatkowe informacje zwiększające dokładność wyceny</p>
+                </div>
               </div>
+            </div>
+            
+            <div className="p-8">
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Rok budowy */}
@@ -682,17 +772,25 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </FieldWithTooltip>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Step 2: Additional Features */}
+        {/* Step 2: Additional Features - Modernized */}
         {currentStep === 2 && (
-          <Card>
-            <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Dodatkowe cechy</h2>
-                <p className="text-gray-600">Udogodnienia i wyposażenie wpływające na wartość</p>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-8 py-6 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <span className="text-emerald-600 text-lg">✨</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Dodatkowe cechy</h2>
+                  <p className="text-gray-600 mt-1">Udogodnienia i wyposażenie wpływające na wartość</p>
+                </div>
               </div>
+            </div>
+            
+            <div className="p-8">
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Parking */}
@@ -835,23 +933,31 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </FieldWithTooltip>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Step 3: Additional Details */}
+        {/* Step 3: Additional Details - Modernized */}
         {currentStep === 3 && (
-          <Card>
-            <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Szczegółowe informacje</h2>
-                <p className="text-gray-600">Te informacje są opcjonalne, ale mogą zwiększyć dokładność wyceny EstymatorAI o kilka procent</p>
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-700">
-                    💡 <strong>Wskazówka:</strong> Możesz pominąć ten krok i otrzymać wycenę na podstawie podstawowych danych, 
-                    lub wypełnić wybrane pola dla lepszej precyzji.
-                  </p>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-8 py-6 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <span className="text-purple-600 text-lg">🔍</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Szczegółowe informacje</h2>
+                  <p className="text-gray-600 mt-1">Te informacje są opcjonalne, ale mogą zwiększyć dokładność wyceny</p>
                 </div>
               </div>
+              <div className="mt-4 p-4 bg-blue-50/50 backdrop-blur-sm rounded-xl border border-blue-200/50">
+                <p className="text-sm text-blue-700 flex items-center">
+                  <span className="mr-2">💡</span>
+                  <strong className="mr-1">Wskazówka:</strong> Możesz pominąć ten krok lub wypełnić wybrane pola dla lepszej precyzji.
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-8">
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Ogrzewanie */}
@@ -1015,98 +1121,150 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </FieldWithTooltip>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Step 4: Results */}
+        {/* Step 4: Results - Modernized */}
         {currentStep === 4 && (
-          <Card>
-            <div className="p-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="p-8">
               {status === 'loading' && (
-                <div className="text-center py-12">
-                  <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Obliczamy wycenę...</h2>
-                  <p className="text-gray-600">Analizujemy dane przy użyciu AI</p>
-                  <div className="mt-4 bg-gray-100 rounded-full h-2 max-w-md mx-auto">
-                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+                <div className="text-center py-16">
+                  <div className="relative">
+                    <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-blue-600/10 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Obliczamy wycenę...</h2>
+                  <p className="text-gray-600 text-lg mb-6">Analizujemy dane przy użyciu EstymatorAI</p>
+                  <div className="max-w-sm mx-auto">
+                    <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full animate-pulse transition-all duration-1000" style={{ width: '85%' }}></div>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-500 mt-2">
+                      <span>Preprocessing...</span>
+                      <span>85%</span>
+                    </div>
                   </div>
                 </div>
               )}
 
               {status === 'success' && result && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-3xl">💰</span>
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <span className="text-4xl">💰</span>
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Wycena gotowa!</h2>
-                    <p className="text-gray-600">Oto oszacowana wartość Twojego mieszkania</p>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">Wycena gotowa!</h2>
+                    <p className="text-gray-600 text-lg">Oto oszacowana wartość Twojego mieszkania</p>
                   </div>
 
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-                    <div className="text-center">
-                      <div className="text-sm text-green-700 mb-2">Szacowana wartość</div>
-                      <div className="text-4xl font-bold text-green-800 mb-4">
+                  <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-2xl p-8 border border-emerald-200 shadow-lg">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 rounded-full -mr-16 -mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-300/20 rounded-full -ml-12 -mb-12"></div>
+                    
+                    <div className="relative text-center">
+                      <div className="text-lg text-emerald-700 mb-3 font-medium">Szacowana wartość</div>
+                      <div className="text-5xl font-bold text-emerald-800 mb-6 tracking-tight">
                         {formatCurrency(result.price)}
                       </div>
-                      <div className="text-lg text-green-700">
-                        Przedział: {formatCurrency(result.minPrice)} – {formatCurrency(result.maxPrice)}
-                      </div>
-                      {result.confidence && (
-                        <div className="text-sm text-green-600 mt-2">
-                          Pewność: {result.confidence}
+                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 inline-block border border-emerald-200/50">
+                        <div className="text-lg text-emerald-700 font-medium">
+                          Przedział: {formatCurrency(result.minPrice)} – {formatCurrency(result.maxPrice)}
                         </div>
-                      )}
+                        {result.confidence && (
+                          <div className="text-sm text-emerald-600 mt-2 bg-emerald-100/50 px-3 py-1 rounded-full inline-block">
+                            Pewność: {result.confidence}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Method and timestamp */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                      <div className="text-sm text-blue-700 mb-1">Metoda wyceny</div>
-                      <div className="font-medium text-blue-900">
-                        {result.method.includes('random_forest') ? '🤖 Random Forest AI' : 
-                         result.method.includes('heuristic_fallback') ? '📊 Heurystyka' : 
-                         result.method.includes('ensemble') ? '🤖 EstymatorAI' :
-                         result.method}
+                  {/* Method and timestamp - Modernized */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <span className="text-blue-600">🤖</span>
+                        </div>
+                        <div>
+                          <div className="text-sm text-blue-700 font-medium">Metoda wyceny</div>
+                          <div className="text-lg font-bold text-blue-900">
+                            {result.method.includes('random_forest') ? 'Random Forest AI' : 
+                             result.method.includes('heuristic_fallback') ? 'Heurystyka' : 
+                             result.method.includes('ensemble') ? 'EstymatorAI' :
+                             result.method}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     {result.timestamp && (
-                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <div className="text-sm text-gray-700 mb-1">Czas wyceny</div>
-                        <div className="font-medium text-gray-900">
-                          {new Date(result.timestamp).toLocaleString('pl-PL')}
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                            <span className="text-gray-600">⏱️</span>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-700 font-medium">Czas wyceny</div>
+                            <div className="text-lg font-bold text-gray-900">
+                              {new Date(result.timestamp).toLocaleString('pl-PL')}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-center">Sprawdź też inne kalkulatory</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Action buttons - Modernized */}
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Co dalej?</h3>
+                      <p className="text-gray-600">Sprawdź powiązane kalkulatory finansowe</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <Link
                         href={`/kalkulator-zdolnosci-kredytowej?kwota=${result.price}`}
-                        className="block text-center bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                        className="group block bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
-                        💳 Rata kredytu
+                        <div className="text-center">
+                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">💳</div>
+                          <div className="font-bold text-lg mb-2">Rata kredytu</div>
+                          <div className="text-blue-100 text-sm">Sprawdź miesięczną ratę hipoteki</div>
+                        </div>
                       </Link>
                       <Link
                         href={`/kalkulator-wynajmu?cena=${result.price}`}
-                        className="block text-center bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                        className="group block bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
-                        🏘️ Rentowność wynajmu
+                        <div className="text-center">
+                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">🏘️</div>
+                          <div className="font-bold text-lg mb-2">Rentowność</div>
+                          <div className="text-emerald-100 text-sm">Oblicz zysk z wynajmu</div>
+                        </div>
                       </Link>
                       <Link
                         href={`/kalkulator-zakupu-nieruchomosci?cena=${result.price}`}
-                        className="block text-center bg-indigo-600 hover:bg-indigo-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                        className="group block bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
-                        💰 Koszty zakupu
+                        <div className="text-center">
+                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">💰</div>
+                          <div className="font-bold text-lg mb-2">Koszty zakupu</div>
+                          <div className="text-indigo-100 text-sm">Poznaj wszystkie wydatki</div>
+                        </div>
                       </Link>
                     </div>
                   </div>
 
-                  <div className="text-center">
+                  <div className="text-center border-t border-gray-200 pt-8">
                     <Button
                       type="button"
                       onClick={() => {
@@ -1115,9 +1273,10 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                         setResult(null)
                       }}
                       variant="outline"
-                      className="px-6 py-2"
+                      className="px-8 py-3 rounded-xl border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 hover:scale-105 font-semibold"
                     >
-                      🔄 Nowa wycena
+                      <span className="mr-2">🔄</span>
+                      Nowa wycena
                     </Button>
                   </div>
                 </div>
@@ -1144,12 +1303,12 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </div>
               )}
             </div>
-          </Card>
+          </div>
         )}
 
-        {        /* Navigation Buttons */}
+        {/* Navigation Buttons - Modernized */}
         {currentStep < 4 && (
-          <Card>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="p-6">
               <div className="flex justify-between items-center">
                 <Button
@@ -1157,24 +1316,31 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   onClick={prevStep}
                   disabled={currentStep === 0}
                   variant="outline"
-                  className="px-6 py-2"
+                  className={`
+                    px-8 py-3 rounded-xl border-2 transition-all duration-300 font-semibold
+                    ${currentStep === 0 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:scale-105 hover:shadow-lg border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                    }
+                  `}
                 >
-                  ← Wstecz
+                  <span className="mr-2">←</span>
+                  Wstecz
                 </Button>
 
                 <div className="text-center">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-lg font-semibold text-gray-700">
                     Krok {currentStep + 1} z {STEPS.length - 1}
                   </div>
                   {!isCurrentStepValid && currentStep === 0 && (
-                    <div className="text-xs text-red-600 mt-1">
+                    <div className="text-sm text-red-600 mt-1 bg-red-50 px-3 py-1 rounded-full inline-block">
                       Wypełnij wymagane pola
                     </div>
                   )}
                 </div>
 
                 {currentStep === 3 ? (
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <Button
                       type="button"
                       onClick={() => {
@@ -1182,9 +1348,10 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                         handleSubmit(mockEvent)
                       }}
                       disabled={!isFormValid || status === 'loading'}
-                      className="px-6 py-2 bg-green-600 hover:bg-green-700"
+                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 hover:scale-105 hover:shadow-xl font-semibold"
                     >
-                      🏠 Oblicz wycenę
+                      <span className="mr-2">🏠</span>
+                      Oblicz wycenę
                     </Button>
                     <Button
                       type="button"
@@ -1194,9 +1361,10 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                       }}
                       disabled={!isFormValid || status === 'loading'}
                       variant="outline"
-                      className="px-6 py-2 text-gray-600 border-gray-300"
+                      className="px-8 py-3 rounded-xl border-2 border-gray-300 hover:border-orange-400 hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-all duration-300 hover:scale-105 font-semibold"
                     >
-                      ⚡ Pomiń szczegóły
+                      <span className="mr-2">⚡</span>
+                      Pomiń szczegóły
                     </Button>
                   </div>
                 ) : (
@@ -1204,14 +1372,21 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     type="button"
                     onClick={nextStep}
                     disabled={!isCurrentStepValid}
-                    className="px-6 py-2"
+                    className={`
+                      px-8 py-3 rounded-xl font-semibold transition-all duration-300
+                      ${!isCurrentStepValid 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-xl'
+                      }
+                    `}
                   >
-                    Dalej →
+                    Dalej
+                    <span className="ml-2">→</span>
                   </Button>
                 )}
               </div>
             </div>
-          </Card>
+          </div>
         )}
       </form>
     </div>
