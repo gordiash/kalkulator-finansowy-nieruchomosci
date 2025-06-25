@@ -9,4 +9,5 @@ restartPolicyMaxRetries = 10
 
 [env]
 PYTHON_VERSION = "3.11"
-PORT = "8000" 
+PORT = "8000"
+REDIS_URL = "${{Redis.REDIS_URL}}" 

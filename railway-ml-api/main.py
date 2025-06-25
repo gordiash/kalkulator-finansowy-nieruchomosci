@@ -6,15 +6,44 @@ import numpy as np
 import os
 from typing import Optional
 import logging
+from datetime import datetime
+from contextlib import asynccontextmanager
+
+# Import cache managera
+from cache import cache_manager
 
 # Konfiguracja logowania
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Globalne zmienne dla modeli
+ensemble_model = None
+rf_model = None
+xgb_model = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle manager dla aplikacji"""
+    # Startup
+    logger.info("🚀 Uruchamianie ML API...")
+    
+    # Inicjalizacja Redis cache
+    await cache_manager.initialize()
+    
+    # Ładowanie modeli ML
+    await load_models()
+    
+    yield
+    
+    # Shutdown
+    logger.info("🛑 Zamykanie ML API...")
+    await cache_manager.close()
+
 app = FastAPI(
     title="Wycena Nieruchomości ML API",
-    description="API do wyceny nieruchomości używając modeli ML",
-    version="1.0.0"
+    description="API do wyceny nieruchomości używając modeli ML z Redis Cache",
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # CORS dla Vercel frontend
@@ -26,12 +55,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Globalne zmienne dla modeli
-ensemble_model = None
-rf_model = None
-xgb_model = None
-
-@app.on_event("startup")
 async def load_models():
     """Ładuj modele przy starcie aplikacji"""
     global ensemble_model, rf_model, xgb_model
@@ -43,20 +66,20 @@ async def load_models():
         if os.path.exists(f"{models_dir}/ensemble_optimized_0.79pct.pkl"):
             with open(f"{models_dir}/ensemble_optimized_0.79pct.pkl", "rb") as f:
                 ensemble_model = pickle.load(f)
-            logger.info("Ensemble model załadowany")
+            logger.info("✅ EstymatorAI model załadowany")
         
         if os.path.exists(f"{models_dir}/valuation_rf.pkl"):
             with open(f"{models_dir}/valuation_rf.pkl", "rb") as f:
                 rf_model = pickle.load(f)
-            logger.info("Random Forest model załadowany")
+            logger.info("✅ Random Forest model załadowany")
             
         if os.path.exists(f"{models_dir}/valuation_xgb.pkl"):
             with open(f"{models_dir}/valuation_xgb.pkl", "rb") as f:
                 xgb_model = pickle.load(f)
-            logger.info("XGBoost model załadowany")
+            logger.info("✅ XGBoost model załadowany")
             
     except Exception as e:
-        logger.error(f"Błąd ładowania modeli: {e}")
+        logger.error(f"❌ Błąd ładowania modeli: {e}")
 
 class ValuationRequest(BaseModel):
     city: str
@@ -85,51 +108,98 @@ class ValuationResponse(BaseModel):
     confidence: str
     note: str
     timestamp: str
+    cached: Optional[bool] = False
+    cache_timestamp: Optional[str] = None
 
 @app.get("/")
-def read_root():
+async def read_root():
+    """Root endpoint z informacjami o API i cache"""
+    cache_stats = await cache_manager.get_cache_stats()
+    
     return {
-        "message": "Wycena Nieruchomości ML API",
+        "message": "Wycena Nieruchomości ML API v2.0",
         "status": "active",
         "models_loaded": {
             "ensemble": ensemble_model is not None,
             "random_forest": rf_model is not None,
             "xgboost": xgb_model is not None
+        },
+        "cache": {
+            "enabled": cache_stats["cache_enabled"],
+            "hit_rate": f"{cache_stats['hit_rate']}%",
+            "total_requests": cache_stats["total_requests"]
         }
     }
 
 @app.get("/health")
-def health_check():
+async def health_check():
     """Health check endpoint dla Railway"""
-    return {"status": "healthy", "service": "ml-api"}
+    cache_health = await cache_manager.health_check()
+    
+    return {
+        "status": "healthy", 
+        "service": "ml-api",
+        "cache": cache_health,
+        "models": {
+            "ensemble": ensemble_model is not None,
+            "rf": rf_model is not None,
+            "xgb": xgb_model is not None
+        }
+    }
+
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """Endpoint zwracający szczegółowe statystyki cache"""
+    return await cache_manager.get_cache_stats()
+
+@app.post("/cache/invalidate")
+async def invalidate_cache(model_version: Optional[str] = None):
+    """Endpoint do czyszczenia cache"""
+    deleted_count = await cache_manager.invalidate_model_cache(model_version)
+    return {
+        "message": f"Usunięto {deleted_count} wpisów cache",
+        "model_version": model_version or cache_manager.model_version
+    }
 
 @app.post("/predict", response_model=ValuationResponse)
-def predict_valuation(data: ValuationRequest):
-    """Główny endpoint do wyceny nieruchomości"""
+async def predict_valuation(data: ValuationRequest):
+    """Główny endpoint do wyceny nieruchomości z cache"""
     try:
-        # Przygotuj dane wejściowe
-        input_features = prepare_features(data)
+        # Przygotuj dane do cache
+        request_dict = data.dict()
         
-        # Spróbuj modeli w kolejności: Ensemble -> RF -> XGB -> Heurystyka
+        # 1. Sprawdź cache
+        cached_result = await cache_manager.get_cached_prediction(request_dict)
+        if cached_result:
+            return ValuationResponse(**cached_result)
+        
+        # 2. Cache MISS - oblicz predykcję
+        input_features = prepare_features(data)
         price, method, confidence = get_prediction(input_features, data)
         
-        # Oblicz przedział ufności
+        # 3. Przygotuj wynik
         min_price = round(price * (1 - confidence) / 1000) * 1000
         max_price = round(price * (1 + confidence) / 1000) * 1000
         
-        return ValuationResponse(
-            price=price,
-            minPrice=min_price,
-            maxPrice=max_price,
-            currency="PLN",
-            method=method,
-            confidence=f"±{round(confidence * 100)}%",
-            note=get_method_note(method),
-            timestamp=datetime.now().isoformat()
-        )
+        result = {
+            "price": price,
+            "minPrice": min_price,
+            "maxPrice": max_price,
+            "currency": "PLN",
+            "method": method,
+            "confidence": f"±{round(confidence * 100)}%",
+            "note": get_method_note(method),
+            "timestamp": datetime.now().isoformat(),
+            "cached": False
+        }
+        
+        # 4. Zapisz do cache (asynchronicznie, nie blokuj odpowiedzi)
+        await cache_manager.set_cached_prediction(request_dict, result)
+        
+        return ValuationResponse(**result)
         
     except Exception as e:
-        logger.error(f"Błąd predykcji: {e}")
+        logger.error(f"❌ Błąd predykcji: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 def prepare_features(data: ValuationRequest) -> np.ndarray:
