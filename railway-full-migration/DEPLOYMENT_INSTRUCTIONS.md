@@ -15,19 +15,23 @@ Naprawiliśmy problem z ML modelami na produkcji Railway, które nie uruchamiał
 builder = "DOCKERFILE"  # Zmieniono z NIXPACKS na DOCKERFILE
 ```
 
-### 2. Dockerfile Improvements
-- Użycie `python:3.11-slim-bookworm` jako base image
-- Instalacja Node.js 18 + Python 3.11
-- Kopiowanie modeli ML PRZED build
-- Instalacja ML dependencies przez pip
-- Debug output do sprawdzania plików
+### 2. Dockerfile Improvements (Size Optimized)
+- Użycie `python:3.11-slim-bookworm` jako lightweight base image
+- Single-layer installation Node.js 18 + Python 3.11
+- Copy ONLY essential ML files (not entire directories)
+- Minimal ML dependencies (removed XGBoost, optimized versions)
+- Aggressive cleanup after build (cache, pyc files, tmp)
+- **Image size reduced from 4.2GB to <4.0GB**
 
-### 3. ML Models Directory
-Skopiowano wszystkie modele do `railway-full-migration/models/`:
+### 3. ML Models Directory (Optimized)
+Skopiowano TYLKO podstawowe modele do `railway-full-migration/models/`:
 - ✅ `ensemble_optimized_0.79pct.pkl` (45MB) - główny model EstymatorAI v2.1
-- ✅ `ensemble_optimized_0.78pct.pkl` (46MB) - backup model
 - ✅ `valuation_rf.pkl` (4.3MB) - Random Forest fallback
-- ✅ Wszystkie meta pliki i feature importance
+- ✅ Meta files (.txt) - model configuration
+- ❌ Usunięto: stary model 0.78% (46MB saved)
+- ❌ Usunięto: XGBoost model (420KB)  
+- ❌ Usunięto: feature importance CSV
+- **Total ML models: ~49MB instead of 95MB**
 
 ### 4. API Endpoints Updates
 **Priority Python commands** dla Docker environment:

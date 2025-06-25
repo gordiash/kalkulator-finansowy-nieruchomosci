@@ -1,78 +1,37 @@
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Local env files
-.env*.local
-.env
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Next.js build output
+# Development files
+node_modules/
 .next/
-
-# Testing
-coverage/
-.nyc_output
-
-# IDEs
+.git/
 .vscode/
 .idea/
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Git
-.git
-.gitignore
-README.md
-
-# Documentation
+# Documentation and configs we don't need
 docs/
 *.md
-
-# Temporary files
-tmp/
-temp/
-
-# Cache directories
-.cache/
-.parcel-cache/
-
-# ESLint cache
-.eslintcache
-
-# Jest
+README*
+.github/
+tests/
 jest.config.*
+.eslintrc.*
+.prettierrc.*
 
-# Storybook
-.storybook/
-storybook-static/
+# Environment files
+.env*
 
-# Ignore everything except what we need for ML
-!models/
-!scripts/
-!requirements-railway.txt 
+# Large unused models
+models/ensemble_optimized_0.78pct.pkl
+models/valuation_xgb.pkl
+models/optimized_rf_model_3.03pct.pkl
+models/valuation_rf_feature_importance.csv
+
+# Training scripts not needed in production
+scripts/train_*.py
+scripts/test_*.py
+scripts/model_performance_report.py
+scripts/ensemble_models.py
+
+# Cache and logs
+*.log
+.cache/
+tmp/
+temp/ 
