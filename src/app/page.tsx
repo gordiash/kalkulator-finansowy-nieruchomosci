@@ -149,7 +149,7 @@ export default async function HomePage() {
         "name": "Kalkulator Wyceny Mieszkania AI",
         "applicationCategory": "FinanceApplication", 
         "operatingSystem": "Web Browser",
-        "description": "Wycena mieszkania oparta o zaawansowany model Ensemble AI. Dokładność 0.77% MAPE.",
+        "description": "Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.77% MAPE.",
         "url": `${process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"}/kalkulator-wyceny`,
         "offers": {
           "@type": "Offer",
@@ -157,7 +157,7 @@ export default async function HomePage() {
           "priceCurrency": "PLN"
         },
         "applicationSubCategory": "Real Estate Valuation",
-        "keywords": "wycena mieszkania, ensemble AI, LightGBM, Random Forest, CatBoost, machine learning, nieruchomości"
+        "keywords": "wycena mieszkania, EstymatorAI, LightGBM, Random Forest, CatBoost, machine learning, nieruchomości"
       }
     ]
   }
@@ -231,13 +231,13 @@ export default async function HomePage() {
                 {/* Lewa strona - opis */}
                 <div>
                   <div className="inline-flex items-center px-3 py-1 mb-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full text-green-700 font-medium text-xs border border-green-200/50">
-                    🤖 AI Ensemble Model
+                    🤖 EstymatorAI
                   </div>
                   <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                     Wycena Mieszkania <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">z AI</span>
                   </h3>
                   <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                    Pierwszy w Polsce kalkulator wykorzystujący zaawansowany model Ensemble AI. 
+                    Pierwszy w Polsce kalkulator wykorzystujący zaawansowany EstymatorAI. 
                     Połączenie trzech algorytmów: <strong>LightGBM</strong>, <strong>Random Forest</strong> i <strong>CatBoost</strong>.
                   </p>
                   
@@ -367,7 +367,7 @@ export default async function HomePage() {
             <Card 
               icon={<FiDollarSign size={36} />}
               title="Kalkulator Wyceny Mieszkania" 
-              description="Wycena mieszkania oparta o zaawansowany model Ensemble AI. Dokładność 0.77% MAPE." 
+              description="Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.77% MAPE." 
               href="/kalkulator-wyceny" 
             />
             <Card 

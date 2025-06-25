@@ -1,15 +1,15 @@
-# Wdrożenie Ensemble Model do Produkcji
+# Wdrożenie EstymatorAI do Produkcji
 
 ## 🚀 Przegląd Wdrożenia
 
 **Data wdrożenia:** 2024-12-21  
-**Model:** Ensemble Optimized v2.0  
+**Model:** EstymatorAI Optimized  
 **Dokładność:** 0.77% MAPE (95% poprawa względem Random Forest)  
 **Status:** ✅ PRODUKCJA
 
 ## 📊 Metryki Modelu
 
-### Ensemble Model (Produkcja)
+### EstymatorAI (Produkcja)
 - **MAPE:** 0.77%
 - **RMSE:** 5,508 PLN
 - **R²:** 0.9987
@@ -18,7 +18,7 @@
 ### Porównanie z Poprzednimi Modelami
 | Model | MAPE | Poprawa | Status |
 |-------|------|---------|--------|
-| **Ensemble v2.0** | **0.77%** | **Baseline** | ✅ **PRODUKCJA** |
+| **EstymatorAI** | **0.77%** | **Baseline** | ✅ **PRODUKCJA** |
 | Random Forest | 15.56% | -95% | ✅ Fallback #1 |
 | XGBoost | 15.70% | -95% | ⚠️ Deprecated |
 | Heurystyka | ~25% | -97% | ✅ Fallback #2 |
@@ -28,7 +28,7 @@
 ### 1. API Endpoint (`/api/valuation`)
 ```typescript
 // Hierarchia fallback:
-// 1. Ensemble Model (0.77% MAPE)
+// 1. EstymatorAI (0.77% MAPE)
 // 2. Random Forest (15.56% MAPE)  
 // 3. Heurystyka (~25% MAPE)
 
@@ -58,7 +58,7 @@ if (!mlPrice) {
 ```tsx
 // Zaktualizowano informacje o modelu
 <h3>🚀 Wycena oparta o zaawansowaną sztuczną inteligencję</h3>
-<span>ENSEMBLE v2.0</span>
+<span>EstymatorAI</span>
 
 // Nowe metryki
 📊 Dokładność: MAPE 0.77%
@@ -74,7 +74,7 @@ if (!mlPrice) {
 ## 📋 Fallback Strategy
 
 ### Inteligentny System Fallback
-1. **Ensemble Model** - Pierwszy wybór (0.77% MAPE)
+1. **EstymatorAI** - Pierwszy wybór (0.77% MAPE)
 2. **Random Forest** - Fallback #1 (15.56% MAPE)
 3. **Heurystyka** - Fallback #2 (~25% MAPE)
 4. **Emergency** - Ostateczny fallback (stałe wartości)
@@ -82,13 +82,13 @@ if (!mlPrice) {
 ### Logika Decyzyjna
 ```typescript
 if (ensemblePrice && ensemblePrice > 50k && ensemblePrice < 5M) {
-  method = 'ensemble_v2.0_0.77pct'
+        method = 'ensemble_EstymatorAI'
   confidence = ±2%
 } else if (rfPrice && rfPrice > 50k && rfPrice < 5M) {
-  method = 'random_forest_v1.0_fallback'  
+      method = 'random_forest_fallback'  
   confidence = ±7%
 } else {
-  method = 'heuristic_fallback_v1.0'
+      method = 'heuristic_fallback'
   confidence = ±5%
 }
 ```
@@ -97,7 +97,7 @@ if (ensemblePrice && ensemblePrice > 50k && ensemblePrice < 5M) {
 
 ### Logi Aplikacji
 ```bash
-[Valuation API] Wywołuję Ensemble model...
+[Valuation API] Wywołuję EstymatorAI...
 [Valuation API] Ensemble sukces: 684000
 [Valuation API] Ensemble failed, próba Random Forest...
 [Valuation API] Random Forest fallback sukces: 650000
@@ -107,7 +107,7 @@ if (ensemblePrice && ensemblePrice > 50k && ensemblePrice < 5M) {
 ```json
 {
   "price": 684000,
-  "method": "ensemble_v2.0_0.77pct",
+      "method": "ensemble_EstymatorAI",
   "confidence": "±2%",
   "note": "Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.77% MAPE"
 }

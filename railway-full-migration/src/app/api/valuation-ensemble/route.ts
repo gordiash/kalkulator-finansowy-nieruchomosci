@@ -78,7 +78,7 @@ async function runEnsemblePrediction(inputData: ValuationRequest): Promise<Ensem
     //   'models/random_forest_*.pkl'  // fallback
     // ];
     
-    const modelPath = 'models/ensemble_optimized_0.78pct.pkl'; // najnowszy najlepszy model
+    const modelPath = 'models/ensemble_optimized_0.79pct.pkl'; // najnowszy najlepszy model
     
     const pythonProcess = spawn('python', [
       scriptPath,

@@ -1,4 +1,4 @@
-# Raport Naprawy Problemu z Ensemble Model
+# Raport Naprawy Problemu z EstymatorAI
 
 ## 🔍 Zidentyfikowane Problemy
 

@@ -41,7 +41,7 @@ async function checkMLModels(): Promise<{ status: string; details: any }> {
     const modelsPath = path.join(process.cwd(), 'models');
     
     const models = {
-      ensemble: fs.existsSync(path.join(modelsPath, 'ensemble_optimized_0.78pct.pkl')),
+      ensemble: fs.existsSync(path.join(modelsPath, 'ensemble_optimized_0.79pct.pkl')),
       rf: fs.existsSync(path.join(modelsPath, 'valuation_rf.pkl')),
       xgb: fs.existsSync(path.join(modelsPath, 'valuation_xgb.pkl')),
     };

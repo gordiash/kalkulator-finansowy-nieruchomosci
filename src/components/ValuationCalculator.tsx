@@ -312,7 +312,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 <h3 className="text-xl font-bold text-blue-900">
                   Wycena AI 
                   <span className="ml-2 text-sm font-normal bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                    ENSEMBLE v2.0
+                    EstymatorAI
                   </span>
                 </h3>
                 <p className="text-blue-700 text-sm">Najdokładniejszy model wyceny na rynku</p>
@@ -825,8 +825,9 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                       <div className="text-sm text-blue-700 mb-1">Metoda wyceny</div>
                       <div className="font-medium text-blue-900">
-                        {result.method === 'random_forest_v1.0' ? '🤖 Random Forest AI' : 
-                         result.method === 'heuristic_fallback_v1.0' ? '📊 Heurystyka' : 
+                        {result.method.includes('random_forest') ? '🤖 Random Forest AI' : 
+                         result.method.includes('heuristic_fallback') ? '📊 Heurystyka' : 
+                         result.method.includes('ensemble') ? '🤖 EstymatorAI' :
                          result.method}
                       </div>
                     </div>

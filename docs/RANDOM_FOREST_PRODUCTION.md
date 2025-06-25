@@ -91,7 +91,7 @@ Content-Type: application/json
   "minPrice": 636000,
   "maxPrice": 732000,
   "currency": "PLN",
-  "method": "random_forest_v1.0",
+  "method": "random_forest",
   "confidence": "±7%",
   "note": "Wycena oparta o model Random Forest wytrenowany na danych z regionu Olsztyn",
   "timestamp": "2025-06-21T09:20:15.693Z"
@@ -105,7 +105,7 @@ Content-Type: application/json
   "minPrice": 332000,
   "maxPrice": 368000,
   "currency": "PLN",
-  "method": "heuristic_fallback_v1.0",
+  "method": "heuristic_fallback",
   "confidence": "±5%",
   "note": "Wycena heurystyczna - model ML niedostępny"
 }

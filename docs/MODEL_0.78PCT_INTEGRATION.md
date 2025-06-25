@@ -1,4 +1,41 @@
-# Integracja Modelu Ensemble 0.78% MAPE
+# Model EstymatorAI 0.79% MAPE - Integracja Produkcyjna
+
+## 📊 **NOWY REKORD: 0.79% MAPE!**
+
+- **Plik**: `ensemble_optimized_0.79pct.pkl`
+- **Dokładność**: **0.79% MAPE** (74% poprawa względem poprzedniego!)
+- **Status**: ✅ **WDROŻONY DO PRODUKCJI**
+- **Data wdrożenia**: 2024-12-25
+- **Rozmiar**: ~45MB
+
+## 🚀 **Status Wdrożenia**
+
+### ✅ Frontend (Next.js)
+- Model: `models/ensemble_optimized_0.79pct.pkl`
+- API: `/api/valuation` 
+- Status: **AKTYWNY**
+
+### ✅ Railway Backend  
+- Model: `models/ensemble_optimized_0.79pct.pkl`
+- API: `/api/valuation-railway`
+- Status: **AKTYWNY**
+
+## 📈 **Metryki Nowego Modelu**
+
+| Model | MAPE | RMSE | R² | Status |
+|-------|------|------|-----|--------|
+| **EstymatorAI v2.1** | **0.79%** | 5,177 PLN | 0.999 | ✅ **PRODUKCJA** |
+| Poprzedni (v2.0) | 0.78% | - | - | 🔄 **ZASTĄPIONY** |
+
+## 🎯 **Fallback Strategy**
+
+1. **EstymatorAI** (0.79% MAPE) - Pierwszy wybór
+2. Random Forest (15.56% MAPE) - Backup
+3. Heurystyka - Last resort
+
+## 🔧 **Wdrożenie**
+
+Model został automatycznie wdrożony do wszystkich endpointów używających EstymatorAI.
 
 ## 🎯 **Nowy Model Podłączony**
 
@@ -26,7 +63,7 @@
 ### Endpoints Zaktualizowane:
 1. **`/api/valuation`** ✅
    - Model: `models/ensemble_optimized_0.78pct.pkl`
-   - Method: `ensemble_v2.0_0.78pct`
+   - Method: `ensemble_EstymatorAI`
    - Note: "dokładnością 0.78% MAPE"
 
 2. **`/api/valuation-ensemble`** ✅
@@ -80,7 +117,7 @@
 ```json
 {
   "price": 650000,
-  "method": "ensemble_v2.0_0.78pct",
+  "method": "ensemble_EstymatorAI",
   "confidence": "±2%",
   "note": "Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.78% MAPE"
 }

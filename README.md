@@ -53,7 +53,7 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 
 ### Machine Learning
 - **Python** - Środowisko ML (scikit-learn, pandas, numpy, LightGBM, CatBoost)
-- **Ensemble Model** - Model produkcyjny (0.77% MAPE) - LightGBM + Random Forest + CatBoost
+- **EstymatorAI** - Model produkcyjny (0.77% MAPE) - LightGBM + Random Forest + CatBoost
 - **Advanced Fallback** - Random Forest (15.56% MAPE), Heurystyka (25% MAPE)
 - **MySQL** - Baza danych nieruchomości (566 rekordów)
 - **Feature Engineering** - 100+ cech (lokalizacja, powierzchnia, wiek, interakcje)
@@ -72,7 +72,7 @@ src/
 │   ├── api/                     # API endpoints
 │   │   ├── calculate.php/       # TypeScript API endpoint
 │   │   ├── valuation/           # 🤖 ML wycena mieszkań
-│   │   ├── valuation-ensemble/  # 🚀 Advanced ensemble model
+│   │   ├── valuation-ensemble/  # 🚀 Advanced EstymatorAI
 │   │   └── locations/           # Autouzupełnianie miast/dzielnic
 │   ├── kalkulator-zakupu-nieruchomosci/
 │   ├── kalkulator-wynajmu/

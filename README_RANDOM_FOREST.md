@@ -72,7 +72,7 @@ curl -X POST http://localhost:3000/api/valuation-rf \
   "minPrice": 670000,
   "maxPrice": 770000,
   "currency": "PLN",
-  "method": "random_forest_v1.0",
+  "method": "random_forest",
   "model": "RandomForestRegressor",
   "confidence": "±7%",
   "features_used": ["area", "rooms", "year", "city_warszawa", ...],

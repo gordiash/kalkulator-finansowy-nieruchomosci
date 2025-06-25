@@ -281,12 +281,12 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         <h3 id="ai-info-title" className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
           🚀 Wycena oparta o zaawansowaną sztuczną inteligencję
           <span className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-2 py-1 rounded-full font-normal border border-green-200">
-            ENSEMBLE v2.0
+            EstymatorAI
           </span>
         </h3>
         <div className="text-sm text-blue-800 space-y-1">
           <p>
-            Używamy <span className="font-medium">zaawansowanego modelu Ensemble</span> (LightGBM + Random Forest + CatBoost) wytrenowanego na {' '}
+            Używamy <span className="font-medium">zaawansowanego EstymatorAI</span> (LightGBM + Random Forest + CatBoost) wytrenowanego na {' '}
             <span className="font-medium">566 ofertach z regionu Olsztyn</span>.
           </p>
           <div className="flex flex-wrap gap-4 text-xs">
@@ -295,7 +295,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
             <span>⚡ Czas odpowiedzi: <span className="font-medium">&lt;3s</span></span>
           </div>
           <p className="text-xs mt-2 text-blue-700">
-            Model łączy 3 algorytmy ML z inteligentnym ważeniem. Automatyczny fallback: Ensemble → Random Forest → Heurystyka.
+            Model łączy 3 algorytmy ML z inteligentnym ważeniem. Automatyczny fallback: EstymatorAI → Random Forest → Heurystyka.
             Uwzględnia lokalizację, stan mieszkania, typ budynku i parking dla maksymalnej precyzji.
           </p>
         </div>
@@ -760,8 +760,9 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Metoda wyceny:</span>
               <span className="font-medium text-gray-900">
-                {result.method === 'random_forest_v1.0' ? '🤖 Random Forest AI' : 
-                 result.method === 'heuristic_fallback_v1.0' ? '📊 Heurystyka' : 
+                {result.method.includes('random_forest') ? '🤖 Random Forest AI' : 
+                 result.method.includes('heuristic_fallback') ? '📊 Heurystyka' : 
+                 result.method.includes('ensemble') ? '🤖 EstymatorAI' :
                  result.method}
               </span>
             </div>

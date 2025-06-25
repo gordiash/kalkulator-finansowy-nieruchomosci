@@ -24,7 +24,7 @@ const ValuationSchema = z.object({
   totalFloors: z.number().int().positive().optional(),
 })
 
-// === Funkcja do wywołania Ensemble modelu ===
+// === Funkcja do wywołania EstymatorAI ===
 async function callEnsembleModel(inputData: {
   city: string;
   district: string;
@@ -45,7 +45,7 @@ async function callEnsembleModel(inputData: {
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
-    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.78pct.pkl')
+    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl')
     
     // Mapowanie condition -> building_age_category
     const conditionToAgeCategory = {
@@ -339,8 +339,8 @@ export async function POST(request: NextRequest) {
       totalFloors,
     }
 
-    // === Próba użycia Ensemble modelu ===
-    console.log('[Valuation API] Wywołuję Ensemble model...')
+            // === Próba użycia EstymatorAI ===
+        console.log('[Valuation API] Wywołuję EstymatorAI...')
     let mlPrice = await callEnsembleModel(modelInput)
     let method: string
     let price: number
@@ -348,7 +348,7 @@ export async function POST(request: NextRequest) {
     if (mlPrice && mlPrice > 50000 && mlPrice < 5000000) {
       // Sukces Ensemble
       price = Math.round(mlPrice / 1000) * 1000
-      method = 'ensemble_v2.0_0.78pct'
+              method = 'ensemble_EstymatorAI'
       console.log('[Valuation API] Ensemble sukces:', price)
     } else {
       // Fallback do Random Forest
@@ -358,12 +358,12 @@ export async function POST(request: NextRequest) {
       if (mlPrice && mlPrice > 50000 && mlPrice < 5000000) {
         // Sukces Random Forest
         price = Math.round(mlPrice / 1000) * 1000
-        method = 'random_forest_v1.0_fallback'
+        method = 'random_forest_fallback'
         console.log('[Valuation API] Random Forest fallback sukces:', price)
       } else {
         // Ostateczny fallback do heurystyki
         price = calculateHeuristicPrice(city, area, rooms, year)
-        method = 'heuristic_fallback_v1.0'
+        method = 'heuristic_fallback'
         console.log('[Valuation API] Fallback do heurystyki:', price)
       }
     }

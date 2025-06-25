@@ -40,8 +40,8 @@ async def load_models():
         # Ładuj modele z katalogu models/
         models_dir = "models"
         
-        if os.path.exists(f"{models_dir}/ensemble_optimized_0.78pct.pkl"):
-            with open(f"{models_dir}/ensemble_optimized_0.78pct.pkl", "rb") as f:
+        if os.path.exists(f"{models_dir}/ensemble_optimized_0.79pct.pkl"):
+            with open(f"{models_dir}/ensemble_optimized_0.79pct.pkl", "rb") as f:
                 ensemble_model = pickle.load(f)
             logger.info("Ensemble model załadowany")
         
@@ -151,7 +151,7 @@ def get_prediction(features: np.ndarray, data: ValuationRequest):
     if ensemble_model is not None:
         try:
             prediction = ensemble_model.predict(features)[0]
-            return round(prediction / 1000) * 1000, "ensemble_v2.0_railway", 0.02
+            return round(prediction / 1000) * 1000, "ensemble_EstymatorAI_railway", 0.02
         except Exception as e:
             logger.warning(f"Ensemble model failed: {e}")
     
@@ -200,7 +200,7 @@ def calculate_heuristic_price(city: str, area: float, rooms: int, year: Optional
 def get_method_note(method: str) -> str:
     """Zwróć opis metody"""
     notes = {
-        "ensemble_v2.0_railway": "Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE",
+        "ensemble_EstymatorAI_railway": "Wycena oparta o zaawansowany EstymatorAI z dokładnością 0.79% MAPE",
         "random_forest_railway": "Wycena oparta o model Random Forest z dokładnością 15.56% MAPE", 
         "xgboost_railway": "Wycena oparta o model XGBoost",
         "heuristic_fallback": "Wycena heurystyczna - modele ML niedostępne"

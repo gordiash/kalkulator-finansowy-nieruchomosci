@@ -1,8 +1,8 @@
-# 🚀 Zaawansowany Ensemble Model - Dokumentacja
+# 🚀 Zaawansowany EstymatorAI - Dokumentacja
 
 ## 📋 Przegląd
 
-Zaawansowany Ensemble Model to najnowszy system ML do wyceny nieruchomości, łączący:
+Zaawansowany EstymatorAI to najnowszy system ML do wyceny nieruchomości, łączący:
 - **LightGBM** (gradient boosting) - główny model
 - **Random Forest** (ensemble drzew) - stabilizacja
 - **CatBoost** (categorical boosting) - obsługa kategorii
@@ -167,7 +167,7 @@ weights = {k: v/total_weight for k, v in weights.items()}
 
 ### Performance Metrics
 ```
-🏆 ENSEMBLE MODEL RESULTS:
+🏆 ESTYMATORAI RESULTS:
 📊 LGB          - MAPE:   0.95%, RMSE:   12,163, R²: 0.996
 📊 RF           - MAPE:   3.88%, RMSE:   37,662, R²: 0.958  
 📊 CATBOOST     - MAPE:   6.14%, RMSE:   39,638, R²: 0.953

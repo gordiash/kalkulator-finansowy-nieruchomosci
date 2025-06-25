@@ -193,7 +193,7 @@ export async function GET() {
       scripts_dir: fs.existsSync(path.join(process.cwd(), 'scripts')),
       models_dir: fs.existsSync(path.join(process.cwd(), 'models')),
       ensemble_script: fs.existsSync(path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')),
-      ensemble_model: fs.existsSync(path.join(process.cwd(), 'models', 'ensemble_optimized_0.78pct.pkl')),
+      ensemble_model: fs.existsSync(path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl')),
       rf_script: fs.existsSync(path.join(process.cwd(), 'scripts', 'predict_rf.py')),
       rf_model: fs.existsSync(path.join(process.cwd(), 'models', 'valuation_rf.pkl'))
     };

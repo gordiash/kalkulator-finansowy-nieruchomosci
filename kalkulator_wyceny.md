@@ -70,12 +70,12 @@
 
 ---
 
-### 🚀 **STATUS: Ensemble v2.0 w PRODUKCJI**
+### 🚀 **STATUS: EstymatorAI w PRODUKCJI**
 
 #### Modele Produkcyjne
 | Model | Status | MAPE | Cechy | Endpoint |
 |-------|--------|------|-------|----------|
-| **Ensemble v2.0** | ✅ **PRODUKCJA** | **0.77%** | 100+ (LightGBM+RF+CatBoost) | `/api/valuation` |
+| **EstymatorAI** | ✅ **PRODUKCJA** | **0.77%** | 100+ (LightGBM+RF+CatBoost) | `/api/valuation` |
 | Random Forest | ✅ Fallback #1 | 15.56% | 35 (one-hot encoded) | Wbudowany |
 | Heurystyka | ✅ Fallback #2 | ~25% | - | Wbudowana |
 | XGBoost | ⚠️ Deprecated | 15.70% | 35 (one-hot encoded) | `/api/valuation-rf` |
@@ -87,7 +87,7 @@
 | **Ensemble Optimized** | ✅ **WDROŻONY** | **0.77%** | 100+ (weighted averaging) | **PRODUKCJA** |
 | Neural Network | ❌ Odrzucony | 85.10% | - | - |
 
-> **🎯 PRZEŁOM:** Ensemble Model osiągnął **0.77% MAPE** - 95% poprawa względem bazowego Random Forest! **WDROŻONY DO PRODUKCJI** 🚀
+> **🎯 PRZEŁOM:** EstymatorAI osiągnął **0.77% MAPE** - 95% poprawa względem bazowego Random Forest! **WDROŻONY DO PRODUKCJI** 🚀
 
 ### Priorytety Fazowe (MVP → Full)
 
@@ -112,7 +112,7 @@
 - **50% poprawa** względem bazowego Random Forest
 - **R² = 0.851** (vs 0.555 bazowy)
 
-### Ensemble Model (1.75% MAPE)
+### EstymatorAI (1.75% MAPE)
 ✅ **Zaimplementowany** - `scripts/train_advanced_ensemble.py`
 - **LightGBM + Random Forest + CatBoost** (bez Neural Network)
 - **Weighted averaging** bazowany na wydajności walidacyjnej
@@ -125,7 +125,7 @@
 - **`scripts/predict_ensemble.py`** - Predykcja z ensemble
 - **`src/app/api/valuation-ensemble/route.ts`** - Endpoint API
 - **`docs/ADVANCED_ENSEMBLE_MODEL.md`** - Pełna dokumentacja
-- **Fallback strategy** - Ensemble → RF → Heurystyka
+- **Fallback strategy** - EstymatorAI → RF → Heurystyka
 
 ### Przyszłe Wdrożenie
 Zaawansowane modele są **gotowe do wdrożenia** ale pozostają w trybie badawczym:

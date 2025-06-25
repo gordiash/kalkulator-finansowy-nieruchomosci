@@ -46,6 +46,48 @@ DB_CONFIG = {
     'charset': 'utf8mb4'
 }
 
+def load_data_from_db():
+    """Pobieranie danych z bazy MySQL z rozszerzonymi cechami"""
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        
+        query = """
+        SELECT 
+            city, district, area, rooms, year_of_construction as year_built, price,
+            CASE 
+                WHEN city = 'Olsztyn' AND district IN ('Śródmieście', 'Centrum', 'Zatorze') THEN 'premium'
+                WHEN city = 'Olsztyn' AND district IN ('Kortowo', 'Jaroty', 'Nagórki') THEN 'high'
+                WHEN city = 'Olsztyn' AND district IN ('Pieczewo', 'Gutkowo', 'Generałów') THEN 'medium'
+                ELSE 'standard'
+            END as location_tier,
+            CASE 
+                WHEN year_of_construction >= 2015 THEN 'very_new'
+                WHEN year_of_construction >= 2010 THEN 'new'
+                WHEN year_of_construction >= 2000 THEN 'modern'
+                WHEN year_of_construction >= 1990 THEN 'renovated'
+                ELSE 'old'
+            END as building_age_category
+        FROM nieruchomosci 
+        WHERE price IS NOT NULL 
+        AND area > 0 
+        AND rooms > 0 
+        AND year_of_construction > 1950
+        AND price BETWEEN 100000 AND 3000000
+        """
+        
+        df = pd.read_sql(query, connection)
+        print(f"✅ Pobrano {len(df)} rekordów z bazy danych")
+        return df
+        
+    except Error as e:
+        print(f"❌ Błąd połączenia z bazą: {e}")
+        print("🔄 Próbuję załadować dane syntetyczne...")
+        return load_synthetic_data()
+    finally:
+        if connection and connection.is_connected():
+            connection.close()
+
 def load_synthetic_data():
     """Generowanie syntetycznych danych do testowania modelu"""
     np.random.seed(42)
@@ -386,7 +428,7 @@ def save_optimized_model(models, metadata, model_path):
     # Metadane
     meta_path = model_path.replace('.pkl', '_meta.txt')
     with open(meta_path, 'w', encoding='utf-8') as f:
-        f.write(f"Optimized Ensemble Model\n")
+        f.write(f"Optimized EstymatorAI\n")
         f.write(f"========================\n")
         f.write(f"Ensemble MAPE: {metadata['ensemble_mape']:.2f}%\n")
         f.write(f"Ensemble RMSE: {metadata['ensemble_rmse']:,.0f} PLN\n")
@@ -404,15 +446,15 @@ def save_optimized_model(models, metadata, model_path):
     print(f"✅ Metadane zapisane: {meta_path}")
 
 def main():
-    print("🚀 ZOPTYMALIZOWANY ENSEMBLE MODEL")
+    print("🚀 ZOPTYMALIZOWANY ESTYMATORAI")
     print("=" * 60)
     print("Modele: LightGBM (główny) + Random Forest + CatBoost")
     print("Weighted averaging bazowany na wydajności")
     print("Cel: MAPE < 2.0%")
     print("=" * 60)
     
-    # Generowanie danych
-    df = load_synthetic_data()
+    # Ładowanie danych z bazy
+    df = load_data_from_db()
     print(f"📊 Załadowano {len(df)} rekordów")
     
     # Feature engineering

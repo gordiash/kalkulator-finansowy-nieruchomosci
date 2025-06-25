@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         minPrice,
         maxPrice,
         currency: 'PLN',
-        method: 'random_forest_v1.0',
+        method: 'random_forest',
         model: 'RandomForestRegressor',
         confidence: '±7%',
         features_used: Object.keys(features),

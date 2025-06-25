@@ -7,7 +7,7 @@ FastAPI service dla wyceny nieruchomości używający zaawansowanych modeli Mach
 ### **Krok 1: Przygotowanie**
 ```bash
 # Skopiuj modele ML do katalogu railway-ml-api/models/
-cp models/ensemble_optimized_0.78pct.pkl railway-ml-api/models/
+cp models/ensemble_optimized_0.79pct.pkl railway-ml-api/models/
 cp models/valuation_rf.pkl railway-ml-api/models/
 ```
 
@@ -75,7 +75,7 @@ allow_origins=["https://twoja-aplikacja.vercel.app", "http://localhost:3000"]
   "minPrice": 493000,
   "maxPrice": 513000,
   "currency": "PLN",
-  "method": "ensemble_v2.0_railway",
+  "method": "ensemble_EstymatorAI_railway",
   "confidence": "±2%",
   "note": "Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE",
   "timestamp": "2024-01-15T10:30:00"
@@ -85,13 +85,13 @@ allow_origins=["https://twoja-aplikacja.vercel.app", "http://localhost:3000"]
 ## 🔧 **Modele ML**
 
 ### **Hierarchia modeli:**
-1. **Ensemble Model** (najlepszy) - MAPE 0.78%
+1. **EstymatorAI** (najlepszy) - MAPE 0.78%
 2. **Random Forest** - MAPE 15.56% 
 3. **XGBoost** - backup model
 4. **Heurystyka** - fallback gdy modele niedostępne
 
 ### **Rozmiary modeli:**
-- `ensemble_optimized_0.78pct.pkl` - ~46MB
+- `ensemble_optimized_0.79pct.pkl` - ~45MB
 - `valuation_rf.pkl` - ~4.3MB
 - `valuation_xgb.pkl` - ~2MB (opcjonalny)
 

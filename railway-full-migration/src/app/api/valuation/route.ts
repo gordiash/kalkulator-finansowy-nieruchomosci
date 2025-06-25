@@ -29,7 +29,7 @@ async function callEnsembleModel(inputData: any): Promise<{price: number | null,
   return new Promise((resolve) => {
     try {
       const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
-      const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.78pct.pkl')
+      const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl')
       
       const conditionToAgeCategory = {
         'new': 'very_new', 'good': inputData.year >= 2010 ? 'new' : inputData.year >= 2000 ? 'modern' : 'renovated',
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
 
     if (ensembleResult.price) {
       price = Math.round(ensembleResult.price / 1000) * 1000;
-      method = 'ensemble_v2.1_debug';
+              method = 'ensemble_EstymatorAI_debug';
     } else {
       mlErrorDetails.push(`Ensemble Error: ${ensembleResult.error}`);
       console.log(`[Valuation API] Ensemble failed: ${ensembleResult.error}, próba Random Forest...`);
@@ -184,12 +184,12 @@ export async function POST(request: NextRequest) {
 
       if (rfResult.price) {
         price = Math.round(rfResult.price / 1000) * 1000;
-        method = 'random_forest_v1.1_fallback_debug';
+                  method = 'random_forest_fallback_debug';
       } else {
         mlErrorDetails.push(`Random Forest Error: ${rfResult.error}`);
         console.log(`[Valuation API] Random Forest failed: ${rfResult.error}, fallback do heurystyki...`);
         price = calculateHeuristicPrice(modelInput.city, modelInput.area, modelInput.rooms, modelInput.year);
-        method = 'heuristic_fallback_v1.1';
+        method = 'heuristic_fallback';
       }
     }
 

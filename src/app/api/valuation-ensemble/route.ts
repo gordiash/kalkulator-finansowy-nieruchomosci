@@ -78,7 +78,7 @@ async function runEnsemblePrediction(inputData: ValuationRequest): Promise<Ensem
     //   'models/random_forest_*.pkl'  // fallback
     // ];
     
-    const modelPath = 'models/ensemble_optimized_0.78pct.pkl'; // najnowszy najlepszy model
+    const modelPath = 'models/ensemble_optimized_0.79pct.pkl'; // najnowszy najlepszy model
     
     const pythonProcess = spawn('python', [
       scriptPath,
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
       method: 'heuristic_fallback',
       model_info: {
         type: 'Heuristic Model',
-        reason: 'Ensemble model unavailable'
+                        reason: 'EstymatorAI unavailable'
       },
       input_data: inputData,
       confidence: 'medium',

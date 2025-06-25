@@ -24,7 +24,7 @@ def test_model_loading():
             print(f"  - {file.name} ({file.stat().st_size / 1024 / 1024:.1f}MB)")
     
     # Test ensemble model
-    ensemble_path = models_dir / 'ensemble_optimized_0.78pct.pkl'
+    ensemble_path = models_dir / 'ensemble_optimized_0.79pct.pkl'
     print(f"\n🤖 Testing ensemble model: {ensemble_path}")
     print(f"🤖 Ensemble model exists: {ensemble_path.exists()}")
     

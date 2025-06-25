@@ -188,7 +188,7 @@ valuationAnalytics.trackValuationResultViewed({
   area: 60,
   rooms: 3,
   price: 684000,
-  method: 'random_forest_v1.0'
+      method: 'random_forest'
 })
 ```
 

@@ -1,4 +1,4 @@
-Optimized Ensemble Model
+Optimized EstymatorAI
 ========================
 Ensemble MAPE: 0.78%
 Ensemble RMSE: 4,716 PLN

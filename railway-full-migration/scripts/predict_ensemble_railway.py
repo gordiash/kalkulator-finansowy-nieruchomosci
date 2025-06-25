@@ -23,7 +23,7 @@ def load_models():
     
     try:
         # Ensemble model (najlepszy)
-        ensemble_path = models_dir / 'ensemble_optimized_0.78pct.pkl'
+        ensemble_path = models_dir / 'ensemble_optimized_0.79pct.pkl'
         if ensemble_path.exists():
             with open(ensemble_path, 'rb') as f:
                 models['ensemble'] = pickle.load(f)
@@ -129,7 +129,7 @@ def predict_price(models, features, data):
                     'minPrice': round(price * 0.98 / 1000) * 1000,
                     'maxPrice': round(price * 1.02 / 1000) * 1000,
                     'currency': 'PLN',
-                    'method': 'ensemble_v2.0_railway',
+                    'method': 'ensemble_EstymatorAI_railway',
                     'confidence': '±2%',
                     'note': 'Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE',
                     'timestamp': pd.Timestamp.now().isoformat()

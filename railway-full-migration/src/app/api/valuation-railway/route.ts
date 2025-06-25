@@ -74,7 +74,7 @@ async function callPythonEnsembleModel(data: any): Promise<any> {
     
     // Użyj bardziej kompatybilnego skryptu
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
-    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.78pct.pkl');
+    const modelPath = path.join(process.cwd(), 'models', 'ensemble_optimized_0.79pct.pkl');
     
     console.log('📍 Script path:', scriptPath);
     console.log('📍 Model path:', modelPath);
@@ -153,7 +153,7 @@ async function callPythonEnsembleModel(data: any): Promise<any> {
               minPrice: Math.round(result.ensemble_prediction * 0.98 / 1000) * 1000,
               maxPrice: Math.round(result.ensemble_prediction * 1.02 / 1000) * 1000,
               currency: 'PLN',
-              method: 'ensemble_v2.0_railway',
+              method: 'ensemble_EstymatorAI_railway',
               confidence: '±2%',
               note: 'Wycena oparta o zaawansowany model Ensemble z dokładnością 0.78% MAPE',
               timestamp: new Date().toISOString(),
