@@ -23,13 +23,13 @@ const ValuationSchema = z.object({
   transport: z.enum(['poor', 'medium', 'good', 'excellent']).optional(),
   totalFloors: z.number().int().positive().optional(),
   heating: z.string().optional(),
-  bathrooms: z.string().optional(),
+  bathrooms: z.number().int().min(1).max(10).optional(),
   kitchenType: z.string().optional(),
   basement: z.string().optional(),
   buildingMaterial: z.string().optional(),
   ownership: z.string().optional(),
-  balconyArea: z.string().optional(),
-  lastRenovation: z.string().optional(),
+  balconyArea: z.number().min(0.1).max(100).optional(),
+  lastRenovation: z.number().int().min(1990).max(2024).optional(),
 })
 
 // === Funkcja do wywołania EstymatorAI ===
@@ -51,13 +51,13 @@ async function callEnsembleModel(inputData: {
   transport?: string;
   totalFloors?: number;
   heating?: string;
-  bathrooms?: string;
+  bathrooms?: number;
   kitchenType?: string;
   basement?: string;
   buildingMaterial?: string;
   ownership?: string;
-  balconyArea?: string;
-  lastRenovation?: string;
+  balconyArea?: number;
+  lastRenovation?: number;
 }): Promise<number | null> {
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
@@ -118,13 +118,13 @@ async function callEnsembleModel(inputData: {
       transport: inputData.transport || 'medium',
       total_floors: inputData.totalFloors || 0,
       heating: inputData.heating || '',
-      bathrooms: inputData.bathrooms || '',
+      bathrooms: inputData.bathrooms || 0,
       kitchen_type: inputData.kitchenType || '',
       basement: inputData.basement || '',
       building_material: inputData.buildingMaterial || '',
       ownership: inputData.ownership || '',
-      balcony_area: inputData.balconyArea || '',
-      last_renovation: inputData.lastRenovation || ''
+      balcony_area: inputData.balconyArea || 0,
+      last_renovation: inputData.lastRenovation || 0
     }
     
     console.log('[Ensemble] Input data:', JSON.stringify(ensembleInput, null, 2))

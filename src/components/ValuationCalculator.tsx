@@ -254,7 +254,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
     setStatus('loading')
     setError(null)
-    setCurrentStep(3) // Go to result step
+    setCurrentStep(4) // Go to result step
 
     // Track form submission
     try {
@@ -294,13 +294,13 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           transport: form.transport,
           totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined,
           heating: form.heating,
-          bathrooms: form.bathrooms,
+          bathrooms: form.bathrooms ? parseInt(form.bathrooms) : undefined,
           kitchenType: form.kitchenType,
           basement: form.basement,
           buildingMaterial: form.buildingMaterial,
           ownership: form.ownership,
-          balconyArea: form.balconyArea,
-          lastRenovation: form.lastRenovation
+          balconyArea: form.balconyArea ? parseFloat(form.balconyArea) : undefined,
+          lastRenovation: form.lastRenovation ? parseInt(form.lastRenovation) : undefined
         }),
       })
 
