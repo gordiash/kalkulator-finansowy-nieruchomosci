@@ -498,140 +498,142 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
             </div>
             
             <div className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Miasto */}
-                <div className="group">
-                  <FieldWithTooltip
-                    label="Miasto"
-                    tooltip={tooltips.city}
-                    required
-                    htmlFor="city"
-                  >
-                    <div className="relative">
-                      <Autocomplete
-                        name="city"
-                        value={form.city}
-                        onChange={handleChange}
-                        options={cities}
-                        loading={locationsLoading}
-                        required
-                        placeholder="np. Olsztyn"
-                        className="text-lg h-14 pl-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
-                      />
-                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
+              <div className="space-y-8">
+                {/* Pierwsza grupa - Miasto i Dzielnica */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Miasto */}
+                  <div className="space-y-2">
+                    <FieldWithTooltip
+                      label="Miasto"
+                      tooltip={tooltips.city}
+                      required
+                      htmlFor="city"
+                    >
+                      <div className="relative">
+                        <Autocomplete
+                          name="city"
+                          value={form.city}
+                          onChange={handleChange}
+                          options={cities}
+                          loading={locationsLoading}
+                          required
+                          placeholder="np. Olsztyn"
+                          className="w-full h-12 pl-10 pr-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          📍
+                        </div>
                       </div>
-                    </div>
-                  </FieldWithTooltip>
+                    </FieldWithTooltip>
+                  </div>
+
+                  {/* Dzielnica */}
+                  <div className="space-y-2">
+                    <FieldWithTooltip
+                      label="Dzielnica"
+                      tooltip={tooltips.district}
+                      htmlFor="district"
+                    >
+                      <div className="relative">
+                        <Autocomplete
+                          name="district"
+                          value={form.district}
+                          onChange={handleChange}
+                          options={districts}
+                          placeholder="np. Kortowo"
+                          className="w-full h-12 pl-10 pr-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          🏢
+                        </div>
+                      </div>
+                    </FieldWithTooltip>
+                  </div>
                 </div>
 
-                {/* Dzielnica */}
-                <div className="group">
-                  <FieldWithTooltip
-                    label="Dzielnica"
-                    tooltip={tooltips.district}
-                    htmlFor="district"
-                  >
-                    <div className="relative">
-                      <Autocomplete
-                        name="district"
-                        value={form.district}
-                        onChange={handleChange}
-                        options={districts}
-                        placeholder="np. Kortowo"
-                        className="text-lg h-14 pl-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
-                      />
-                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                        </svg>
+                {/* Druga grupa - Metraż i Pokoje */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Metraż */}
+                  <div className="space-y-2">
+                    <FieldWithTooltip
+                      label="Metraż (m²)"
+                      tooltip={tooltips.area}
+                      required
+                      htmlFor="area"
+                    >
+                      <div className="relative">
+                        <Input
+                          id="area"
+                          name="area"
+                          value={form.area}
+                          onChange={handleChange}
+                          type="number"
+                          step="0.1"
+                          min="1"
+                          max="1000"
+                          required
+                          placeholder="60"
+                          className="w-full h-12 pl-4 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors text-center font-semibold text-lg bg-gradient-to-r from-blue-50 to-indigo-50"
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                          m²
+                        </div>
                       </div>
-                    </div>
-                  </FieldWithTooltip>
-                </div>
+                    </FieldWithTooltip>
+                  </div>
 
-                {/* Metraż */}
-                <div className="group">
-                  <FieldWithTooltip
-                    label="Metraż (m²)"
-                    tooltip={tooltips.area}
-                    required
-                    htmlFor="area"
-                  >
-                    <div className="relative">
-                      <Input
-                        id="area"
-                        name="area"
-                        value={form.area}
-                        onChange={handleChange}
-                        type="number"
-                        step="0.1"
-                        min="1"
-                        max="1000"
-                        required
-                        placeholder="60"
-                        className="text-xl font-bold text-center h-14 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-indigo-50"
-                      />
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                        m²
-                      </div>
-                    </div>
-                  </FieldWithTooltip>
-                </div>
-
-                {/* Liczba pokoi */}
-                <div className="group">
-                  <FieldWithTooltip
-                    label="Liczba pokoi"
-                    tooltip={tooltips.rooms}
-                    required
-                    htmlFor="rooms"
-                  >
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-4 gap-3">
-                        {[1, 2, 3, 4].map(num => (
-                          <button
-                            key={num}
-                            type="button"
-                            onClick={() => setForm({ ...form, rooms: num.toString() })}
-                            className={`
-                              relative p-4 rounded-xl border-2 transition-all duration-300 text-xl font-bold group-hover:scale-105
-                              ${form.rooms === num.toString()
-                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 shadow-lg scale-105'
-                                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700'
-                              }
-                            `}
-                          >
-                            <div className="text-center">
-                              <div className="text-2xl mb-1">{num}</div>
-                              <div className="text-xs text-gray-500">
-                                {num === 1 ? 'pokój' : 'pokoje'}
+                  {/* Liczba pokoi */}
+                  <div className="space-y-2">
+                    <FieldWithTooltip
+                      label="Liczba pokoi"
+                      tooltip={tooltips.rooms}
+                      required
+                      htmlFor="rooms"
+                    >
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-4 gap-2">
+                          {[1, 2, 3, 4].map(num => (
+                            <button
+                              key={num}
+                              type="button"
+                              onClick={() => setForm({ ...form, rooms: num.toString() })}
+                              className={`
+                                relative p-3 rounded-lg border-2 transition-all duration-200 font-bold hover:scale-105
+                                ${form.rooms === num.toString()
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                                  : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50 text-gray-700'
+                                }
+                              `}
+                            >
+                              <div className="text-center">
+                                <div className="text-2xl">{num}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {num === 1 ? 'pokój' : 'pokoje'}
+                                </div>
                               </div>
-                            </div>
-                            {form.rooms === num.toString() && (
-                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                          </button>
-                        ))}
+                              {form.rooms === num.toString() && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                        <Input
+                          name="rooms"
+                          value={form.rooms}
+                          onChange={handleChange}
+                          type="number"
+                          min="1"
+                          max="20"
+                          placeholder="lub wpisz inną liczbę"
+                          className="w-full h-10 px-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors text-center"
+                        />
                       </div>
-                      <Input
-                        name="rooms"
-                        value={form.rooms}
-                        onChange={handleChange}
-                        type="number"
-                        min="1"
-                        max="20"
-                        placeholder="lub wpisz inną liczbę"
-                        className="text-center h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300"
-                      />
-                    </div>
-                  </FieldWithTooltip>
+                    </FieldWithTooltip>
+                  </div>
                 </div>
               </div>
             </div>
