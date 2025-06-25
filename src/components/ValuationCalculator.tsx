@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Autocomplete } from '@/components/ui/autocomplete'
-import { FieldWithTooltip } from '@/components/ui/field-with-tooltip'
-import { formatCurrency } from '../lib/utils'
-import { useLocations } from '../hooks/useLocations'
-import { useAccessibilityCheck } from '../accessibility'
-import { valuationAnalytics } from '../lib/analytics'
 import Link from 'next/link'
+import { useLocations } from '../hooks/useLocations'
+import { FieldWithTooltip } from './ui/field-with-tooltip'
+import { Autocomplete } from './ui/autocomplete'
+import { Input } from './ui/input'
+import { Card } from './ui/card'
+import { Button } from './ui/button'
+import { valuationAnalytics } from '../lib/analytics'
 
 interface ValuationResponse {
   price: number
@@ -19,27 +19,6 @@ interface ValuationResponse {
   confidence?: string
   note?: string
   timestamp?: string
-}
-
-// Definicje tooltipów z wyjaśnieniami pojęć
-const tooltips = {
-  city: 'Miasto gdzie znajduje się mieszkanie. Model został wytrenowany głównie na danych z Olsztyna i okolic.',
-  district: 'Dzielnica lub osiedle. Lokalizacja znacząco wpływa na cenę nieruchomości. Opcjonalne pole.',
-  street: 'Nazwa ulicy. Pomaga w precyzyjniejszej wycenie, ale nie jest wymagana.',
-  area: 'Powierzchnia mieszkania w metrach kwadratowych. Jeden z najważniejszych czynników wpływających na cenę.',
-  rooms: 'Liczba pokoi (bez kuchni i łazienki). Wpływa na funkcjonalność i atrakcyjność mieszkania.',
-  floor: 'Piętro na którym znajduje się mieszkanie. 0 oznacza parter. Wyższe piętra mogą być bardziej atrakcyjne.',
-  year: 'Rok budowy budynku. Nowsze budynki zazwyczaj mają wyższe ceny ze względu na lepszy standard.',
-  locationTier: 'Klasa lokalizacji mieszkania. Premium (centrum, prestiżowe dzielnice), Standard (typowe osiedla).',
-  condition: 'Stan techniczny mieszkania. Nowe (po remoncie), Dobre (mieszkalne), Do remontu.',
-  buildingType: 'Typ budynku mieszkalnego. Wpływa na atrakcyjność i cenę nieruchomości.',
-  parking: 'Dostępność miejsca parkingowego. Znacząco wpływa na wartość mieszkania, szczególnie w centrach miast.',
-  finishing: 'Standard wykończenia mieszkania. Deweloperski, pod klucz czy do remontu.',
-  elevator: 'Dostępność windy w budynku. Szczególnie ważna dla wyższych pięter.',
-  balcony: 'Posiadanie balkonu, tarasu lub loggi. Zwiększa atrakcyjność mieszkania.',
-  orientation: 'Strona świata, na którą wychodzą główne okna. Wpływa na nasłonecznienie.',
-  transport: 'Dostęp do komunikacji publicznej. Ważny czynnik dla mieszkańców bez samochodu.',
-  totalFloors: 'Liczba pięter w budynku. Wpływa na prestiż i dostępność mieszkania.'
 }
 
 interface ValuationCalculatorProps {
@@ -64,7 +43,40 @@ interface ValuationCalculatorProps {
   }
 }
 
+// Progress steps
+const STEPS = [
+  { id: 'basic', title: 'Podstawowe dane', description: 'Lokalizacja i podstawowe informacje' },
+  { id: 'property', title: 'Opis nieruchomości', description: 'Szczegóły techniczne mieszkania' },
+  { id: 'additional', title: 'Dodatkowe cechy', description: 'Udogodnienia i wyposażenie' },
+  { id: 'result', title: 'Wycena', description: 'Oszacowana wartość mieszkania' }
+]
+
+// Definicje tooltipów z wyjaśnieniami pojęć
+const tooltips = {
+  city: 'Miasto gdzie znajduje się mieszkanie. Model został wytrenowany głównie na danych z Olsztyna i okolic.',
+  district: 'Dzielnica lub osiedle. Lokalizacja znacząco wpływa na cenę nieruchomości. Opcjonalne pole.',
+  street: 'Nazwa ulicy. Pomaga w precyzyjniejszej wycenie, ale nie jest wymagana.',
+  area: 'Powierzchnia mieszkania w metrach kwadratowych. Jeden z najważniejszych czynników wpływających na cenę.',
+  rooms: 'Liczba pokoi (bez kuchni i łazienki). Wpływa na funkcjonalność i atrakcyjność mieszkania.',
+  floor: 'Piętro na którrym znajduje się mieszkanie. 0 oznacza parter. Wyższe piętra mogą być bardziej atrakcyjne.',
+  year: 'Rok budowy budynku. Nowsze budynki zazwyczaj mają wyższe ceny ze względu na lepszy standard.',
+  locationTier: 'Klasa lokalizacji mieszkania. Premium (centrum, prestiżowe dzielnice), Standard (typowe osiedla).',
+  condition: 'Stan techniczny mieszkania. Nowe (po remoncie), Dobre (mieszkalne), Do remontu.',
+  buildingType: 'Typ budynku mieszkalnego. Wpływa na atrakcyjność i cenę nieruchomości.',
+  parking: 'Dostępność miejsca parkingowego. Znacząco wpływa na wartość mieszkania, szczególnie w centrach miast.',
+  finishing: 'Standard wykończenia mieszkania. Deweloperski, pod klucz czy do remontu.',
+  elevator: 'Dostępność windy w budynku. Szczególnie ważna dla wyższych pięter.',
+  balcony: 'Posiadanie balkonu, tarasu lub loggi. Zwiększa atrakcyjność mieszkania.',
+  orientation: 'Strona świata, na którą wychodzą główne okna. Wpływa na nasłonecznienie.',
+  transport: 'Dostęp do komunikacji publicznej. Ważny czynnik dla mieszkańców bez samochodu.',
+  totalFloors: 'Liczba pięter w budynku. Wpływa na prestiż i dostępność mieszkania.'
+}
+
 export default function ValuationCalculator({ initialData }: ValuationCalculatorProps = {}) {
+  // Current step state
+  const [currentStep, setCurrentStep] = useState(0)
+  
+  // Form state
   const [form, setForm] = useState({
     city: initialData?.city || 'Olsztyn',
     district: initialData?.district || '',
@@ -73,26 +85,52 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
     rooms: initialData?.rooms || '',
     floor: initialData?.floor || '',
     year: initialData?.year || '',
-    locationTier: initialData?.locationTier || 'medium',
+    locationTier: initialData?.locationTier || 'standard',
     condition: initialData?.condition || 'good',
-    buildingType: initialData?.buildingType || 'apartment',
+    buildingType: initialData?.buildingType || 'blok',
     parking: initialData?.parking || 'none',
     finishing: initialData?.finishing || 'standard',
     elevator: initialData?.elevator || 'no',
-    balcony: initialData?.balcony || 'none',
-    orientation: initialData?.orientation || 'unknown',
+    balcony: initialData?.balcony || 'no',
+    orientation: initialData?.orientation || 'south',
     transport: initialData?.transport || 'medium',
-    totalFloors: initialData?.totalFloors || '',
+    totalFloors: initialData?.totalFloors || ''
   })
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle')
-  const [result, setResult] = useState<ValuationResponse | null>(null)
-  const [error, setError] = useState('')
-  const [formStartTime] = useState(Date.now())
 
+  // API state
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [result, setResult] = useState<ValuationResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Locations hook
   const { cities, districts, loading: locationsLoading } = useLocations()
-  
-  // Sprawdzenie accessibility w development
-  useAccessibilityCheck()
+
+  // Form validation for each step
+  const isStepValid = (step: number): boolean => {
+    switch (step) {
+      case 0: // Basic data
+        return !!(form.city && form.area && form.rooms)
+      case 1: // Property details
+        return true // All optional
+      case 2: // Additional features
+        return true // All optional
+      default:
+        return true
+    }
+  }
+
+  const isCurrentStepValid = isStepValid(currentStep)
+  const isFormValid = isStepValid(0) // Only basic data required
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pl-PL', {
+      style: 'currency',
+      currency: 'PLN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -156,666 +194,767 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setStatus('loading')
-    setError('')
     
-    // Walidacja
-    if (!form.area || parseFloat(form.area) <= 0) {
-      setError('Podaj prawidłowy metraż mieszkania')
-      setStatus('error')
+    if (!isFormValid) {
+      setError('Proszę wypełnić wymagane pola: miasto, metraż i liczbę pokoi')
       return
     }
-    
-    if (!form.rooms || parseInt(form.rooms) <= 0) {
-      setError('Podaj prawidłową liczbę pokoi')
-      setStatus('error')
-      return
+
+    setStatus('loading')
+    setError(null)
+    setCurrentStep(3) // Go to result step
+
+    // Track form submission
+    try {
+      valuationAnalytics.trackValuationSubmitted({
+        city: form.city,
+        area: parseFloat(form.area),
+        rooms: parseInt(form.rooms),
+        year: form.year ? parseInt(form.year) : undefined,
+      })
+    } catch (err) {
+      // Analytics error, continue
+      console.warn('Analytics error:', err)
     }
 
     try {
-      // Konwersja pól numerycznych
-      const payload: Record<string, unknown> = {
-        city: form.city.trim(),
-        area: parseFloat(form.area),
-        rooms: parseInt(form.rooms),
-        floor: form.floor ? parseInt(form.floor) : 0,
-        year: form.year ? parseInt(form.year) : undefined,
-        locationTier: form.locationTier,
-        condition: form.condition,
-        buildingType: form.buildingType,
-        parking: form.parking,
-        finishing: form.finishing,
-        elevator: form.elevator,
-        balcony: form.balcony,
-        orientation: form.orientation,
-        transport: form.transport,
-        totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined,
-      }
-
-      // Usuń puste opcjonalne pola tekstowe, aby spełnić walidację backendu (min 2 znaki)
-      if (form.district.trim().length >= 2) {
-        payload.district = form.district.trim()
-      }
-      if (form.street.trim().length >= 2) {
-        payload.street = form.street.trim()
-      }
-
-      // Analytics: Formularz wysłany
-      valuationAnalytics.trackValuationSubmitted({
-        ...payload,
-        timestamp: new Date(formStartTime).toISOString()
-      })
-
-      console.log('Wysyłam zapytanie:', payload)
-
-      const res = await fetch('/api/valuation', {
+      const response = await fetch('/api/valuation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          city: form.city,
+          district: form.district || null,
+          street: form.street || null,
+          area: parseFloat(form.area),
+          rooms: parseInt(form.rooms),
+          floor: form.floor ? parseInt(form.floor) : null,
+          year_built: form.year ? parseInt(form.year) : null,
+          location_tier: form.locationTier,
+          condition: form.condition,
+          building_type: form.buildingType,
+          parking: form.parking !== 'none',
+          finishing_standard: form.finishing,
+          elevator: form.elevator === 'yes',
+          balcony_terrace: form.balcony === 'yes',
+          windows_orientation: form.orientation,
+          public_transport: form.transport,
+          total_floors: form.totalFloors ? parseInt(form.totalFloors) : null
+        }),
       })
 
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Błąd serwera')
+      if (!response.ok) {
+        throw new Error('Błąd podczas obliczania wyceny')
       }
-      
-      console.log('Otrzymana odpowiedź:', data)
+
+      const data: ValuationResponse = await response.json()
       setResult(data)
       setStatus('success')
 
-      // Analytics: Wynik otrzymany
-      valuationAnalytics.trackValuationResultViewed({
-        ...payload,
-        price: data.price,
-        method: data.method
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Nieznany błąd'
-      setError(errorMessage)
-      setStatus('error')
-      console.error('Błąd wyceny:', error)
+      // Track successful calculation
+      try {
+        valuationAnalytics.trackValuationResultViewed({
+          city: form.city,
+          area: parseFloat(form.area),
+          rooms: parseInt(form.rooms),
+          price: data.price,
+          method: data.method
+        })
+      } catch (err) {
+        console.warn('Analytics error:', err)
+      }
 
-      // Analytics: Błąd wyceny
-      valuationAnalytics.trackValuationError(errorMessage, {
-        city: form.city,
-        area: form.area ? parseFloat(form.area) : undefined,
-        rooms: form.rooms ? parseInt(form.rooms) : undefined
-      })
+    } catch (err) {
+      console.error('Error calculating valuation:', err)
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd podczas wyceny')
+      setStatus('error')
+      
+      // Track error
+      try {
+        valuationAnalytics.trackValuationError(
+          err instanceof Error ? err.message : 'Unknown error',
+          {
+            city: form.city,
+            area: parseFloat(form.area),
+            rooms: parseInt(form.rooms),
+          }
+        )
+      } catch (analyticsErr) {
+        console.warn('Analytics error:', analyticsErr)
+      }
     }
   }
 
-  const isFormValid = form.city && form.area && form.rooms
+  const nextStep = () => {
+    if (currentStep < STEPS.length - 1 && isCurrentStepValid) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Nagłówek z informacją o modelu */}
-      <div 
-        className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4"
-        role="banner"
-        aria-labelledby="ai-info-title"
-      >
-        <h3 id="ai-info-title" className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-          🚀 Wycena oparta o zaawansowaną sztuczną inteligencję
-          <span className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-2 py-1 rounded-full font-normal border border-green-200">
-            ENSEMBLE v2.0
-          </span>
-        </h3>
-        <div className="text-sm text-blue-800 space-y-1">
-          <p>
-            Używamy <span className="font-medium">zaawansowanego modelu Ensemble</span> (LightGBM + Random Forest + CatBoost) wytrenowanego na {' '}
-            <span className="font-medium">566 ofertach z regionu Olsztyn</span>.
-          </p>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <span>🎯 Dokładność: <span className="font-medium text-green-700">MAPE 0.77%</span></span>
-            <span>📊 R²: <span className="font-medium">0.95+</span></span>
-            <span>⚡ Czas odpowiedzi: <span className="font-medium">&lt;3s</span></span>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Model Info Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">🤖</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-blue-900">
+                  Wycena AI 
+                  <span className="ml-2 text-sm font-normal bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    ENSEMBLE v2.0
+                  </span>
+                </h3>
+                <p className="text-blue-700 text-sm">Najdokładniejszy model wyceny na rynku</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-green-600">0.77%</div>
+              <div className="text-xs text-blue-600">Błąd MAPE</div>
+            </div>
           </div>
-          <p className="text-xs mt-2 text-blue-700">
-            Model łączy 3 algorytmy ML z inteligentnym ważeniem. Automatyczny fallback: Ensemble → Random Forest → Heurystyka.
-            Uwzględnia lokalizację, stan mieszkania, typ budynku i parking dla maksymalnej precyzji.
-          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+              <div className="text-lg font-bold text-blue-600">566</div>
+              <div className="text-blue-700">Ofert treningowych</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+              <div className="text-lg font-bold text-green-600">0.95+</div>
+              <div className="text-blue-700">Współczynnik R²</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+              <div className="text-lg font-bold text-purple-600">&lt;3s</div>
+              <div className="text-blue-700">Czas odpowiedzi</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+              <div className="text-lg font-bold text-orange-600">3</div>
+              <div className="text-blue-700">Algorytmy ML</div>
+            </div>
+          </div>
         </div>
-      </div>
+      </Card>
 
-      <form 
-        onSubmit={handleSubmit} 
-        className="space-y-6"
-        aria-labelledby="valuation-form-title"
-        noValidate
-      >
-        <h2 id="valuation-form-title" className="sr-only">
-          Formularz wyceny mieszkania
-        </h2>
-
-        <fieldset className="space-y-4">
-          <legend className="text-lg font-semibold text-gray-900 mb-4">
-            Dane mieszkania
-          </legend>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Miasto */}
-            <FieldWithTooltip
-              label="Miasto"
-              tooltip={tooltips.city}
-              required
-              htmlFor="city"
-            >
-              <Autocomplete
-                name="city"
-                value={form.city}
-                onChange={handleChange}
-                options={cities}
-                loading={locationsLoading}
-                required
-                placeholder="np. Olsztyn"
-                aria-label="Miasto gdzie znajduje się mieszkanie"
-                aria-describedby="help-city"
-              />
-            </FieldWithTooltip>
-
-            {/* Dzielnica */}
-            <FieldWithTooltip
-              label="Dzielnica"
-              tooltip={tooltips.district}
-              htmlFor="district"
-            >
-              <Autocomplete
-                name="district"
-                value={form.district}
-                onChange={handleChange}
-                options={districts}
-                placeholder="np. Kortowo"
-                aria-label="Dzielnica lub osiedle"
-                aria-describedby="help-district"
-              />
-            </FieldWithTooltip>
-
-            {/* Ulica */}
-            <FieldWithTooltip
-              label="Ulica"
-              tooltip={tooltips.street}
-              htmlFor="street"
-            >
-              <Input 
-                id="street"
-                name="street" 
-                value={form.street} 
-                onChange={handleChange} 
-                placeholder="np. Warszawska"
-                aria-label="Nazwa ulicy"
-                aria-describedby="help-street"
-              />
-            </FieldWithTooltip>
-
-            {/* Metraż */}
-            <FieldWithTooltip
-              label="Metraż (m²)"
-              tooltip={tooltips.area}
-              required
-              htmlFor="area"
-            >
-              <Input
-                id="area"
-                name="area"
-                value={form.area}
-                onChange={handleChange}
-                type="number"
-                step="0.1"
-                min="1"
-                max="1000"
-                required
-                placeholder="np. 60"
-                aria-label="Powierzchnia mieszkania w metrach kwadratowych"
-                aria-describedby="help-area"
-              />
-            </FieldWithTooltip>
-
-            {/* Liczba pokoi */}
-            <FieldWithTooltip
-              label="Liczba pokoi"
-              tooltip={tooltips.rooms}
-              required
-              htmlFor="rooms"
-            >
-              <Input
-                id="rooms"
-                name="rooms"
-                value={form.rooms}
-                onChange={handleChange}
-                type="number"
-                min="1"
-                max="20"
-                required
-                placeholder="np. 3"
-                aria-label="Liczba pokoi w mieszkaniu"
-                aria-describedby="help-rooms"
-              />
-            </FieldWithTooltip>
-
-            {/* Piętro */}
-            <FieldWithTooltip
-              label="Piętro"
-              tooltip={tooltips.floor}
-              htmlFor="floor"
-            >
-              <Input 
-                id="floor"
-                name="floor" 
-                value={form.floor} 
-                onChange={handleChange} 
-                type="number" 
-                min="0" 
-                max="50"
-                placeholder="np. 2"
-                aria-label="Piętro na którym znajduje się mieszkanie"
-                aria-describedby="help-floor"
-              />
-            </FieldWithTooltip>
-
-            {/* Rok budowy */}
-            <FieldWithTooltip
-              label="Rok budowy"
-              tooltip={tooltips.year}
-              htmlFor="year"
-            >
-              <Input 
-                id="year"
-                name="year" 
-                value={form.year} 
-                onChange={handleChange} 
-                type="number" 
-                min="1800"
-                max={new Date().getFullYear() + 5}
-                placeholder="np. 2015"
-                aria-label="Rok budowy budynku"
-                aria-describedby="help-year"
-              />
-            </FieldWithTooltip>
-
-            {/* Klasa lokalizacji */}
-            <FieldWithTooltip
-              label="Klasa lokalizacji"
-              tooltip={tooltips.locationTier}
-              htmlFor="locationTier"
-            >
-              <select
-                id="locationTier"
-                name="locationTier"
-                value={form.locationTier}
-                onChange={(e) => setForm({ ...form, locationTier: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Klasa lokalizacji mieszkania"
-                aria-describedby="help-locationTier"
+      {/* Progress Steps */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            {STEPS.map((step, index) => (
+              <div 
+                key={step.id}
+                className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : ''}`}
               >
-                <option value="premium">Premium (centrum, prestiżowe dzielnice)</option>
-                <option value="high">Wysoka (dobre dzielnice, dobra komunikacja)</option>
-                <option value="medium">Średnia (typowe osiedla mieszkaniowe)</option>
-                <option value="standard">Standard (osiedla peryferyjne)</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Stan mieszkania */}
-            <FieldWithTooltip
-              label="Stan mieszkania"
-              tooltip={tooltips.condition}
-              htmlFor="condition"
-            >
-              <select
-                id="condition"
-                name="condition"
-                value={form.condition}
-                onChange={(e) => setForm({ ...form, condition: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Stan techniczny mieszkania"
-                aria-describedby="help-condition"
-              >
-                <option value="new">Nowy/Po remoncie</option>
-                <option value="good">Dobry (mieszkalny)</option>
-                <option value="renovated">Wymaga odświeżenia</option>
-                <option value="poor">Do generalnego remontu</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Typ budynku */}
-            <FieldWithTooltip
-              label="Typ budynku"
-              tooltip={tooltips.buildingType}
-              htmlFor="buildingType"
-            >
-              <select
-                id="buildingType"
-                name="buildingType"
-                value={form.buildingType}
-                onChange={(e) => setForm({ ...form, buildingType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Typ budynku mieszkalnego"
-                aria-describedby="help-buildingType"
-              >
-                <option value="apartment">Blok/Apartamentowiec</option>
-                <option value="tenement">Kamienica</option>
-                <option value="house">Dom jednorodzinny</option>
-                <option value="townhouse">Dom szeregowy</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Parking */}
-            <FieldWithTooltip
-              label="Miejsce parkingowe"
-              tooltip={tooltips.parking}
-              htmlFor="parking"
-            >
-              <select
-                id="parking"
-                name="parking"
-                value={form.parking}
-                onChange={(e) => setForm({ ...form, parking: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Dostępność miejsca parkingowego"
-                aria-describedby="help-parking"
-              >
-                <option value="none">Brak</option>
-                <option value="street">Parking uliczny</option>
-                <option value="paid">Płatne miejsce w garażu</option>
-                <option value="included">Miejsce w cenie</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Standard wykończenia */}
-            <FieldWithTooltip
-              label="Standard wykończenia"
-              tooltip={tooltips.finishing}
-              htmlFor="finishing"
-            >
-              <select
-                id="finishing"
-                name="finishing"
-                value={form.finishing}
-                onChange={(e) => setForm({ ...form, finishing: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Standard wykończenia mieszkania"
-                aria-describedby="help-finishing"
-              >
-                <option value="developer">Standard deweloperski</option>
-                <option value="standard">Standardowe wykończenie</option>
-                <option value="premium">Wykończenie premium</option>
-                <option value="to_finish">Do wykończenia</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Winda */}
-            <FieldWithTooltip
-              label="Winda w budynku"
-              tooltip={tooltips.elevator}
-              htmlFor="elevator"
-            >
-              <select
-                id="elevator"
-                name="elevator"
-                value={form.elevator}
-                onChange={(e) => setForm({ ...form, elevator: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Dostępność windy w budynku"
-                aria-describedby="help-elevator"
-              >
-                <option value="no">Brak windy</option>
-                <option value="yes">Jest winda</option>
-                <option value="planned">Planowana winda</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Balkon/Taras */}
-            <FieldWithTooltip
-              label="Balkon/Taras"
-              tooltip={tooltips.balcony}
-              htmlFor="balcony"
-            >
-              <select
-                id="balcony"
-                name="balcony"
-                value={form.balcony}
-                onChange={(e) => setForm({ ...form, balcony: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Posiadanie balkonu lub tarasu"
-                aria-describedby="help-balcony"
-              >
-                <option value="none">Brak</option>
-                <option value="balcony">Balkon</option>
-                <option value="terrace">Taras</option>
-                <option value="loggia">Loggia</option>
-                <option value="garden">Ogródek</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Orientacja */}
-            <FieldWithTooltip
-              label="Strona świata"
-              tooltip={tooltips.orientation}
-              htmlFor="orientation"
-            >
-              <select
-                id="orientation"
-                name="orientation"
-                value={form.orientation}
-                onChange={(e) => setForm({ ...form, orientation: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Strona świata głównych okien"
-                aria-describedby="help-orientation"
-              >
-                <option value="unknown">Nieznana</option>
-                <option value="north">Północ</option>
-                <option value="south">Południe</option>
-                <option value="east">Wschód</option>
-                <option value="west">Zachód</option>
-                <option value="south-west">Południowy-zachód</option>
-                <option value="south-east">Południowy-wschód</option>
-                <option value="north-west">Północny-zachód</option>
-                <option value="north-east">Północny-wschód</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Komunikacja */}
-            <FieldWithTooltip
-              label="Dostęp do komunikacji"
-              tooltip={tooltips.transport}
-              htmlFor="transport"
-              tooltipPosition="top"
-            >
-              <select
-                id="transport"
-                name="transport"
-                value={form.transport}
-                onChange={(e) => setForm({ ...form, transport: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Dostęp do komunikacji publicznej"
-                aria-describedby="help-transport"
-              >
-                <option value="poor">Słaby (daleko od przystanków)</option>
-                <option value="medium">Średni (kilka przystanków)</option>
-                <option value="good">Dobry (blisko centrum)</option>
-                <option value="excellent">Doskonały (węzeł komunikacyjny)</option>
-              </select>
-            </FieldWithTooltip>
-
-            {/* Liczba pięter w budynku */}
-            <FieldWithTooltip
-              label="Piętra w budynku"
-              tooltip={tooltips.totalFloors}
-              htmlFor="totalFloors"
-              tooltipPosition="top"
-            >
-              <input
-                type="number"
-                id="totalFloors"
-                name="totalFloors"
-                value={form.totalFloors}
-                onChange={handleChange}
-                placeholder="np. 5"
-                min="1"
-                max="100"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Liczba pięter w budynku"
-                aria-describedby="help-totalFloors"
-              />
-            </FieldWithTooltip>
+                <div className="flex flex-col items-center">
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all
+                    ${index <= currentStep 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-200 text-gray-500'
+                    }
+                  `}>
+                    {index < currentStep ? '✓' : index + 1}
+                  </div>
+                  <div className="mt-2 text-center">
+                    <div className={`text-sm font-medium ${
+                      index <= currentStep ? 'text-blue-600' : 'text-gray-500'
+                    }`}>
+                      {step.title}
+                    </div>
+                    <div className="text-xs text-gray-500 hidden md:block">
+                      {step.description}
+                    </div>
+                  </div>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div className={`
+                    flex-1 h-1 mx-4 rounded transition-all
+                    ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}
+                  `} />
+                )}
+              </div>
+            ))}
           </div>
-        </fieldset>
+        </div>
+      </Card>
 
-        {/* Błędy */}
-        {error && (
-          <div 
-            className="bg-red-100 border border-red-200 rounded-lg p-4"
-            role="alert"
-            aria-live="polite"
-          >
-            <p className="text-red-800 text-sm flex items-center">
-              <span className="text-lg mr-2" aria-hidden="true">❌</span>
-              <span>{error}</span>
-            </p>
-          </div>
+      {/* Form Content */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        
+        {/* Step 0: Basic Data */}
+        {currentStep === 0 && (
+          <Card>
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Podstawowe dane mieszkania</h2>
+                <p className="text-gray-600">Podaj lokalizację i podstawowe informacje o mieszkaniu</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Miasto */}
+                <FieldWithTooltip
+                  label="Miasto"
+                  tooltip={tooltips.city}
+                  required
+                  htmlFor="city"
+                >
+                  <Autocomplete
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    options={cities}
+                    loading={locationsLoading}
+                    required
+                    placeholder="np. Olsztyn"
+                    className="text-lg"
+                  />
+                </FieldWithTooltip>
+
+                {/* Dzielnica */}
+                <FieldWithTooltip
+                  label="Dzielnica"
+                  tooltip={tooltips.district}
+                  htmlFor="district"
+                >
+                  <Autocomplete
+                    name="district"
+                    value={form.district}
+                    onChange={handleChange}
+                    options={districts}
+                    placeholder="np. Kortowo"
+                    className="text-lg"
+                  />
+                </FieldWithTooltip>
+
+                {/* Metraż */}
+                <FieldWithTooltip
+                  label="Metraż (m²)"
+                  tooltip={tooltips.area}
+                  required
+                  htmlFor="area"
+                >
+                  <Input
+                    id="area"
+                    name="area"
+                    value={form.area}
+                    onChange={handleChange}
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="1000"
+                    required
+                    placeholder="np. 60"
+                    className="text-lg text-center font-bold"
+                  />
+                </FieldWithTooltip>
+
+                {/* Liczba pokoi */}
+                <FieldWithTooltip
+                  label="Liczba pokoi"
+                  tooltip={tooltips.rooms}
+                  required
+                  htmlFor="rooms"
+                >
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4].map(num => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setForm({ ...form, rooms: num.toString() })}
+                        className={`
+                          p-3 rounded-lg border-2 transition-all text-lg font-bold
+                          ${form.rooms === num.toString()
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                          }
+                        `}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                  <Input
+                    name="rooms"
+                    value={form.rooms}
+                    onChange={handleChange}
+                    type="number"
+                    min="1"
+                    max="20"
+                    placeholder="lub wpisz inną liczbę"
+                    className="mt-2 text-center"
+                  />
+                </FieldWithTooltip>
+              </div>
+            </div>
+          </Card>
         )}
 
-        {/* Przycisk submit */}
-        <button
-          type="submit"
-          disabled={status === 'loading' || !isFormValid}
-          className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-describedby={!isFormValid ? 'form-validation-help' : undefined}
-        >
-          {status === 'loading' ? (
-            <span className="flex items-center justify-center">
-              <div 
-                className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"
-                role="status"
-                aria-label="Obliczanie wyceny"
-              ></div>
-              Obliczanie wyceny...
-            </span>
-          ) : (
-            <>
-              <span className="mr-2" aria-hidden="true">🏠</span>
-              Oblicz wartość mieszkania
-            </>
-          )}
-        </button>
-        
-        {!isFormValid && (
-          <div id="form-validation-help" className="text-sm text-gray-600 text-center">
-            Wypełnij wymagane pola: miasto, metraż i liczbę pokoi
-          </div>
+        {/* Step 1: Property Details */}
+        {currentStep === 1 && (
+          <Card>
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Opis nieruchomości</h2>
+                <p className="text-gray-600">Dodatkowe informacje zwiększające dokładność wyceny</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Rok budowy */}
+                <FieldWithTooltip
+                  label="Rok budowy"
+                  tooltip={tooltips.year}
+                  htmlFor="year"
+                >
+                  <Input 
+                    id="year"
+                    name="year" 
+                    value={form.year} 
+                    onChange={handleChange} 
+                    type="number" 
+                    min="1800"
+                    max={new Date().getFullYear() + 5}
+                    placeholder="np. 2015"
+                  />
+                </FieldWithTooltip>
+
+                {/* Piętro */}
+                <FieldWithTooltip
+                  label="Piętro"
+                  tooltip={tooltips.floor}
+                  htmlFor="floor"
+                >
+                  <Input 
+                    id="floor"
+                    name="floor" 
+                    value={form.floor} 
+                    onChange={handleChange} 
+                    type="number" 
+                    min="0" 
+                    max="50"
+                    placeholder="np. 2"
+                  />
+                </FieldWithTooltip>
+
+                {/* Liczba pięter w budynku */}
+                <FieldWithTooltip
+                  label="Piętra w budynku"
+                  tooltip={tooltips.totalFloors}
+                  htmlFor="totalFloors"
+                >
+                  <Input
+                    id="totalFloors"
+                    name="totalFloors"
+                    value={form.totalFloors}
+                    onChange={handleChange}
+                    type="number"
+                    min="1"
+                    max="100"
+                    placeholder="np. 5"
+                  />
+                </FieldWithTooltip>
+
+                {/* Stan mieszkania */}
+                <FieldWithTooltip
+                  label="Stan mieszkania"
+                  tooltip={tooltips.condition}
+                  htmlFor="condition"
+                >
+                  <select
+                    id="condition"
+                    name="condition"
+                    value={form.condition}
+                    onChange={(e) => setForm({ ...form, condition: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="excellent">Doskonały (nowe, po remoncie)</option>
+                    <option value="good">Dobry (mieszkalny, bez remontu)</option>
+                    <option value="average">Przeciętny (wymaga odświeżenia)</option>
+                    <option value="poor">Do remontu</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Typ budynku */}
+                <FieldWithTooltip
+                  label="Typ budynku"
+                  tooltip={tooltips.buildingType}
+                  htmlFor="buildingType"
+                >
+                  <select
+                    id="buildingType"
+                    name="buildingType"
+                    value={form.buildingType}
+                    onChange={(e) => setForm({ ...form, buildingType: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="blok">Blok/apartamentowiec</option>
+                    <option value="kamienica">Kamienica</option>
+                    <option value="dom">Dom/szeregowiec</option>
+                    <option value="loft">Loft/atelier</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Klasa lokalizacji */}
+                <FieldWithTooltip
+                  label="Klasa lokalizacji"
+                  tooltip={tooltips.locationTier}
+                  htmlFor="locationTier"
+                >
+                  <select
+                    id="locationTier"
+                    name="locationTier"
+                    value={form.locationTier}
+                    onChange={(e) => setForm({ ...form, locationTier: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="premium">Premium (centrum, prestiżowe dzielnice)</option>
+                    <option value="high">Wysoka (dobre dzielnice, dobra komunikacja)</option>
+                    <option value="medium">Średnia (typowe osiedla mieszkaniowe)</option>
+                    <option value="standard">Standard (osiedla peryferyjne)</option>
+                  </select>
+                </FieldWithTooltip>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Step 2: Additional Features */}
+        {currentStep === 2 && (
+          <Card>
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Dodatkowe cechy</h2>
+                <p className="text-gray-600">Udogodnienia i wyposażenie wpływające na wartość</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Parking */}
+                <FieldWithTooltip
+                  label="Miejsce parkingowe"
+                  tooltip={tooltips.parking}
+                  htmlFor="parking"
+                >
+                  <div className="space-y-2">
+                    {[
+                      { value: 'none', label: '❌ Brak' },
+                      { value: 'street', label: '🚗 Ulica' },
+                      { value: 'courtyard', label: '🏠 Podwórko' },
+                      { value: 'garage', label: '🏢 Garaż' }
+                    ].map(option => (
+                      <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="parking"
+                          value={option.value}
+                          checked={form.parking === option.value}
+                          onChange={(e) => setForm({ ...form, parking: e.target.value })}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </FieldWithTooltip>
+
+                {/* Winda */}
+                <FieldWithTooltip
+                  label="Winda"
+                  tooltip={tooltips.elevator}
+                  htmlFor="elevator"
+                >
+                  <div className="space-y-2">
+                    {[
+                      { value: 'yes', label: '✅ Tak' },
+                      { value: 'no', label: '❌ Nie' }
+                    ].map(option => (
+                      <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="elevator"
+                          value={option.value}
+                          checked={form.elevator === option.value}
+                          onChange={(e) => setForm({ ...form, elevator: e.target.value })}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </FieldWithTooltip>
+
+                {/* Balkon */}
+                <FieldWithTooltip
+                  label="Balkon/Taras"
+                  tooltip={tooltips.balcony}
+                  htmlFor="balcony"
+                >
+                  <div className="space-y-2">
+                    {[
+                      { value: 'yes', label: '✅ Tak' },
+                      { value: 'no', label: '❌ Nie' }
+                    ].map(option => (
+                      <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="balcony"
+                          value={option.value}
+                          checked={form.balcony === option.value}
+                          onChange={(e) => setForm({ ...form, balcony: e.target.value })}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </FieldWithTooltip>
+
+                {/* Standard wykończenia */}
+                <FieldWithTooltip
+                  label="Standard wykończenia"
+                  tooltip={tooltips.finishing}
+                  htmlFor="finishing"
+                >
+                  <select
+                    id="finishing"
+                    name="finishing"
+                    value={form.finishing}
+                    onChange={(e) => setForm({ ...form, finishing: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="high">Wysoki (luksusowe materiały)</option>
+                    <option value="standard">Standardowy (deweloperski)</option>
+                    <option value="basic">Podstawowy (do remontu)</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Strona świata */}
+                <FieldWithTooltip
+                  label="Strona świata"
+                  tooltip={tooltips.orientation}
+                  htmlFor="orientation"
+                >
+                  <select
+                    id="orientation"
+                    name="orientation"
+                    value={form.orientation}
+                    onChange={(e) => setForm({ ...form, orientation: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="south">🌞 Południe</option>
+                    <option value="east">🌅 Wschód</option>
+                    <option value="west">🌇 Zachód</option>
+                    <option value="north">🌑 Północ</option>
+                  </select>
+                </FieldWithTooltip>
+
+                {/* Komunikacja publiczna */}
+                <FieldWithTooltip
+                  label="Komunikacja publiczna"
+                  tooltip={tooltips.transport}
+                  htmlFor="transport"
+                >
+                  <select
+                    id="transport"
+                    name="transport"
+                    value={form.transport}
+                    onChange={(e) => setForm({ ...form, transport: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="excellent">🚇 Doskonała (węzeł komunikacyjny)</option>
+                    <option value="good">🚌 Dobra (blisko centrum)</option>
+                    <option value="medium">🚶 Średnia (kilka przystanków)</option>
+                    <option value="poor">🚗 Słaba (daleko od przystanków)</option>
+                  </select>
+                </FieldWithTooltip>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Step 3: Results */}
+        {currentStep === 3 && (
+          <Card>
+            <div className="p-6">
+              {status === 'loading' && (
+                <div className="text-center py-12">
+                  <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Obliczamy wycenę...</h2>
+                  <p className="text-gray-600">Analizujemy dane przy użyciu AI</p>
+                  <div className="mt-4 bg-gray-100 rounded-full h-2 max-w-md mx-auto">
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+                  </div>
+                </div>
+              )}
+
+              {status === 'success' && result && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">💰</span>
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Wycena gotowa!</h2>
+                    <p className="text-gray-600">Oto oszacowana wartość Twojego mieszkania</p>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                    <div className="text-center">
+                      <div className="text-sm text-green-700 mb-2">Szacowana wartość</div>
+                      <div className="text-4xl font-bold text-green-800 mb-4">
+                        {formatCurrency(result.price)}
+                      </div>
+                      <div className="text-lg text-green-700">
+                        Przedział: {formatCurrency(result.minPrice)} – {formatCurrency(result.maxPrice)}
+                      </div>
+                      {result.confidence && (
+                        <div className="text-sm text-green-600 mt-2">
+                          Pewność: {result.confidence}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Method and timestamp */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="text-sm text-blue-700 mb-1">Metoda wyceny</div>
+                      <div className="font-medium text-blue-900">
+                        {result.method === 'random_forest_v1.0' ? '🤖 Random Forest AI' : 
+                         result.method === 'heuristic_fallback_v1.0' ? '📊 Heurystyka' : 
+                         result.method}
+                      </div>
+                    </div>
+                    {result.timestamp && (
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="text-sm text-gray-700 mb-1">Czas wyceny</div>
+                        <div className="font-medium text-gray-900">
+                          {new Date(result.timestamp).toLocaleString('pl-PL')}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-center">Sprawdź też inne kalkulatory</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <Link
+                        href={`/kalkulator-zdolnosci-kredytowej?kwota=${result.price}`}
+                        className="block text-center bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                      >
+                        💳 Rata kredytu
+                      </Link>
+                      <Link
+                        href={`/kalkulator-wynajmu?cena=${result.price}`}
+                        className="block text-center bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                      >
+                        🏘️ Rentowność wynajmu
+                      </Link>
+                      <Link
+                        href={`/kalkulator-zakupu-nieruchomosci?cena=${result.price}`}
+                        className="block text-center bg-indigo-600 hover:bg-indigo-700 text-white py-4 px-6 rounded-lg transition-colors font-medium"
+                      >
+                        💰 Koszty zakupu
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setCurrentStep(0)
+                        setStatus('idle')
+                        setResult(null)
+                      }}
+                      variant="outline"
+                      className="px-6 py-2"
+                    >
+                      🔄 Nowa wycena
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl">❌</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-red-900 mb-2">Wystąpił błąd</h2>
+                  <p className="text-red-700 mb-4">{error}</p>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setStatus('idle')
+                      setError(null)
+                      setCurrentStep(2)
+                    }}
+                    variant="outline"
+                  >
+                    Spróbuj ponownie
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Navigation Buttons */}
+        {currentStep < 3 && (
+          <Card>
+            <div className="p-6">
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  variant="outline"
+                  className="px-6 py-2"
+                >
+                  ← Wstecz
+                </Button>
+
+                <div className="text-center">
+                  <div className="text-sm text-gray-500">
+                    Krok {currentStep + 1} z {STEPS.length - 1}
+                  </div>
+                  {!isCurrentStepValid && currentStep === 0 && (
+                    <div className="text-xs text-red-600 mt-1">
+                      Wypełnij wymagane pola
+                    </div>
+                  )}
+                </div>
+
+                {currentStep === 2 ? (
+                  <Button
+                    type="submit"
+                    disabled={!isFormValid || status === 'loading'}
+                    className="px-6 py-2 bg-green-600 hover:bg-green-700"
+                  >
+                    🏠 Oblicz wycenę
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    disabled={!isCurrentStepValid}
+                    className="px-6 py-2"
+                  >
+                    Dalej →
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
         )}
       </form>
-
-      {/* Wyniki */}
-      {status === 'success' && result && (
-        <section 
-          className="bg-green-100 border border-green-200 rounded-lg p-6 space-y-4"
-          role="region"
-          aria-labelledby="results-title"
-          aria-live="polite"
-        >
-          <div className="text-center">
-            <h2 id="results-title" className="text-2xl font-bold text-green-900 mb-2">
-              <span className="mr-2" aria-hidden="true">💰</span>
-              Szacowana wartość mieszkania
-            </h2>
-            <div className="text-4xl font-bold text-green-800 mb-2">
-              {formatCurrency(result.minPrice)} – {formatCurrency(result.maxPrice)}
-            </div>
-            <div className="text-lg text-green-700">
-              Wartość średnia: <span className="font-semibold">{formatCurrency(result.price)}</span>
-            </div>
-            {result.confidence && (
-              <p className="text-sm text-green-600 mt-1">
-                Przedział ufności: {result.confidence}
-              </p>
-            )}
-          </div>
-
-          {/* Metoda wyceny */}
-          <div className="bg-white rounded-lg p-4 border border-green-200">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Metoda wyceny:</span>
-              <span className="font-medium text-gray-900">
-                {result.method === 'random_forest_v1.0' ? '🤖 Random Forest AI' : 
-                 result.method === 'heuristic_fallback_v1.0' ? '📊 Heurystyka' : 
-                 result.method}
-              </span>
-            </div>
-            {result.timestamp && (
-              <div className="flex items-center justify-between text-sm mt-1">
-                <span className="text-gray-600">Czas wyceny:</span>
-                <span className="text-gray-500">
-                  {new Date(result.timestamp).toLocaleString('pl-PL')}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {result.note && (
-            <div className="text-sm text-green-700 bg-green-100 rounded-lg p-3">
-              <span className="mr-2" aria-hidden="true">ℹ️</span>
-              {result.note}
-            </div>
-          )}
-
-          {/* Akcje - linki do innych kalkulatorów */}
-          <div className="space-y-3 pt-4 border-t border-green-200">
-            <h3 className="font-semibold text-green-900 text-center">
-              <span className="mr-2" aria-hidden="true">🔗</span>
-              Sprawdź też inne kalkulatory
-            </h3>
-            <nav aria-label="Linki do innych kalkulatorów">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Link
-                  href={`/kalkulator-zdolnosci-kredytowej?kwota=${result.price}`}
-                  className="block text-center bg-green-600 hover:bg-green-700 focus:bg-green-700 text-white py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  aria-label={`Oblicz ratę kredytu dla kwoty ${formatCurrency(result.price)}`}
-                  onClick={() => valuationAnalytics.trackActionButtonClick('credit', {
-                    city: form.city,
-                    area: parseFloat(form.area),
-                    rooms: parseInt(form.rooms),
-                    price: result.price,
-                    method: result.method
-                  })}
-                >
-                  <span className="mr-2" aria-hidden="true">💳</span>
-                  Rata kredytu
-                </Link>
-                <Link
-                  href={`/kalkulator-wynajmu?cena=${result.price}`}
-                  className="block text-center bg-emerald-700 hover:bg-emerald-800 focus:bg-emerald-800 text-white py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                  aria-label={`Sprawdź rentowność wynajmu dla ceny ${formatCurrency(result.price)}`}
-                  onClick={() => valuationAnalytics.trackActionButtonClick('rental', {
-                    city: form.city,
-                    area: parseFloat(form.area),
-                    rooms: parseInt(form.rooms),
-                    price: result.price,
-                    method: result.method
-                  })}
-                >
-                  <span className="mr-2" aria-hidden="true">🏘️</span>
-                  Wynajem
-                </Link>
-                <Link
-                  href={`/kalkulator-zakupu-nieruchomosci?cena=${result.price}`}
-                  className="block text-center bg-indigo-600 hover:bg-indigo-700 focus:bg-indigo-700 text-white py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  aria-label={`Zobacz koszty zakupu dla ceny ${formatCurrency(result.price)}`}
-                  onClick={() => valuationAnalytics.trackActionButtonClick('purchase', {
-                    city: form.city,
-                    area: parseFloat(form.area),
-                    rooms: parseInt(form.rooms),
-                    price: result.price,
-                    method: result.method
-                  })}
-                >
-                  <span className="mr-2" aria-hidden="true">💰</span>
-                  Koszty zakupu
-                </Link>
-              </div>
-            </nav>
-          </div>
-        </section>
-      )}
     </div>
   )
 } 
