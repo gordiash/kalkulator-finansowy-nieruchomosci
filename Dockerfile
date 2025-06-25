@@ -32,11 +32,6 @@ RUN python3 -m venv venv && \
 # Skopiuj resztę kodu
 COPY . .
 
-# Ustaw dummy zmienne środowiskowe dla build phase
-ENV NEXT_PUBLIC_SUPABASE_URL="https://dummy.supabase.co"
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="dummy_key"
-ENV NEXT_PUBLIC_SITE_URL="https://example.com"
-
 # Zbuduj aplikację Next.js
 RUN npm run build
 
