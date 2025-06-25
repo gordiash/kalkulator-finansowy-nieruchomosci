@@ -1,37 +1,40 @@
-# Development files
+# Exclude everything first
+*
+
+# Allow only essential Next.js files
+!package.json
+!package-lock.json
+!next.config.js
+!tailwind.config.ts
+!postcss.config.mjs
+!tsconfig.json
+!components.json
+!middleware.ts
+
+# Allow source code
+!src/**
+
+# Allow essential ML files only
+!models/ensemble_optimized_0.79pct.pkl
+!models/ensemble_optimized_0.79pct_meta.txt
+!models/valuation_rf.pkl
+!models/valuation_rf.pkl.meta.txt
+
+# Allow essential scripts only
+!scripts/predict_ensemble_compatible.py
+!scripts/predict_rf.py
+
+# Allow requirements
+!requirements-railway-minimal.txt
+
+# Allow debug script
+!debug-env.js
+
+# Explicitly exclude everything else
 node_modules/
 .next/
 .git/
-.vscode/
-.idea/
-
-# Documentation and configs we don't need
 docs/
-*.md
-README*
-.github/
 tests/
-jest.config.*
-.eslintrc.*
-.prettierrc.*
-
-# Environment files
-.env*
-
-# Large unused models
-models/ensemble_optimized_0.78pct.pkl
-models/valuation_xgb.pkl
-models/optimized_rf_model_3.03pct.pkl
-models/valuation_rf_feature_importance.csv
-
-# Training scripts not needed in production
-scripts/train_*.py
-scripts/test_*.py
-scripts/model_performance_report.py
-scripts/ensemble_models.py
-
-# Cache and logs
-*.log
-.cache/
-tmp/
-temp/ 
+*.md
+.env* 

@@ -1,30 +1,30 @@
-# Lightweight base with Python 3.11 + Node.js
+# Use Python 3.11 slim as base
 FROM python:3.11-slim-bookworm
 
-# Install system dependencies in one layer
+# Install all system dependencies in one layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ca-certificates \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && apt-get purge -y curl \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    curl ca-certificates gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    apt-get purge -y curl gnupg && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 
-# Copy and install Python dependencies (minimal ML stack)
-COPY requirements-railway.txt ./
-RUN pip install --no-cache-dir --user -r requirements-railway.txt \
-    && pip cache purge
+# Install Python and Node.js dependencies together
+COPY requirements-railway-minimal.txt package*.json ./
+RUN pip install --no-cache-dir --user -r requirements-railway-minimal.txt && \
+    npm ci --only=production --no-audit --no-fund && \
+    pip cache purge && npm cache clean --force
 
-# Copy package files and install Node.js production dependencies
-COPY package*.json ./
-RUN npm ci --only=production --no-audit --no-fund \
-    && npm cache clean --force
+# Copy essential application files
+COPY src/ ./src/
+COPY middleware.ts next.config.js tailwind.config.ts postcss.config.mjs ./
+COPY tsconfig.json components.json ./
 
-# Copy ONLY essential ML files (not entire directories)
+# Copy ML files
 COPY models/ensemble_optimized_0.79pct.pkl ./models/
 COPY models/ensemble_optimized_0.79pct_meta.txt ./models/
 COPY models/valuation_rf.pkl ./models/
@@ -32,37 +32,27 @@ COPY models/valuation_rf.pkl.meta.txt ./models/
 COPY scripts/predict_ensemble_compatible.py ./scripts/
 COPY scripts/predict_rf.py ./scripts/
 
-# Set Python PATH
-ENV PATH="/root/.local/bin:$PATH"
-ENV PYTHONPATH="/root/.local/lib/python3.11/site-packages"
+# Copy debug script
+COPY debug-env.js ./
 
-# Copy essential application files only
-COPY src/ ./src/
-COPY middleware.ts next.config.js tailwind.config.ts postcss.config.mjs ./
-COPY tsconfig.json components.json ./
+# Set environment
+ENV PATH="/root/.local/bin:$PATH" \
+    PYTHONPATH="/root/.local/lib/python3.11/site-packages" \
+    NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# Build Next.js
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# Build and cleanup in one layer
+RUN npm run build && \
+    rm -rf /root/.cache /tmp/* /var/tmp/* && \
+    find /root/.local -name "*.pyc" -delete && \
+    find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
-# Cleanup after build to reduce image size
-RUN rm -rf \
-    /root/.cache \
-    /tmp/* \
-    /var/tmp/* \
-    requirements-railway.txt \
-    && find /root/.local -name "*.pyc" -delete \
-    && find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-
-# Runtime configuration
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-# Simple health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=2 \
+# Lightweight health check
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=2 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start command
 CMD ["npm", "start"] 

@@ -70,15 +70,13 @@ function heuristicValuation(data: ValuationRequest): number {
 
 // Sprawdź dostępne komendy Python
 function getPythonCommands(): string[] {
-  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  // Lista komend Python do przetestowania - Railway & Vercel compatible
   return [
-    '/app/venv/bin/python',      // Docker venv (najważniejsze)
-    '/app/venv/bin/python3',     // Docker venv python3
-    'python',                    // lokalne/Windows
-    'python3',                   // Linux/Mac
-    '/usr/bin/python3',          // system Linux
-    '/usr/bin/python',           // system Linux
-    '/usr/local/bin/python3'     // inne instalacje
+    'python3',                   // Docker/Vercel main (priority)
+    'python',                    // Local/Windows fallback
+    '/usr/bin/python3',          // Linux system path
+    '/usr/bin/python',           // Linux system path
+    '/usr/local/bin/python3'     // Alternative installations
   ];
 }
 

@@ -59,15 +59,13 @@ async function callEnsembleModel(inputData: {
   balconyArea?: number;
   lastRenovation?: number;
 }): Promise<number | null> {
-  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  // Lista komend Python do przetestowania - Railway & Vercel compatible
   const pythonCommands = [
-    '/app/venv/bin/python',      // Docker venv (najważniejsze)
-    '/app/venv/bin/python3',     // Docker venv python3
-    'python',                    // lokalne/Windows
-    'python3',                   // Linux/Mac
-    '/usr/bin/python3',          // system Linux
-    '/usr/bin/python',           // system Linux
-    '/usr/local/bin/python3'     // inne instalacje
+    'python3',                   // Docker/Vercel main (priority)
+    'python',                    // Local/Windows fallback
+    '/usr/bin/python3',          // Linux system path
+    '/usr/bin/python',           // Linux system path
+    '/usr/local/bin/python3'     // Alternative installations
   ];
 
   const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py')
@@ -266,15 +264,13 @@ async function callRandomForestModel(inputData: {
   floor: number;
   year: number;
 }): Promise<number | null> {
-  // Lista komend Python do przetestowania - uwzględniając Docker venv
+  // Lista komend Python do przetestowania - Railway & Vercel compatible
   const pythonCommands = [
-    '/app/venv/bin/python',      // Docker venv (najważniejsze)
-    '/app/venv/bin/python3',     // Docker venv python3
-    'python',                    // lokalne/Windows
-    'python3',                   // Linux/Mac
-    '/usr/bin/python3',          // system Linux
-    '/usr/bin/python',           // system Linux
-    '/usr/local/bin/python3'     // inne instalacje
+    'python3',                   // Docker/Vercel main (priority)
+    'python',                    // Local/Windows fallback
+    '/usr/bin/python3',          // Linux system path
+    '/usr/bin/python',           // Linux system path
+    '/usr/local/bin/python3'     // Alternative installations
   ];
 
   const scriptPath = path.join(process.cwd(), 'scripts', 'predict_rf.py')
