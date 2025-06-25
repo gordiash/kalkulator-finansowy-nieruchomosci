@@ -32,13 +32,7 @@ RUN python3 -m venv venv && \
 # Skopiuj resztę kodu
 COPY . .
 
-# Ustaw dummy zmienne środowiskowe TYLKO dla build phase
-# Te wartości będą nadpisane przez zmienne Railway w runtime
-ENV NEXT_PUBLIC_SUPABASE_URL="https://build-dummy.supabase.co"
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="build_dummy_key"
-ENV NEXT_PUBLIC_SITE_URL="https://example.com"
-
-# Zbuduj aplikację Next.js
+# Zbuduj aplikację Next.js (bez dummy zmiennych - funkcje mają fallbacks)
 RUN npm run build
 
 # Ustaw zmienne środowiskowe dla Python venv
