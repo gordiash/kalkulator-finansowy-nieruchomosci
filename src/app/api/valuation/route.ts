@@ -395,6 +395,79 @@ function calculateHeuristicPrice(city: string, area: number, rooms: number, year
 //   return 'standard';
 // }
 
+// === Nowy: Railway ML API Fallback ===
+async function callRailwayMLAPI(inputData: {
+  city: string;
+  district: string;
+  area: number;
+  rooms: number;
+  floor: number;
+  year: number;
+  locationTier?: string;
+  condition?: string;
+  buildingType?: string;
+  parking?: string;
+  finishing?: string;
+  elevator?: string;
+  balcony?: string;
+  orientation?: string;
+  transport?: string;
+  totalFloors?: number;
+}): Promise<number | null> {
+  const RAILWAY_ML_API = process.env.RAILWAY_ML_API_URL || 'https://your-railway-ml-api.railway.app';
+  
+  try {
+    console.log('🚂 [Railway ML] Calling external ML API...');
+    
+    // Przygotuj dane w formacie Railway API
+    const requestData = {
+      city: inputData.city,
+      district: inputData.district,
+      area: inputData.area,
+      rooms: inputData.rooms,
+      year_built: inputData.year,
+      locationTier: inputData.locationTier || 'medium',
+      condition: inputData.condition || 'good',
+      buildingType: inputData.buildingType || 'apartment',
+      parking: inputData.parking || 'none',
+      finishing: inputData.finishing || 'standard',
+      elevator: inputData.elevator || 'no',
+      balcony: inputData.balcony || 'no',
+      orientation: inputData.orientation || 'unknown',
+      transport: inputData.transport || 'medium'
+    };
+    
+    const response = await fetch(`${RAILWAY_ML_API}/api/valuation-railway`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'KalkulatoryNieruchomosci/1.0'
+      },
+      body: JSON.stringify(requestData),
+      signal: AbortSignal.timeout(30000) // 30s timeout
+    });
+    
+    if (!response.ok) {
+      console.error('❌ [Railway ML] API response not ok:', response.status);
+      return null;
+    }
+    
+    const result = await response.json();
+    
+    if (result.price && result.price > 50000 && result.price < 5000000) {
+      console.log('✅ [Railway ML] External API success:', result.price);
+      return result.price;
+    } else {
+      console.error('❌ [Railway ML] Invalid price in response:', result);
+      return null;
+    }
+    
+  } catch (error) {
+    console.error('❌ [Railway ML] External API error:', error);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -432,39 +505,50 @@ export async function POST(request: NextRequest) {
       totalFloors,
     }
 
-            // === Próba użycia EstymatorAI ===
-        console.log('[Valuation API] Wywołuję EstymatorAI...')
+    // === Hierarchia ML calls ===
+    console.log('[Valuation API] Próba 1: Local EstymatorAI...')
     let mlPrice = await callEnsembleModel(modelInput)
     let method: string
     let price: number
 
     if (mlPrice && mlPrice > 50000 && mlPrice < 5000000) {
-      // Sukces Ensemble
+      // Sukces Local Ensemble
       price = Math.round(mlPrice / 1000) * 1000
-              method = 'ensemble_EstymatorAI'
-      console.log('[Valuation API] Ensemble sukces:', price)
+      method = 'ensemble_EstymatorAI_local'
+      console.log('[Valuation API] Local Ensemble sukces:', price)
     } else {
-      // Fallback do Random Forest
-      console.log('[Valuation API] Ensemble failed, próba Random Forest...')
-      mlPrice = await callRandomForestModel(modelInput)
+      // Próba 2: Railway ML API
+      console.log('[Valuation API] Próba 2: Railway ML API...')
+      mlPrice = await callRailwayMLAPI(modelInput)
       
       if (mlPrice && mlPrice > 50000 && mlPrice < 5000000) {
-        // Sukces Random Forest
+        // Sukces Railway ML API
         price = Math.round(mlPrice / 1000) * 1000
-        method = 'random_forest_fallback'
-        console.log('[Valuation API] Random Forest fallback sukces:', price)
+        method = 'ensemble_EstymatorAI_railway'
+        console.log('[Valuation API] Railway ML API sukces:', price)
       } else {
-        // Ostateczny fallback do heurystyki
-        price = calculateHeuristicPrice(city, area, rooms, year)
-        method = 'heuristic_fallback'
-        console.log('[Valuation API] Fallback do heurystyki:', price)
+        // Próba 3: Local Random Forest fallback
+        console.log('[Valuation API] Próba 3: Local Random Forest...')
+        mlPrice = await callRandomForestModel(modelInput)
+        
+        if (mlPrice && mlPrice > 50000 && mlPrice < 5000000) {
+          // Sukces Random Forest
+          price = Math.round(mlPrice / 1000) * 1000
+          method = 'random_forest_local'
+          console.log('[Valuation API] Local Random Forest sukces:', price)
+        } else {
+          // Ostateczny fallback do heurystyki
+          price = calculateHeuristicPrice(city, area, rooms, year)
+          method = 'heuristic_fallback'
+          console.log('[Valuation API] Fallback do heurystyki:', price)
+        }
       }
     }
 
-    // Oblicz widełki - lepsze dla Ensemble
-    const isEnsemble = method.includes('ensemble')
+    // Oblicz widełki - lepsze dla EstymatorAI
+    const isEstymatorAI = method.includes('ensemble_EstymatorAI')
     const isML = method.includes('ensemble') || method.includes('random_forest')
-    const confidence = isEnsemble ? 0.02 : isML ? 0.07 : 0.05  // Ensemble: ±2%, RF: ±7%, Heurystyka: ±5%
+    const confidence = isEstymatorAI ? 0.02 : isML ? 0.07 : 0.05  // EstymatorAI: ±2%, RF: ±7%, Heurystyka: ±5%
     const minPrice = Math.round(price * (1 - confidence) / 1000) * 1000
     const maxPrice = Math.round(price * (1 + confidence) / 1000) * 1000
 
@@ -475,8 +559,10 @@ export async function POST(request: NextRequest) {
       currency: 'PLN',
       method,
       confidence: `±${Math.round(confidence * 100)}%`,
-      note: isEnsemble 
-        ? 'Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.79% MAPE'
+      note: isEstymatorAI 
+        ? method.includes('railway')
+          ? 'Wycena przez Railway ML API - EstymatorAI v2.1 z dokładnością 0.79% MAPE'
+          : 'Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.79% MAPE'
         : method.includes('random_forest')
         ? 'Wycena oparta o model Random Forest (fallback) z dokładnością 15.56% MAPE'
         : 'Wycena heurystyczna - modele ML niedostępne',
