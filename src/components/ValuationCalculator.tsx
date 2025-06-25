@@ -1177,9 +1177,9 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   <div className="flex gap-3">
                     <Button
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        handleSubmit(e as any)
+                      onClick={() => {
+                        const mockEvent = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>
+                        handleSubmit(mockEvent)
                       }}
                       disabled={!isFormValid || status === 'loading'}
                       className="px-6 py-2 bg-green-600 hover:bg-green-700"
@@ -1188,9 +1188,9 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     </Button>
                     <Button
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        handleSubmit(e as any)
+                      onClick={() => {
+                        const mockEvent = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>
+                        handleSubmit(mockEvent)
                       }}
                       disabled={!isFormValid || status === 'loading'}
                       variant="outline"
