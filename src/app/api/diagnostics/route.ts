@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 
 const execAsync = promisify(exec);
@@ -224,7 +225,6 @@ export async function GET() {
     results.cwd = process.cwd();
 
     // Test 9: Check files
-    const fs = require('fs');
     results.file_checks = {
       scripts_dir: fs.existsSync(path.join(process.cwd(), 'scripts')),
       models_dir: fs.existsSync(path.join(process.cwd(), 'models')),
@@ -242,8 +242,8 @@ export async function GET() {
       } else {
         results.scripts_files_error = 'Scripts directory does not exist';
       }
-    } catch (error) {
-      results.scripts_files_error = error instanceof Error ? error.message : 'Unknown error';
+    } catch (err) {
+      results.scripts_files_error = err instanceof Error ? err.message : 'Unknown error';
     }
 
     // Test 11: List models files
@@ -254,8 +254,8 @@ export async function GET() {
       } else {
         results.models_files_error = 'Models directory does not exist';
       }
-    } catch (error) {
-      results.models_files_error = error instanceof Error ? error.message : 'Unknown error';
+    } catch (err) {
+      results.models_files_error = err instanceof Error ? err.message : 'Unknown error';
     }
 
     return NextResponse.json(results);
@@ -339,7 +339,7 @@ async function testPythonSpawn(): Promise<PythonSpawnResult | { success: false; 
           });
         });
         
-        testProcess.on('error', (err) => {
+        testProcess.on('error', () => {
           resolve({
             success: false,
             python_command: pythonCmd,
@@ -363,7 +363,7 @@ async function testPythonSpawn(): Promise<PythonSpawnResult | { success: false; 
       if (result.success) {
         return result;
       }
-    } catch (error) {
+    } catch {
       continue;
     }
   }

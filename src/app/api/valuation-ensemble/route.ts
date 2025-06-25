@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+import fs from 'fs';
 
 interface ValuationRequest {
   city: string;
@@ -91,7 +92,6 @@ async function runEnsemblePrediction(inputData: ValuationRequest): Promise<Ensem
   console.log('📊 [Ensemble] Input data:', JSON.stringify(inputData));
   
   // Sprawdź czy pliki istnieją
-  const fs = require('fs');
   if (!fs.existsSync(scriptPath)) {
     console.error('❌ [Ensemble] Script not found:', scriptPath);
     return null;

@@ -231,7 +231,7 @@ async function callEnsembleModel(inputData: {
         }
       })
       
-      pythonProcess.on('error', (error) => {
+      pythonProcess.on('error', () => {
         console.error(`⏰ [Ensemble] ${pythonCmd} timeout`)
         resolve(null);
       });
