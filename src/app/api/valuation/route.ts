@@ -6,8 +6,8 @@ import path from 'path'
 // === Schemat wejściowy ===
 const ValuationSchema = z.object({
   city: z.string().min(2, 'Podaj miasto'),
-  district: z.string().min(2, 'Podaj dzielnicę').optional(),
-  street: z.string().min(2).optional(),
+  district: z.string().optional(),
+  street: z.string().optional(),
   area: z.number().positive('Metraż musi być > 0'),
   rooms: z.number().int().positive('Liczba pokoi > 0'),
   floor: z.number().int().nonnegative().optional(),
@@ -305,9 +305,12 @@ function calculateHeuristicPrice(city: string, area: number, rooms: number, year
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('[Valuation API] Received body:', JSON.stringify(body, null, 2))
+    
     const parsed = ValuationSchema.safeParse(body)
 
     if (!parsed.success) {
+      console.error('[Valuation API] Validation failed:', JSON.stringify(parsed.error.format(), null, 2))
       return NextResponse.json(
         { error: 'Nieprawidłowe dane wejściowe', details: parsed.error.format() },
         { status: 400 }

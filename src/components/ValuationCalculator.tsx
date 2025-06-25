@@ -225,12 +225,12 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         },
         body: JSON.stringify({
           city: form.city,
-          district: form.district || null,
-          street: form.street || null,
+          district: form.district.trim() || undefined,
+          street: form.street.trim() || undefined,
           area: parseFloat(form.area),
           rooms: parseInt(form.rooms),
-          floor: form.floor ? parseInt(form.floor) : null,
-          year: form.year ? parseInt(form.year) : null,
+          floor: form.floor ? parseInt(form.floor) : undefined,
+          year: form.year ? parseInt(form.year) : undefined,
           locationTier: form.locationTier,
           condition: form.condition,
           buildingType: form.buildingType,
@@ -240,7 +240,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           balcony: form.balcony,
           orientation: form.orientation,
           transport: form.transport,
-          totalFloors: form.totalFloors ? parseInt(form.totalFloors) : null
+          totalFloors: form.totalFloors ? parseInt(form.totalFloors) : undefined
         }),
       })
 
