@@ -23,6 +23,8 @@ export async function fetchPublishedPosts() {
   // Sprawdź czy Supabase jest skonfigurowany (wykryj dummy wartości)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
       !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy-project') ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy') ||
@@ -70,6 +72,8 @@ export async function fetchLatestPosts(limit: number = 6) {
   // Sprawdź czy Supabase jest skonfigurowany (wykryj dummy wartości)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
       !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy-project') ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy') ||
