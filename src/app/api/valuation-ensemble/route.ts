@@ -67,66 +67,115 @@ function heuristicValuation(data: ValuationRequest): number {
   return Math.round(data.area * pricePerSqm);
 }
 
+// Sprawdź dostępne komendy Python
+function getPythonCommands(): string[] {
+  // Lista komend Python do przetestowania
+  return ['python', 'python3', '/usr/bin/python3', '/usr/bin/python', '/usr/local/bin/python3'];
+}
+
 async function runEnsemblePrediction(inputData: ValuationRequest): Promise<EnsembleResult | null> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
+  const scriptPath = path.join(process.cwd(), 'scripts', 'predict_ensemble_compatible.py');
+  const modelPath = 'models/ensemble_optimized_0.79pct.pkl';
+  
+  console.log('🐍 [Ensemble] Attempting Python prediction...');
+  console.log('📁 [Ensemble] Script path:', scriptPath);
+  console.log('🤖 [Ensemble] Model path:', modelPath);
+  console.log('📊 [Ensemble] Input data:', JSON.stringify(inputData));
+  
+  // Sprawdź czy pliki istnieją
+  const fs = require('fs');
+  if (!fs.existsSync(scriptPath)) {
+    console.error('❌ [Ensemble] Script not found:', scriptPath);
+    return null;
+  }
+  
+  if (!fs.existsSync(path.join(process.cwd(), modelPath))) {
+    console.error('❌ [Ensemble] Model not found:', modelPath);
+    return null;
+  }
+  
+  const pythonCommands = getPythonCommands();
+  
+  for (const pythonCmd of pythonCommands) {
+    console.log(`🧪 [Ensemble] Trying Python command: ${pythonCmd}`);
     
-    // Znajdź najnowszy model ensemble
-    // const modelPatterns = [
-    //   'models/ensemble_optimized_*.pkl',
-    //   'models/ensemble_advanced_*.pkl',
-    //   'models/random_forest_*.pkl'  // fallback
-    // ];
-    
-    const modelPath = 'models/ensemble_optimized_0.79pct.pkl'; // najnowszy najlepszy model
-    
-    const pythonProcess = spawn('python', [
-      scriptPath,
-      modelPath,
-      JSON.stringify(inputData)
-    ], {
-      cwd: process.cwd(),
-      timeout: 30000 // 30 sekund timeout
-    });
-    
-    let output = '';
-    let errorOutput = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-    
-    pythonProcess.on('close', (code) => {
-      if (code === 0) {
-        try {
-          // Znajdź JSON w output
-          const jsonMatch = output.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const result = JSON.parse(jsonMatch[0]);
-            resolve(result);
+    try {
+      const result = await new Promise<EnsembleResult | null>((resolve) => {
+        const pythonProcess = spawn(pythonCmd, [
+          scriptPath,
+          modelPath,
+          JSON.stringify(inputData)
+        ], {
+          cwd: process.cwd(),
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 30000 // 30 sekund timeout
+        });
+        
+        let output = '';
+        let errorOutput = '';
+        
+        pythonProcess.stdout.on('data', (data) => {
+          const chunk = data.toString();
+          output += chunk;
+          console.log(`📤 [Ensemble] ${pythonCmd} stdout:`, chunk.trim());
+        });
+        
+        pythonProcess.stderr.on('data', (data) => {
+          const chunk = data.toString();
+          errorOutput += chunk;
+          console.log(`⚠️ [Ensemble] ${pythonCmd} stderr:`, chunk.trim());
+        });
+        
+        pythonProcess.on('close', (code) => {
+          console.log(`🏁 [Ensemble] ${pythonCmd} process closed with code: ${code}`);
+          
+          if (code === 0) {
+            try {
+              // Znajdź JSON w output
+              const jsonMatch = output.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const result = JSON.parse(jsonMatch[0]);
+                console.log(`✅ [Ensemble] ${pythonCmd} success:`, result.ensemble_prediction);
+                resolve(result);
+              } else {
+                console.error(`❌ [Ensemble] ${pythonCmd} - Nie znaleziono JSON w output:`, output);
+                resolve(null);
+              }
+            } catch (error) {
+              console.error(`❌ [Ensemble] ${pythonCmd} - Błąd parsowania JSON:`, error, output);
+              resolve(null);
+            }
           } else {
-            console.error('Nie znaleziono JSON w output:', output);
+            console.error(`❌ [Ensemble] ${pythonCmd} failed with code ${code}:`, errorOutput);
             resolve(null);
           }
-        } catch (error) {
-          console.error('Błąd parsowania JSON:', error, output);
+        });
+        
+        pythonProcess.on('error', (error) => {
+          console.error(`❌ [Ensemble] ${pythonCmd} spawn error:`, error.message);
           resolve(null);
-        }
-      } else {
-        console.error('Python script failed:', errorOutput);
-        resolve(null);
+        });
+        
+        // Timeout
+        setTimeout(() => {
+          console.error(`⏰ [Ensemble] ${pythonCmd} timeout`);
+          pythonProcess.kill();
+          resolve(null);
+        }, 30000);
+      });
+      
+      if (result) {
+        console.log(`🎯 [Ensemble] Success with ${pythonCmd}`);
+        return result;
       }
-    });
-    
-    pythonProcess.on('error', (error) => {
-      console.error('Błąd uruchamiania Python:', error);
-      resolve(null);
-    });
-  });
+    } catch (error) {
+      console.error(`❌ [Ensemble] ${pythonCmd} exception:`, error);
+      continue;
+    }
+  }
+  
+  console.error('❌ [Ensemble] All Python commands failed');
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -175,21 +224,21 @@ export async function POST(request: NextRequest) {
       building_age_category: mapBuildingAgeCategory(Number(year_built))
     };
     
-    console.log('🔮 Ensemble prediction request:', inputData);
+    console.log('🔮 [API] Ensemble prediction request:', inputData);
     
     // Spróbuj ensemble prediction
     const ensembleResult = await runEnsemblePrediction(inputData);
     
     if (ensembleResult) {
-      console.log('✅ Ensemble prediction success:', ensembleResult.ensemble_prediction);
+      console.log('✅ [API] Ensemble prediction success:', ensembleResult.ensemble_prediction);
       
       return NextResponse.json({
         success: true,
         prediction: ensembleResult.ensemble_prediction,
         price_per_sqm: ensembleResult.price_per_sqm,
-        method: 'ensemble_ml',
+        method: 'ensemble_EstymatorAI',
         model_info: {
-          type: 'Advanced Ensemble',
+          type: 'EstymatorAI v2.1',
           models: Object.keys(ensembleResult.individual_predictions),
           individual_predictions: ensembleResult.individual_predictions
         },
@@ -200,7 +249,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Fallback do heurystyki
-    console.log('⚠️ Ensemble failed, using heuristic fallback');
+    console.log('⚠️ [API] EstymatorAI failed, using heuristic fallback');
     const heuristicPrice = heuristicValuation(inputData);
     
     return NextResponse.json({
@@ -210,7 +259,7 @@ export async function POST(request: NextRequest) {
       method: 'heuristic_fallback',
       model_info: {
         type: 'Heuristic Model',
-                        reason: 'EstymatorAI unavailable'
+        reason: 'EstymatorAI unavailable'
       },
       input_data: inputData,
       confidence: 'medium',
@@ -218,7 +267,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('❌ Valuation ensemble error:', error);
+    console.error('❌ [API] Valuation ensemble error:', error);
     
     return NextResponse.json(
       { 
