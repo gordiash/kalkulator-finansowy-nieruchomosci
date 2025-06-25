@@ -56,7 +56,7 @@ const STEPS = [
   { id: 'basic', title: 'Podstawowe dane', description: 'Lokalizacja i podstawowe informacje' },
   { id: 'property', title: 'Opis nieruchomości', description: 'Szczegóły techniczne mieszkania' },
   { id: 'additional', title: 'Dodatkowe cechy', description: 'Udogodnienia i wyposażenie' },
-  { id: 'details', title: 'Szczegóły', description: 'Dodatkowe informacje zwiększające dokładność' },
+  { id: 'details', title: 'Szczegóły', description: 'Opcjonalne informacje dla lepszej precyzji' },
   { id: 'result', title: 'Wycena', description: 'Oszacowana wartość mieszkania' }
 ]
 
@@ -844,7 +844,13 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
             <div className="p-6">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Szczegółowe informacje</h2>
-                <p className="text-gray-600">Te informacje są opcjonalne, ale zwiększają dokładność wyceny</p>
+                <p className="text-gray-600">Te informacje są opcjonalne, ale mogą zwiększyć dokładność wyceny EstymatorAI o kilka procent</p>
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    💡 <strong>Wskazówka:</strong> Możesz pominąć ten krok i otrzymać wycenę na podstawie podstawowych danych, 
+                    lub wypełnić wybrane pola dla lepszej precyzji.
+                  </p>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1168,13 +1174,31 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 </div>
 
                 {currentStep === 3 ? (
-                  <Button
-                    type="submit"
-                    disabled={!isFormValid || status === 'loading'}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-700"
-                  >
-                    🏠 Oblicz wycenę
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleSubmit(e as any)
+                      }}
+                      disabled={!isFormValid || status === 'loading'}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-700"
+                    >
+                      🏠 Oblicz wycenę
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleSubmit(e as any)
+                      }}
+                      disabled={!isFormValid || status === 'loading'}
+                      variant="outline"
+                      className="px-6 py-2 text-gray-600 border-gray-300"
+                    >
+                      ⚡ Pomiń szczegóły
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     type="button"
