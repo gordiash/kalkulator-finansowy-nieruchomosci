@@ -99,10 +99,10 @@ export default async function HomePage() {
         },
         "featureList": [
           "Wycena oparta o AI (Random Forest)",
-          "566 ofert w bazie treningowej", 
+          "7000+ ofert w bazie treningowej", 
           "35 cech uwzględnianych w modelu",
           "Średni błąd predykcji 15.56%",
-          "Obsługa regionu Olsztyn"
+          "Obsługa całej Polski"
         ]
       },
       {
@@ -149,7 +149,7 @@ export default async function HomePage() {
         "name": "Kalkulator Wyceny Mieszkania AI",
         "applicationCategory": "FinanceApplication", 
         "operatingSystem": "Web Browser",
-        "description": "Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.77% MAPE.",
+        "description": "Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.79% MAPE.",
         "url": `${process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"}/kalkulator-wyceny`,
         "offers": {
           "@type": "Offer",
@@ -244,15 +244,15 @@ export default async function HomePage() {
                   <div className="space-y-4 mb-8">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-gray-700">Dokładność predykcji: <strong>MAPE 0.77%</strong></span>
+                      <span className="text-gray-700">Dokładność predykcji: <strong>MAPE 0.79%</strong></span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">Wytrenowany na <strong>566 ofertach</strong> z regionu</span>
+                      <span className="text-gray-700">Wytrenowany na <strong>7000+ ofertach</strong> z regionu</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                      <span className="text-gray-700">Uwzględnia <strong>100+ cech</strong> mieszkania</span>
+                      <span className="text-gray-700">Uwzględnia <strong>35+ cech</strong> mieszkania</span>
                     </div>
                   </div>
                   
@@ -336,15 +336,15 @@ export default async function HomePage() {
           <div className="text-center">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-green-600 mb-2">0.77%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">0.79%</div>
                 <div className="text-sm text-gray-600">Średni błąd predykcji (MAPE)</div>
               </div>
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-blue-600 mb-2">566</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">7000+</div>
                 <div className="text-sm text-gray-600">Ofert w bazie treningowej</div>
               </div>
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-blue-600 mb-2">100+</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">35+</div>
                 <div className="text-sm text-gray-600">Cech uwzględnianych w modelu</div>
               </div>
             </div>
@@ -367,7 +367,7 @@ export default async function HomePage() {
             <Card 
               icon={<FiDollarSign size={36} />}
               title="Kalkulator Wyceny Mieszkania" 
-              description="Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.77% MAPE." 
+              description="Wycena mieszkania oparta o zaawansowany EstymatorAI. Dokładność 0.79% MAPE." 
               href="/kalkulator-wyceny" 
             />
             <Card 

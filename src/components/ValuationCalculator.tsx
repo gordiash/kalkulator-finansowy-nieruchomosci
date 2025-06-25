@@ -319,7 +319,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">0.77%</div>
+              <div className="text-2xl font-bold text-green-600">0.79%</div>
               <div className="text-xs text-blue-600">Błąd MAPE</div>
             </div>
           </div>

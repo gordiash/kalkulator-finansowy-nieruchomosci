@@ -30,7 +30,7 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 
 ### 4. Kalkulator Wyceny Mieszkań 🚀 AI Ensemble
 - **Zaawansowana sztuczna inteligencja** - Model Ensemble (LightGBM + Random Forest + CatBoost)
-- **Dokładność 0.77% MAPE** - Najlepsza precyzja wyceny w Polsce
+- **Dokładność 0.79% MAPE** - Najlepsza precyzja wyceny w Polsce
 - **Inteligentny fallback** - Ensemble → Random Forest → Heurystyka
 - **Autouzupełnianie lokalizacji** - Baza miast i dzielnic z regionu Olsztyn
 - **Integracja z kalkulatorami** - Przekazywanie ceny do innych narzędzi
@@ -53,7 +53,7 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 
 ### Machine Learning
 - **Python** - Środowisko ML (scikit-learn, pandas, numpy, LightGBM, CatBoost)
-- **EstymatorAI** - Model produkcyjny (0.77% MAPE) - LightGBM + Random Forest + CatBoost
+- **EstymatorAI** - Model produkcyjny (0.79% MAPE) - LightGBM + Random Forest + CatBoost
 - **Advanced Fallback** - Random Forest (15.56% MAPE), Heurystyka (25% MAPE)
 - **MySQL** - Baza danych nieruchomości (566 rekordów)
 - **Feature Engineering** - 100+ cech (lokalizacja, powierzchnia, wiek, interakcje)

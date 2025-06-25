@@ -44,9 +44,9 @@ export default async function ValuationPage({ searchParams }: PageProps) {
           Kalkulator Wyceny Mieszkania
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji. 
-          Model Random Forest wytrenowany na {' '}
-          <span className="font-semibold text-blue-600">566 ofertach z regionu Olsztyn</span>.
+          Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. 
+          Model ensemble wytrenowany na {' '}
+          <span className="font-semibold text-blue-600">7000+ ofertach z całej Polski</span>.
         </p>
       </header>
       
@@ -66,16 +66,16 @@ export default async function ValuationPage({ searchParams }: PageProps) {
         </h2>
         <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">🤖 Sztuczna inteligencja</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">🤖 EstymatorAI</h3>
             <p>
-              Używamy modelu Random Forest wytrenowanego na rzeczywistych ofertach 
-              z rynku nieruchomości w regionie Olsztyn. Dokładność modelu wynosi MAPE 15.56%.
+              Używamy zaawansowanego modelu ensemble wytrenowanego na rzeczywistych ofertach 
+              z rynku nieruchomości w całej Polski. Dokładność modelu wynosi MAPE 0.79%.
             </p>
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 mb-2">📊 Analiza parametrów</h3>
             <p>
-              Model uwzględnia 35 cech nieruchomości: lokalizację, metraż, liczbę pokoi, 
+              EstymatorAI uwzględnia 35+ cech nieruchomości: lokalizację, metraż, liczbę pokoi, 
               piętro, rok budowy i wiele innych czynników wpływających na cenę.
             </p>
           </div>

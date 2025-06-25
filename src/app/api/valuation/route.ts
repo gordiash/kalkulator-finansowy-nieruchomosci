@@ -383,7 +383,7 @@ export async function POST(request: NextRequest) {
       method,
       confidence: `±${Math.round(confidence * 100)}%`,
       note: isEnsemble 
-        ? 'Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.78% MAPE'
+        ? 'Wycena oparta o zaawansowany model Ensemble (LightGBM + Random Forest + CatBoost) z dokładnością 0.79% MAPE'
         : method.includes('random_forest')
         ? 'Wycena oparta o model Random Forest (fallback) z dokładnością 15.56% MAPE'
         : 'Wycena heurystyczna - modele ML niedostępne',

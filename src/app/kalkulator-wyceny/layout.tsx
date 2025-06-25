@@ -6,7 +6,7 @@ export const generateMetadata = (): Metadata => {
   return {
     ...defaultMeta,
     title: 'Kalkulator Wyceny Mieszkania - AI Wycena Nieruchomości',
-    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji. Model Random Forest MAPE 15.56%. Sprawdź też zdolność kredytową i rentowność wynajmu.',
+    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji. Model EstymatorAI MAPE 0,79%. Sprawdź też zdolność kredytową i rentowność wynajmu.',
     keywords: [
       'kalkulator wyceny mieszkania',
       'wycena nieruchomości',
@@ -23,7 +23,7 @@ export const generateMetadata = (): Metadata => {
     openGraph: {
       ...defaultMeta.openGraph,
       title: 'Kalkulator Wyceny Mieszkania - AI Wycena',
-      description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji. Model Random Forest wytrenowany na 566 ofertach z regionu Olsztyn.',
+      description: 'Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. Model EstymatorAI wytrenowany na 7000+ ofertach z całej Polski.',
       url: `${baseUrl}/kalkulator-wyceny`,
       type: 'website',
       images: [
@@ -38,7 +38,7 @@ export const generateMetadata = (): Metadata => {
     twitter: {
       card: 'summary_large_image',
       title: 'Kalkulator Wyceny Mieszkania - AI Wycena',
-      description: 'Oszacuj wartość mieszkania za pomocą AI. Model Random Forest MAPE 15.56%.',
+      description: 'Oszacuj wartość mieszkania za pomocą EstymatorAI. Model ensemble MAPE 0.79%.',
       images: [`${baseUrl}/images/kalkulator-wyceny-twitter.jpg`]
     },
     robots: {
@@ -84,7 +84,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
             applicationCategory: 'FinanceApplication',
             applicationSubCategory: 'RealEstateApplication',
             operatingSystem: 'Web',
-            description: 'Profesjonalny kalkulator do wyceny mieszkań wykorzystujący sztuczną inteligencję. Model Random Forest wytrenowany na rzeczywistych danych rynkowych.',
+            description: 'Profesjonalny kalkulator do wyceny mieszkań wykorzystujący EstymatorAI. Model ensemble wytrenowany na rzeczywistych danych rynkowych.',
             url: `${baseUrl}/kalkulator-wyceny`,
             author: {
               '@type': 'Organization',
@@ -98,9 +98,9 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
               availability: 'https://schema.org/InStock'
             },
             featureList: [
-              'Wycena oparta o AI',
-              'Model Random Forest',
-              'MAPE 15.56%',
+              'Wycena oparta o EstymatorAI',
+              'Model ensemble (LightGBM+RF+CatBoost)',
+              'MAPE 0.79%',
               '566 próbek treningowych',
               'Integracja z kalkulatorami',
               'Responsywny interfejs'
@@ -126,7 +126,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
                 name: 'Jak dokładny jest kalkulator wyceny mieszkania?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Nasz kalkulator wykorzystuje model Random Forest z dokładnością MAPE 15.56%, wytrenowany na 566 rzeczywistych ofertach z regionu Olsztyn. To oznacza średni błąd około 15.56%.'
+                  text: 'Nasz kalkulator wykorzystuje EstymatorAI z dokładnością MAPE 0.79%, wytrenowany na 7000+ rzeczywistych ofertach z całej Polski. To oznacza średni błąd około 0.79%.'
                 }
               },
               {
@@ -134,7 +134,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
                 name: 'Jakie parametry wpływają na wycenę mieszkania?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Model uwzględnia 35 cech: lokalizację (miasto, dzielnica), metraż, liczbę pokoi, piętro, rok budowy i wiele innych parametrów wpływających na cenę nieruchomości.'
+                  text: 'EstymatorAI uwzględnia 35+ cech: lokalizację (miasto, dzielnica), metraż, liczbę pokoi, piętro, rok budowy i wiele innych parametrów wpływających na cenę nieruchomości.'
                 }
               },
               {
