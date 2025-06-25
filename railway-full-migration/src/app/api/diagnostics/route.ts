@@ -6,9 +6,54 @@ import { createClient } from '@supabase/supabase-js';
 
 const execAsync = promisify(exec);
 
+interface TestResult {
+  success: boolean;
+  error: string | null;
+  posts_count?: unknown;
+  sample_data?: unknown;
+}
+
+interface PythonTestResult {
+  test: string;
+  success: boolean;
+  output: string;
+  error: string;
+}
+
+interface FileChecks {
+  scripts_dir: boolean;
+  models_dir: boolean;
+  ensemble_script: boolean;
+  ensemble_model: boolean;
+  rf_script: boolean;
+  rf_model: boolean;
+}
+
+interface DiagnosticResults {
+  timestamp: string;
+  environment: string | undefined;
+  python_tests: PythonTestResult[];
+  supabase: {
+    url_set: boolean;
+    url_value: string;
+    anon_key_set: boolean;
+    anon_key_preview: string;
+    service_role_key_set: boolean;
+    connection_test: TestResult | null;
+    posts_table_test: TestResult | null;
+  };
+  path?: string | undefined;
+  cwd?: string;
+  file_checks?: FileChecks;
+  scripts_files?: string[];
+  scripts_files_error?: string;
+  models_files?: string[];
+  models_files_error?: string;
+}
+
 export async function GET() {
   try {
-    const results: any = {
+    const results: DiagnosticResults = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
       python_tests: [],
@@ -19,8 +64,8 @@ export async function GET() {
         anon_key_preview: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 20) + '...' : 'not set',
         service_role_key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        connection_test: null as any,
-        posts_table_test: null as any
+        connection_test: null,
+        posts_table_test: null
       }
     };
 
@@ -73,12 +118,12 @@ export async function GET() {
         output: stdout.trim(),
         error: stderr
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.python_tests.push({
         test: 'which python',
         success: false,
         output: '',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
 
@@ -91,12 +136,12 @@ export async function GET() {
         output: stdout.trim(),
         error: stderr
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.python_tests.push({
         test: 'whereis python',
         success: false,
         output: '',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
 
@@ -109,12 +154,12 @@ export async function GET() {
         output: stdout.trim() || stderr.trim(),
         error: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.python_tests.push({
         test: 'python --version',
         success: false,
         output: '',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
 
@@ -127,12 +172,12 @@ export async function GET() {
         output: stdout.trim() || stderr.trim(),
         error: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       results.python_tests.push({
         test: '/usr/bin/python --version',
         success: false,
         output: '',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
 
@@ -159,8 +204,8 @@ export async function GET() {
       if (fs.existsSync(scriptsDir)) {
         results.scripts_files = fs.readdirSync(scriptsDir);
       }
-    } catch (error: any) {
-      results.scripts_files_error = error.message;
+    } catch (error: unknown) {
+      results.scripts_files_error = error instanceof Error ? error.message : 'Unknown error';
     }
 
     // Test 9: List files in models directory
@@ -169,8 +214,8 @@ export async function GET() {
       if (fs.existsSync(modelsDir)) {
         results.models_files = fs.readdirSync(modelsDir);
       }
-    } catch (error: any) {
-      results.models_files_error = error.message;
+    } catch (error: unknown) {
+      results.models_files_error = error instanceof Error ? error.message : 'Unknown error';
     }
 
     return NextResponse.json(results);
@@ -202,7 +247,14 @@ export async function POST() {
   }
 }
 
-async function testPythonSpawn(): Promise<any> {
+interface PythonSpawnResult {
+  success: boolean;
+  python_command: string;
+  output: string;
+  exit_code: number;
+}
+
+async function testPythonSpawn(): Promise<PythonSpawnResult | { success: false; error: string }> {
   return new Promise((resolve) => {
     const pythonCommands = ['python', '/usr/bin/python', '/usr/local/bin/python'];
     
@@ -251,8 +303,7 @@ async function testPythonSpawn(): Promise<any> {
     setTimeout(() => {
       resolve({
         success: false,
-        error: 'All Python commands failed',
-        tested_commands: pythonCommands
+        error: 'No working Python installation found'
       });
     }, 5000);
   });

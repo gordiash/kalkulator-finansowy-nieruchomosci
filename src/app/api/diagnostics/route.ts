@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+interface TestResult {
+  success: boolean;
+  error: string | null;
+  posts_count?: unknown;
+  sample_data?: unknown;
+}
+
 export async function GET() {
   try {
     const diagnostics = {
@@ -13,8 +20,8 @@ export async function GET() {
         anon_key_preview: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 20) + '...' : 'not set',
         service_role_key_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        connection_test: null as any,
-        posts_table_test: null as any
+        connection_test: null as TestResult | null,
+        posts_table_test: null as TestResult | null
       }
     };
 
