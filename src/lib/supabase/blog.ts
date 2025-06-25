@@ -20,11 +20,14 @@ export interface BlogPostDetail extends BlogPostListing {
 
 // Zwraca tylko opublikowane posty – używane w widoku bloga publicznego
 export async function fetchPublishedPosts() {
-  // Sprawdź czy Supabase jest skonfigurowany
+  // Sprawdź czy Supabase jest skonfigurowany (wykryj dummy wartości)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
       !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('BUILD_TIME_DUMMY') ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy') ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('build_dummy')) {
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('build_dummy') ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL === '') {
     console.warn('Supabase not configured, returning empty posts');
     return [];
   }
@@ -64,11 +67,14 @@ export async function fetchPublishedPosts() {
 
 // Zwraca najnowsze opublikowane posty z limitem
 export async function fetchLatestPosts(limit: number = 6) {
-  // Sprawdź czy Supabase jest skonfigurowany
+  // Sprawdź czy Supabase jest skonfigurowany (wykryj dummy wartości)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
       !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('BUILD_TIME_DUMMY') ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('BUILD_TIME_DUMMY') ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes('build-dummy') ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('build_dummy')) {
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('build_dummy') ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL === '') {
     console.warn('Supabase not configured, returning empty posts');
     return [];
   }
