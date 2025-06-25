@@ -6,7 +6,6 @@ import { useLocations } from '../hooks/useLocations'
 import { FieldWithTooltip } from './ui/field-with-tooltip'
 import { Autocomplete } from './ui/autocomplete'
 import { Input } from './ui/input'
-import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { valuationAnalytics } from '../lib/analytics'
 
