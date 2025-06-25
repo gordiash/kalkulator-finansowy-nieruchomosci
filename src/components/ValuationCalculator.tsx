@@ -230,17 +230,17 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           area: parseFloat(form.area),
           rooms: parseInt(form.rooms),
           floor: form.floor ? parseInt(form.floor) : null,
-          year_built: form.year ? parseInt(form.year) : null,
-          location_tier: form.locationTier,
+          year: form.year ? parseInt(form.year) : null,
+          locationTier: form.locationTier,
           condition: form.condition,
-          building_type: form.buildingType,
-          parking: form.parking !== 'none',
-          finishing_standard: form.finishing,
-          elevator: form.elevator === 'yes',
-          balcony_terrace: form.balcony === 'yes',
-          windows_orientation: form.orientation,
-          public_transport: form.transport,
-          total_floors: form.totalFloors ? parseInt(form.totalFloors) : null
+          buildingType: form.buildingType,
+          parking: form.parking,
+          finishing: form.finishing,
+          elevator: form.elevator,
+          balcony: form.balcony,
+          orientation: form.orientation,
+          transport: form.transport,
+          totalFloors: form.totalFloors ? parseInt(form.totalFloors) : null
         }),
       })
 

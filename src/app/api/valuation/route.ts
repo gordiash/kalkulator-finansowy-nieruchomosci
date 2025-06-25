@@ -13,13 +13,13 @@ const ValuationSchema = z.object({
   floor: z.number().int().nonnegative().optional(),
   year: z.number().int().optional(),
   locationTier: z.enum(['premium', 'high', 'medium', 'standard']).optional(),
-  condition: z.enum(['new', 'good', 'renovated', 'poor']).optional(),
-  buildingType: z.enum(['apartment', 'tenement', 'house', 'townhouse']).optional(),
-  parking: z.enum(['none', 'street', 'paid', 'included']).optional(),
-  finishing: z.enum(['developer', 'standard', 'premium', 'to_finish']).optional(),
-  elevator: z.enum(['no', 'yes', 'planned']).optional(),
-  balcony: z.enum(['none', 'balcony', 'terrace', 'loggia', 'garden']).optional(),
-  orientation: z.enum(['unknown', 'north', 'south', 'east', 'west', 'south-west', 'south-east', 'north-west', 'north-east']).optional(),
+  condition: z.enum(['excellent', 'good', 'average', 'poor']).optional(),
+  buildingType: z.enum(['blok', 'kamienica', 'dom', 'loft']).optional(),
+  parking: z.enum(['none', 'street', 'courtyard', 'garage']).optional(),
+  finishing: z.enum(['high', 'standard', 'basic']).optional(),
+  elevator: z.enum(['no', 'yes']).optional(),
+  balcony: z.enum(['no', 'yes']).optional(),
+  orientation: z.enum(['north', 'south', 'east', 'west']).optional(),
   transport: z.enum(['poor', 'medium', 'good', 'excellent']).optional(),
   totalFloors: z.number().int().positive().optional(),
 })
@@ -49,12 +49,41 @@ async function callEnsembleModel(inputData: {
     
     // Mapowanie condition -> building_age_category
     const conditionToAgeCategory = {
-      'new': 'very_new',
+      'excellent': 'very_new',
       'good': inputData.year >= 2010 ? 'new' : inputData.year >= 2000 ? 'modern' : 'renovated',
-      'renovated': 'renovated',
+      'average': 'renovated',
       'poor': 'old'
     }
     
+    // Mapowanie buildingType frontend -> API
+    const buildingTypeMapping = {
+      'blok': 'apartment',
+      'kamienica': 'tenement', 
+      'dom': 'house',
+      'loft': 'house'
+    }
+
+    // Mapowanie parking frontend -> API
+    const parkingMapping = {
+      'none': 'none',
+      'street': 'street',
+      'courtyard': 'street',
+      'garage': 'included'
+    }
+
+    // Mapowanie finishing frontend -> API
+    const finishingMapping = {
+      'high': 'premium',
+      'standard': 'standard', 
+      'basic': 'to_finish'
+    }
+
+    // Mapowanie balcony frontend -> API
+    const balconyMapping = {
+      'yes': 'balcony',
+      'no': 'none'
+    }
+
     // Przygotuj dane w formacie oczekiwanym przez ensemble
     const ensembleInput = {
       city: inputData.city,
@@ -64,11 +93,11 @@ async function callEnsembleModel(inputData: {
       year_built: inputData.year,
       location_tier: inputData.locationTier || 'medium',
       building_age_category: conditionToAgeCategory[inputData.condition as keyof typeof conditionToAgeCategory] || 'modern',
-      building_type: inputData.buildingType || 'apartment',
-      parking: inputData.parking || 'none',
-      finishing: inputData.finishing || 'standard',
+      building_type: buildingTypeMapping[inputData.buildingType as keyof typeof buildingTypeMapping] || 'apartment',
+      parking: parkingMapping[inputData.parking as keyof typeof parkingMapping] || 'none',
+      finishing: finishingMapping[inputData.finishing as keyof typeof finishingMapping] || 'standard',
       elevator: inputData.elevator || 'no',
-      balcony: inputData.balcony || 'none',
+      balcony: balconyMapping[inputData.balcony as keyof typeof balconyMapping] || 'none',
       orientation: inputData.orientation || 'unknown',
       transport: inputData.transport || 'medium',
       total_floors: inputData.totalFloors || 0
