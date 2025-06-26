@@ -53,7 +53,7 @@ app.add_middleware(
     allow_origins=[
         "https://kalkulatorynieruchomosci.pl",      # Produkcja
         "https://*.vercel.app",                     # Wszystkie Vercel domeny
-        "https://your-vercel-app.vercel.app",       # Template URL
+        "https://kalkulator-finansowy-nieruchomosci-p52d3bfxk.vercel.app",       # Template URL
         "http://localhost:3000",                    # Development
         "http://localhost:3001",                    # Alternative dev port
     ],
