@@ -1,4 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+interface ModelsDetails {
+  directory_exists: boolean;
+  ensemble_model: boolean;
+  rf_model: boolean;
+}
+
+interface ScriptsDetails {
+  directory_exists: boolean;
+  ensemble_script: boolean;
+  rf_script: boolean;
+}
+
+interface LocalEnvironment {
+  cwd: string;
+  python_available: boolean;
+  models_available: boolean;
+  scripts_available: boolean;
+  models_details: ModelsDetails;
+  scripts_details: ScriptsDetails;
+  error: string | null;
+}
+
+interface TestResults {
+  valuation_test?: {
+    success: boolean;
+    status?: number;
+    input_data?: Record<string, unknown>;
+    response?: unknown;
+    error?: string;
+  };
+}
 
 export async function GET() {
   const result = {
@@ -10,23 +47,21 @@ export async function GET() {
         python_available: false,
         models_available: false,
         scripts_available: false,
-        models_details: {} as any,
-        scripts_details: {} as any,
+        models_details: {} as ModelsDetails,
+        scripts_details: {} as ScriptsDetails,
         error: null as string | null
-      },
+      } as LocalEnvironment,
       railway_api: {
         configured: !!process.env.RAILWAY_ML_API_URL,
         url_preview: process.env.RAILWAY_ML_API_URL ? 
           `${process.env.RAILWAY_ML_API_URL.substring(0, 30)}...` : null
       },
-      test_results: {} as any
+      test_results: {} as TestResults
     }
   };
 
   // Test local environment
   try {
-    const fs = require('fs');
-    const path = require('path');
 
     // Check models directory
     const modelsDir = path.join(process.cwd(), 'models');

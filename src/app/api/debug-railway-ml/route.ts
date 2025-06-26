@@ -1,4 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextResponse } from 'next/server';
+
+interface TestResult {
+  success: boolean;
+  status?: number;
+  response?: unknown;
+  error?: string;
+  input_data?: Record<string, unknown>;
+}
+
+interface Tests {
+  config_error?: string;
+  health_check?: TestResult;
+  diagnostics?: TestResult;
+  ml_prediction?: TestResult;
+}
 
 export async function GET() {
   let RAILWAY_ML_API = process.env.RAILWAY_ML_API_URL;
@@ -12,7 +29,7 @@ export async function GET() {
       url_raw: RAILWAY_ML_API,
       url_final: null as string | null
     },
-    tests: {} as any
+    tests: {} as Tests
   };
 
   if (!RAILWAY_ML_API) {

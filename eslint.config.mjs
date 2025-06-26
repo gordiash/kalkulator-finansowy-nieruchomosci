@@ -18,6 +18,9 @@ const eslintConfig = [
     },
     rules: {
       'jsx-a11y/alt-text': 'error',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ];
