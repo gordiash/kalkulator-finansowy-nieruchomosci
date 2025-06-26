@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pickle
 import numpy as np
+import pandas as pd
 import os
 from typing import Optional
 import logging
@@ -180,8 +181,8 @@ async def predict_valuation(data: ValuationRequest):
             return ValuationResponse(**cached_result)
         
         # 2. Cache MISS - oblicz predykcję
-        input_features = prepare_features(data)
-        price, method, confidence = get_prediction(input_features, data)
+        features_df = prepare_features(data)
+        price, method, confidence = get_prediction(features_df, data)
         
         # 3. Przygotuj wynik
         min_price = round(price * (1 - confidence) / 1000) * 1000
@@ -214,39 +215,181 @@ async def predict_valuation_railway(data: ValuationRequest):
     logger.info("🚂 [Railway Compatibility] Wywołano endpoint /api/valuation-railway")
     return await predict_valuation(data)
 
-def prepare_features(data: ValuationRequest) -> np.ndarray:
-    """Przygotuj features dla modelu ML"""
-    # Tu będzie logika przygotowania features
-    # Na razie uproszczona wersja
-    features = [
-        data.area,
-        data.rooms,
-        data.floor or 0,
-        data.year or 1990,
-        # Dodaj encoding dla kategorycznych
-    ]
-    return np.array(features).reshape(1, -1)
+def prepare_features(data: ValuationRequest) -> pd.DataFrame:
+    """Przygotuj features dla modelu EstymatorAI (27 cech)"""
+    
+    # Konwersja na dict dla kompatybilności
+    data_dict = {
+        'city': data.city,
+        'area': data.area,
+        'rooms': data.rooms,
+        'year_built': data.year or 1990
+    }
+    
+    df = pd.DataFrame([data_dict])
+    
+    # 1. Podstawowe cechy numeryczne
+    df['area'] = df['area']
+    df['rooms'] = df['rooms']
+    df['year_built'] = df['year_built']
+    
+    # 2. Wyprowadzone cechy
+    df['area_per_room'] = df['area'] / df['rooms']
+    df['building_age'] = 2024 - df['year_built']
+    
+    # 3. Podstawowe transformacje
+    df['sqrt_area'] = np.sqrt(df['area'])
+    df['log_area'] = np.log1p(df['area'])
+    df['area_squared'] = df['area'] ** 2
+    
+    # 4. Cechy interakcyjne
+    df['area_rooms'] = df['area'] * df['rooms']
+    df['area_age'] = df['area'] * df['building_age']
+    df['density'] = df['rooms'] / df['area']
+    
+    # 5. Cechy binarne
+    df['is_large_apartment'] = (df['area'] > 70).astype(int)
+    df['is_small_apartment'] = (df['area'] < 45).astype(int)
+    df['is_new_building'] = (df['year_built'] >= 2010).astype(int)
+    df['is_premium_area'] = (df['area'] > 100).astype(int)
+    
+    # 6. Statystyki grupowe - AKTUALNE CENY 2024
+    city_stats = {
+        'Olsztyn': {'price_per_sqm_mean': 12500, 'price_per_sqm_median': 12000, 'area_mean': 58, 'area_median': 55},
+        'Dywity': {'price_per_sqm_mean': 10800, 'price_per_sqm_median': 10500, 'area_mean': 62, 'area_median': 60},
+        'Stawiguda': {'price_per_sqm_mean': 10200, 'price_per_sqm_median': 9900, 'area_mean': 65, 'area_median': 62},
+        'olsztyński': {'price_per_sqm_mean': 9500, 'price_per_sqm_median': 9200, 'area_mean': 68, 'area_median': 65}
+    }
+    
+    city = df['city'].iloc[0]
+    stats = city_stats.get(city, city_stats['Olsztyn'])
+    
+    for key, value in stats.items():
+        df[key] = value
+    
+    # 7. Estymacja price_per_sqm
+    estimated_price_per_sqm = stats['price_per_sqm_mean']
+    
+    # Korekty cenowe
+    if df['year_built'].iloc[0] >= 2015:
+        estimated_price_per_sqm *= 1.15
+    elif df['year_built'].iloc[0] >= 2010:
+        estimated_price_per_sqm *= 1.10
+    elif df['year_built'].iloc[0] >= 2000:
+        estimated_price_per_sqm *= 1.05
+    elif df['year_built'].iloc[0] < 1990:
+        estimated_price_per_sqm *= 0.90
+    
+    if df['area'].iloc[0] > 80:
+        estimated_price_per_sqm *= 1.05
+    elif df['area'].iloc[0] < 40:
+        estimated_price_per_sqm *= 0.95
+    
+    df['price_per_sqm'] = estimated_price_per_sqm
+    
+    # 8. Relative features
+    df['area_vs_city_mean'] = df['area'] / df['area_mean']
+    df['price_vs_city_mean'] = df['price_per_sqm'] / df['price_per_sqm_mean']
+    df['price_vs_city_median'] = df['price_per_sqm'] / df['price_per_sqm_median']
+    
+    # 9. Percentile features
+    df['area_percentile'] = np.clip((df['area'] - 30) / 70, 0, 1)
+    df['price_percentile'] = np.clip((df['price_per_sqm'] - 8000) / 8000, 0, 1)
+    df['age_percentile'] = np.clip((2024 - df['year_built']) / 50, 0, 1)
+    
+    # 10. Budget segment
+    df['is_budget_segment'] = (df['price_per_sqm'] < 10000).astype(int)
+    
+    # 11. City encoding (one-hot)
+    df['city_Olsztyn'] = (df['city'] == 'Olsztyn').astype(int)
+    df['city_Dywity'] = (df['city'] == 'Dywity').astype(int)
+    df['city_Stawiguda'] = (df['city'] == 'Stawiguda').astype(int)
+    df['city_olsztyński'] = (df['city'] == 'olsztyński').astype(int)
+    
+    # Usuń oryginalne kategoryczne
+    df = df.drop(['city'], axis=1, errors='ignore')
+    
+    logger.info(f"✅ Przygotowano {len(df.columns)} cech dla EstymatorAI")
+    
+    return df
 
-def get_prediction(features: np.ndarray, data: ValuationRequest):
+def get_prediction(features_df: pd.DataFrame, data: ValuationRequest):
     """Uzyskaj predykcję z najlepszego dostępnego modelu"""
     
     if ensemble_model is not None:
         try:
-            prediction = ensemble_model.predict(features)[0]
-            return round(prediction / 1000) * 1000, "ensemble_EstymatorAI_railway", 0.02
+            # EstymatorAI ensemble - używa DataFrame
+            if isinstance(ensemble_model, dict):
+                # To jest ensemble model ze słownikiem modeli
+                predictions = {}
+                
+                # Random Forest
+                if 'rf' in ensemble_model:
+                    try:
+                        rf_pred = ensemble_model['rf'].predict(features_df)[0]
+                        predictions['rf'] = rf_pred
+                        logger.info(f"✅ RF prediction: {rf_pred:,.0f} PLN")
+                    except Exception as e:
+                        logger.warning(f"RF prediction failed: {e}")
+                
+                # LightGBM
+                if 'lgb' in ensemble_model:
+                    try:
+                        lgb_pred = ensemble_model['lgb'].predict(features_df)[0]
+                        predictions['lgb'] = lgb_pred
+                        logger.info(f"✅ LGB prediction: {lgb_pred:,.0f} PLN")
+                    except Exception as e:
+                        logger.warning(f"LGB prediction failed: {e}")
+                
+                # CatBoost
+                if 'catboost' in ensemble_model:
+                    try:
+                        cb_pred = ensemble_model['catboost'].predict(features_df)[0]
+                        predictions['catboost'] = cb_pred
+                        logger.info(f"✅ CatBoost prediction: {cb_pred:,.0f} PLN")
+                    except Exception as e:
+                        logger.warning(f"CatBoost prediction failed: {e}")
+                
+                # Weighted ensemble
+                if 'weights' in ensemble_model and predictions:
+                    weights = ensemble_model['weights']
+                    ensemble_pred = 0
+                    total_weight = 0
+                    
+                    for model_name, pred in predictions.items():
+                        if model_name in weights:
+                            weight = weights[model_name]
+                            ensemble_pred += pred * weight
+                            total_weight += weight
+                    
+                    if total_weight > 0:
+                        final_pred = ensemble_pred / total_weight
+                        logger.info(f"🎯 EstymatorAI Ensemble: {final_pred:,.0f} PLN")
+                        return round(final_pred / 1000) * 1000, "ensemble_EstymatorAI_railway", 0.008
+                
+                # Jeśli mamy pojedyncze predykcje, użyj najlepszej
+                if predictions:
+                    best_pred = list(predictions.values())[0]
+                    logger.info(f"🔄 Single model fallback: {best_pred:,.0f} PLN")
+                    return round(best_pred / 1000) * 1000, "single_model_railway", 0.03
+            
+            # Próba bezpośredniej predykcji
+            prediction = ensemble_model.predict(features_df)[0]
+            return round(prediction / 1000) * 1000, "ensemble_EstymatorAI_railway", 0.008
+            
         except Exception as e:
-            logger.warning(f"Ensemble model failed: {e}")
+            logger.error(f"❌ Ensemble model failed: {e}")
     
     if rf_model is not None:
         try:
-            prediction = rf_model.predict(features)[0]
+            prediction = rf_model.predict(features_df)[0]
             return round(prediction / 1000) * 1000, "random_forest_railway", 0.07
         except Exception as e:
             logger.warning(f"RF model failed: {e}")
     
     if xgb_model is not None:
         try:
-            prediction = xgb_model.predict(features)[0]
+            prediction = xgb_model.predict(features_df)[0]
             return round(prediction / 1000) * 1000, "xgboost_railway", 0.05
         except Exception as e:
             logger.warning(f"XGB model failed: {e}")

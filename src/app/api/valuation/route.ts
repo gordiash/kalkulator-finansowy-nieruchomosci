@@ -395,6 +395,69 @@ function calculateHeuristicPrice(city: string, area: number, rooms: number, year
 //   return 'standard';
 // }
 
+// === Railway Enum Mappers ===
+function mapLocationTierForRailway(tier?: string): 'low' | 'medium' | 'high' {
+  switch (tier) {
+    case 'premium': return 'high';
+    case 'high': return 'high';
+    case 'medium': return 'medium';
+    case 'standard': return 'low';
+    default: return 'medium';
+  }
+}
+
+function mapConditionForRailway(condition?: string): 'poor' | 'average' | 'good' | 'excellent' {
+  switch (condition) {
+    case 'excellent': return 'excellent';
+    case 'good': return 'good';
+    case 'average': return 'average';
+    case 'poor': return 'poor';
+    default: return 'good';
+  }
+}
+
+function mapBuildingTypeForRailway(type?: string): 'apartment' | 'house' | 'tenement' {
+  switch (type) {
+    case 'blok': return 'apartment';
+    case 'kamienica': return 'tenement';
+    case 'dom': return 'house';
+    case 'loft': return 'apartment';
+    default: return 'apartment';
+  }
+}
+
+function mapParkingForRailway(parking?: string): 'none' | 'street' | 'garage' | 'underground' {
+  switch (parking) {
+    case 'none': return 'none';
+    case 'street': return 'street';
+    case 'courtyard': return 'street';
+    case 'garage': return 'garage';
+    case 'underground': return 'underground';
+    default: return 'none';
+  }
+}
+
+function mapFinishingForRailway(finishing?: string): 'basic' | 'standard' | 'high' | 'luxury' {
+  switch (finishing) {
+    case 'high': return 'high';
+    case 'standard': return 'standard';
+    case 'basic': return 'basic';
+    case 'luxury': return 'luxury';
+    default: return 'standard';
+  }
+}
+
+function mapBalconyForRailway(balcony?: string): 'none' | 'balcony' | 'terrace' | 'garden' {
+  switch (balcony) {
+    case 'yes': return 'balcony';
+    case 'no': return 'none';
+    case 'balcony': return 'balcony';
+    case 'terrace': return 'terrace';
+    case 'garden': return 'garden';
+    default: return 'none';
+  }
+}
+
 // === Nowy: Railway ML API Fallback ===
 async function callRailwayMLAPI(inputData: {
   city: string;
@@ -414,45 +477,73 @@ async function callRailwayMLAPI(inputData: {
   transport?: string;
   totalFloors?: number;
 }): Promise<number | null> {
-  const RAILWAY_ML_API = process.env.RAILWAY_ML_API_URL || 'https://your-railway-ml-api.railway.app';
+  let RAILWAY_ML_API = process.env.RAILWAY_ML_API_URL;
+  
+  console.log('🚂 [Railway ML] Configuration check:');
+  console.log('   RAILWAY_ML_API_URL:', RAILWAY_ML_API ? `${RAILWAY_ML_API.substring(0, 50)}...` : 'NOT SET');
+  
+  if (!RAILWAY_ML_API) {
+    console.error('❌ [Railway ML] RAILWAY_ML_API_URL nie jest ustawione w environment');
+    return null;
+  }
+  
+  // Dodaj https:// jeśli brakuje
+  if (!RAILWAY_ML_API.startsWith('http://') && !RAILWAY_ML_API.startsWith('https://')) {
+    RAILWAY_ML_API = `https://${RAILWAY_ML_API}`;
+    console.log('🔧 [Railway ML] Dodano https:// prefix:', RAILWAY_ML_API);
+  }
   
   try {
     console.log('🚂 [Railway ML] Calling external ML API...');
+    console.log('🚂 [Railway ML] Full URL:', `${RAILWAY_ML_API}/api/valuation-railway`);
     
-    // Przygotuj dane w formacie Railway API
+    // Przygotuj dane w formacie Railway API (kompatybilne z railway-full-migration)
     const requestData = {
       city: inputData.city,
-      district: inputData.district,
+      district: inputData.district || 'inne',
       area: inputData.area,
       rooms: inputData.rooms,
-      year_built: inputData.year,
-      locationTier: inputData.locationTier || 'medium',
-      condition: inputData.condition || 'good',
-      buildingType: inputData.buildingType || 'apartment',
-      parking: inputData.parking || 'none',
-      finishing: inputData.finishing || 'standard',
+      year: inputData.year, // Railway expects 'year', not 'year_built'
+      locationTier: mapLocationTierForRailway(inputData.locationTier),
+      condition: mapConditionForRailway(inputData.condition),
+      buildingType: mapBuildingTypeForRailway(inputData.buildingType),
+      parking: mapParkingForRailway(inputData.parking),
+      finishing: mapFinishingForRailway(inputData.finishing),
       elevator: inputData.elevator || 'no',
-      balcony: inputData.balcony || 'no',
+      balcony: mapBalconyForRailway(inputData.balcony),
       orientation: inputData.orientation || 'unknown',
-      transport: inputData.transport || 'medium'
+      transport: inputData.transport || 'medium',
+      totalFloors: inputData.totalFloors || 5
     };
     
+    console.log('🚂 [Railway ML] Request data:', JSON.stringify(requestData, null, 2));
+    
+    const startTime = Date.now();
     const response = await fetch(`${RAILWAY_ML_API}/api/valuation-railway`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'KalkulatoryNieruchomosci/1.0'
+        'User-Agent': 'KalkulatoryNieruchomosci/1.0',
+        'Accept': 'application/json',
+        'Origin': process.env.NEXT_PUBLIC_SITE_URL || 'https://kalkulatorynieruchomosci.pl'
       },
       body: JSON.stringify(requestData),
       signal: AbortSignal.timeout(30000) // 30s timeout
     });
     
+    const responseTime = Date.now() - startTime;
+    console.log(`🚂 [Railway ML] Response status: ${response.status} (${responseTime}ms)`);
+    console.log('🚂 [Railway ML] Response headers:', Object.fromEntries(response.headers.entries()));
+    
     if (!response.ok) {
-      console.error('❌ [Railway ML] API response not ok:', response.status);
+      const errorText = await response.text();
+      console.error('❌ [Railway ML] API response not ok:', response.status, response.statusText);
+      console.error('❌ [Railway ML] Error response body:', errorText);
       return null;
     }
     
     const result = await response.json();
+    console.log('🚂 [Railway ML] Full response:', JSON.stringify(result, null, 2));
     
     if (result.price && result.price > 50000 && result.price < 5000000) {
       console.log('✅ [Railway ML] External API success:', result.price);
@@ -464,6 +555,13 @@ async function callRailwayMLAPI(inputData: {
     
   } catch (error) {
     console.error('❌ [Railway ML] External API error:', error);
+    if (error instanceof Error) {
+      console.error('❌ [Railway ML] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.substring(0, 500)
+      });
+    }
     return null;
   }
 }
