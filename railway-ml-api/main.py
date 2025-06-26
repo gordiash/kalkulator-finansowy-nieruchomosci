@@ -49,7 +49,13 @@ app = FastAPI(
 # CORS dla Vercel frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://your-vercel-app.vercel.app", "http://localhost:3000"],
+    allow_origins=[
+        "https://kalkulatorynieruchomosci.pl",      # Produkcja
+        "https://*.vercel.app",                     # Wszystkie Vercel domeny
+        "https://your-vercel-app.vercel.app",       # Template URL
+        "http://localhost:3000",                    # Development
+        "http://localhost:3001",                    # Alternative dev port
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -201,6 +207,12 @@ async def predict_valuation(data: ValuationRequest):
     except Exception as e:
         logger.error(f"❌ Błąd predykcji: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/valuation-railway", response_model=ValuationResponse)
+async def predict_valuation_railway(data: ValuationRequest):
+    """Endpoint kompatybilny z Next.js - przekierowanie do predict"""
+    logger.info("🚂 [Railway Compatibility] Wywołano endpoint /api/valuation-railway")
+    return await predict_valuation(data)
 
 def prepare_features(data: ValuationRequest) -> np.ndarray:
     """Przygotuj features dla modelu ML"""
