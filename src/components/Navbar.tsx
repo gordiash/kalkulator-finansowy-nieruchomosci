@@ -1,10 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('auth_token');
+      setIsLoggedIn(!!token);
+    };
+
+    checkAuth(); // Sprawdź przy pierwszym renderowaniu
+
+    // Nasłuchuj na zmiany w localStorage
+    window.addEventListener('storage', checkAuth);
+    // Nasłuchuj na niestandardowe zdarzenie auth-change
+    window.addEventListener('auth-change', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-change', checkAuth);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    setIsLoggedIn(false);
+    window.dispatchEvent(new Event('auth-change'));
+    router.push('/');
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
@@ -59,6 +88,24 @@ const Navbar = () => {
                 ☕ <span>Wesprzyj projekt</span>
               </span>
             </a>
+
+            {/* Przyciski logowania/panelu */}
+            <div className="flex items-center space-x-2">
+              {isLoggedIn ? (
+                <>
+                  <Link href="/panel" className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-all duration-300 font-semibold">
+                    Panel
+                  </Link>
+                  <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-300 font-semibold">
+                    Wyloguj
+                  </button>
+                </>
+              ) : (
+                <Link href="/logowanie" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105">
+                  Zaloguj się
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -125,6 +172,24 @@ const Navbar = () => {
                 >
                   ☕ Wesprzyj projekt
                 </a>
+              </div>
+              
+              {/* Przyciski logowania/panelu w menu mobilnym */}
+              <div className="pt-4 border-t border-gray-200/50">
+                {isLoggedIn ? (
+                  <div className="space-y-2">
+                     <Link href="/panel" className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl transition-all duration-300 font-semibold" onClick={() => setIsMenuOpen(false)}>
+                        Panel Użytkownika
+                      </Link>
+                    <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="block w-full text-center bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl transition-all duration-300 font-semibold">
+                      Wyloguj
+                    </button>
+                  </div>
+                ) : (
+                  <Link href="/logowanie" className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all duration-300 font-semibold shadow-lg" onClick={() => setIsMenuOpen(false)}>
+                    Zaloguj się / Zarejestruj
+                  </Link>
+                )}
               </div>
             </div>
           </div>
