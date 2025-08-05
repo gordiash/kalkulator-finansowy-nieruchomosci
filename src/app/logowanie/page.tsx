@@ -136,11 +136,32 @@ function LoginPageContent() {
         return;
       }
 
+      // Walidacja email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setErrors({ email: 'Wprowadź poprawny adres email' });
+        return;
+      }
+
       if (!isLogin) {
         if (!formData.name) {
           setErrors({ name: 'Imię jest wymagane' });
           return;
         }
+        
+        // Walidacja imienia - tylko litery i spacje
+        const nameRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s]+$/;
+        if (!nameRegex.test(formData.name.trim())) {
+          setErrors({ name: 'Imię może zawierać tylko litery i spacje' });
+          return;
+        }
+        
+        // Sprawdź minimalną długość imienia
+        if (formData.name.trim().length < 2) {
+          setErrors({ name: 'Imię musi mieć co najmniej 2 znaki' });
+          return;
+        }
+        
         if (formData.password !== formData.confirmPassword) {
           setErrors({ confirmPassword: 'Hasła nie są identyczne' });
           return;
@@ -171,6 +192,34 @@ function LoginPageContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Walidacja dla pola Imię - tylko litery i spacje
+    if (name === 'name') {
+      const nameRegex = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s]*$/;
+      if (!nameRegex.test(value)) {
+        setErrors(prev => ({ ...prev, name: 'Imię może zawierać tylko litery i spacje' }));
+        return;
+      }
+      
+      // Limit długości imienia
+      if (value.length > 50) {
+        setErrors(prev => ({ ...prev, name: 'Imię nie może być dłuższe niż 50 znaków' }));
+        return;
+      }
+    }
+    
+    // Limit długości email
+    if (name === 'email' && value.length > 100) {
+      setErrors(prev => ({ ...prev, email: 'Email nie może być dłuższy niż 100 znaków' }));
+      return;
+    }
+    
+    // Limit długości hasła
+    if (name === 'password' && value.length > 128) {
+      setErrors(prev => ({ ...prev, password: 'Hasło nie może być dłuższe niż 128 znaków' }));
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Wyczyść błąd dla tego pola
@@ -252,6 +301,8 @@ function LoginPageContent() {
                     name="name"
                     type="text"
                     required
+                    maxLength={50}
+                    placeholder="Wprowadź swoje imię"
                     value={formData.name}
                     onChange={handleInputChange}
                     className={`appearance-none block w-full px-3 py-2 border ${
@@ -276,6 +327,8 @@ function LoginPageContent() {
                   type="email"
                   autoComplete="email"
                   required
+                  maxLength={100}
+                  placeholder="twoj@email.com"
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`appearance-none block w-full px-3 py-2 border ${
@@ -299,6 +352,8 @@ function LoginPageContent() {
                   type="password"
                   autoComplete="current-password"
                   required
+                  maxLength={128}
+                  placeholder="Wprowadź hasło"
                   value={formData.password}
                   onChange={handleInputChange}
                   className={`appearance-none block w-full px-3 py-2 border ${
@@ -323,6 +378,8 @@ function LoginPageContent() {
                     type="password"
                     autoComplete="new-password"
                     required
+                    maxLength={128}
+                    placeholder="Potwierdź hasło"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={`appearance-none block w-full px-3 py-2 border ${
