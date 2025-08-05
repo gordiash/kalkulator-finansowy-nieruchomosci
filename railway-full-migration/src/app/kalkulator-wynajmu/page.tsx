@@ -34,7 +34,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
-import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+import { validateNumericInput, sanitizeInput } from "@/lib/validation";
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -147,35 +147,90 @@ const RentalProfitabilityCalculatorPageContent = () => {
   // Funkcja walidacji wszystkich pól
   const validateAllFields = () => {
     const errors: Record<string, string> = {};
-    const fieldDefinitions = FIELD_DEFINITIONS.RENTAL;
 
-    const formData = {
-      purchasePrice,
-      monthlyRent,
-      transactionCosts,
-      renovationCosts,
-      adminFees,
-      utilities,
-      insurance,
-      otherCosts,
-      vacancyPeriod,
-      downPayment,
-      interestRate,
-      loanYears,
-      propertyAppreciation,
-      rentGrowth
-    };
+    // Walidacja ceny zakupu
+    if (!purchasePrice || parseFloat(purchasePrice) < 50000) {
+      errors.purchasePrice = 'Cena zakupu musi być większa od 50 000 zł';
+    } else if (parseFloat(purchasePrice) > 50000000) {
+      errors.purchasePrice = 'Cena zakupu nie może przekraczać 50 000 000 zł';
+    }
 
-    // Walidacja każdego pola
-    Object.entries(formData).forEach(([fieldName, value]) => {
-      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
-      if (rules) {
-        const result = validateField(value, fieldName, rules);
-        if (!result.isValid) {
-          errors[fieldName] = result.errors[0].message;
-        }
-      }
-    });
+    // Walidacja czynszu miesięcznego
+    if (!monthlyRent || parseFloat(monthlyRent) < 200) {
+      errors.monthlyRent = 'Czynsz miesięczny musi być większy od 200 zł';
+    } else if (parseFloat(monthlyRent) > 50000) {
+      errors.monthlyRent = 'Czynsz miesięczny nie może przekraczać 50 000 zł';
+    }
+
+    // Walidacja kosztów transakcyjnych
+    if (transactionCosts && parseFloat(transactionCosts) < 0) {
+      errors.transactionCosts = 'Koszty transakcyjne nie mogą być ujemne';
+    }
+
+    // Walidacja kosztów remontu
+    if (renovationCosts && parseFloat(renovationCosts) < 0) {
+      errors.renovationCosts = 'Koszty remontu nie mogą być ujemne';
+    }
+
+    // Walidacja opłat administracyjnych
+    if (adminFees && parseFloat(adminFees) < 0) {
+      errors.adminFees = 'Opłaty administracyjne nie mogą być ujemne';
+    }
+
+    // Walidacja mediów
+    if (utilities && parseFloat(utilities) < 0) {
+      errors.utilities = 'Media nie mogą być ujemne';
+    }
+
+    // Walidacja ubezpieczenia
+    if (insurance && parseFloat(insurance) < 0) {
+      errors.insurance = 'Ubezpieczenie nie może być ujemne';
+    }
+
+    // Walidacja innych kosztów
+    if (otherCosts && parseFloat(otherCosts) < 0) {
+      errors.otherCosts = 'Inne koszty nie mogą być ujemne';
+    }
+
+    // Walidacja okresu pustostanów
+    if (vacancyPeriod && parseFloat(vacancyPeriod) < 0) {
+      errors.vacancyPeriod = 'Okres pustostanów nie może być ujemny';
+    } else if (vacancyPeriod && parseFloat(vacancyPeriod) > 12) {
+      errors.vacancyPeriod = 'Okres pustostanów nie może przekraczać 12 miesięcy';
+    }
+
+    // Walidacja wkładu własnego
+    if (downPayment && parseFloat(downPayment) < 0) {
+      errors.downPayment = 'Wkład własny nie może być ujemny';
+    }
+
+    // Walidacja oprocentowania
+    if (interestRate && parseFloat(interestRate) < 0) {
+      errors.interestRate = 'Oprocentowanie nie może być ujemne';
+    } else if (interestRate && parseFloat(interestRate) > 20) {
+      errors.interestRate = 'Oprocentowanie nie może przekraczać 20%';
+    }
+
+    // Walidacja okresu kredytowania
+    if (loanYears && parseFloat(loanYears) < 1) {
+      errors.loanYears = 'Okres kredytowania musi być większy od 0';
+    } else if (loanYears && parseFloat(loanYears) > 30) {
+      errors.loanYears = 'Okres kredytowania nie może przekraczać 30 lat';
+    }
+
+    // Walidacja wzrostu wartości nieruchomości
+    if (propertyAppreciation && parseFloat(propertyAppreciation) < -10) {
+      errors.propertyAppreciation = 'Wzrost wartości nieruchomości nie może być mniejszy od -10%';
+    } else if (propertyAppreciation && parseFloat(propertyAppreciation) > 20) {
+      errors.propertyAppreciation = 'Wzrost wartości nieruchomości nie może przekraczać 20%';
+    }
+
+    // Walidacja wzrostu czynszu
+    if (rentGrowth && parseFloat(rentGrowth) < -10) {
+      errors.rentGrowth = 'Wzrost czynszu nie może być mniejszy od -10%';
+    } else if (rentGrowth && parseFloat(rentGrowth) > 20) {
+      errors.rentGrowth = 'Wzrost czynszu nie może przekraczać 20%';
+    }
 
     // Dodatkowa walidacja biznesowa dla kalkulatora wynajmu
     if (parseFloat(purchasePrice) && parseFloat(monthlyRent)) {
@@ -209,9 +264,9 @@ const RentalProfitabilityCalculatorPageContent = () => {
       downPayment, interestRate, loanYears, propertyAppreciation, rentGrowth]);
 
   // Funkcje pomocnicze do obsługi input-ów z sanityzacją
-  const handleNumericInput = (setValue: (value: string) => void, allowDecimals = true) => {
+  const handleNumericInput = (setValue: (value: string) => void) => {
     return (value: string) => {
-      const sanitized = sanitizeInput(value, allowDecimals);
+      const sanitized = sanitizeInput(value);
       setValue(sanitized);
     };
   };
@@ -435,7 +490,7 @@ const RentalProfitabilityCalculatorPageContent = () => {
                 id="loanYears"
                 label="Okres kredytowania (lata)"
                 value={loanYears}
-                onChange={handleNumericInput(setLoanYears, false)}
+                onChange={handleNumericInput(setLoanYears)}
                 placeholder="np. 25"
                 error={validationErrors.loanYears}
               />

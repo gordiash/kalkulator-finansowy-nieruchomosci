@@ -14,24 +14,55 @@ function LoginPageContent() {
       setIsLogin(false);
     }
   }, [searchParams]);
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    // Honeypot fields - ukryte pola dla botów
+    website: '',
+    phone: '',
+    // Timestamp dla rate limiting
+    timestamp: Date.now().toString()
   });
+  
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lastAttempt, setLastAttempt] = useState(0);
   
   const router = useRouter();
+
+  // Rate limiting - maksymalnie 5 prób na minutę
+  const checkRateLimit = () => {
+    const now = Date.now();
+    const timeDiff = now - lastAttempt;
+    
+    if (attempts >= 5 && timeDiff < 60000) {
+      const remainingTime = Math.ceil((60000 - timeDiff) / 1000);
+      throw new Error(`Zbyt wiele prób. Spróbuj ponownie za ${remainingTime} sekund.`);
+    }
+    
+    if (timeDiff > 60000) {
+      setAttempts(0);
+    }
+  };
 
   const handleLogin = async (email: string, password: string) => {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Timestamp': Date.now().toString()
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ 
+        email, 
+        password,
+        timestamp: formData.timestamp,
+        userAgent: navigator.userAgent
+      })
     });
 
     if (!response.ok) {
@@ -50,9 +81,20 @@ function LoginPageContent() {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Timestamp': Date.now().toString()
       },
-      body: JSON.stringify({ email, password, name })
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        name,
+        timestamp: formData.timestamp,
+        userAgent: navigator.userAgent,
+        // Dodatkowe dane dla weryfikacji
+        screenResolution: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      })
     });
 
     if (!response.ok) {
@@ -73,6 +115,21 @@ function LoginPageContent() {
     setIsLoading(true);
 
     try {
+      // Sprawdź rate limiting
+      checkRateLimit();
+      
+      // Sprawdź honeypot fields - jeśli wypełnione, to bot
+      if (formData.website || formData.phone) {
+        throw new Error('Wykryto automatyczne wypełnianie formularza');
+      }
+      
+      // Sprawdź timestamp - jeśli za stary, to bot
+      const timestamp = parseInt(formData.timestamp);
+      const now = Date.now();
+      if (now - timestamp > 300000) { // 5 minut
+        throw new Error('Formularz wygasł. Odśwież stronę.');
+      }
+
       // Walidacja
       if (!formData.email || !formData.password) {
         setErrors({ general: 'Email i hasło są wymagane' });
@@ -105,6 +162,8 @@ function LoginPageContent() {
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Wystąpił błąd' });
+      setAttempts(prev => prev + 1);
+      setLastAttempt(Date.now());
     } finally {
       setIsLoading(false);
     }
@@ -159,6 +218,28 @@ function LoginPageContent() {
                 {errors.general}
               </div>
             )}
+
+            {/* Honeypot fields - ukryte pola dla botów */}
+            <div className="hidden">
+              <input
+                type="text"
+                name="website"
+                value={formData.website}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                autoComplete="off"
+                style={{ position: 'absolute', left: '-9999px' }}
+              />
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                autoComplete="off"
+                style={{ position: 'absolute', left: '-9999px' }}
+              />
+            </div>
 
             {!isLogin && (
               <div>

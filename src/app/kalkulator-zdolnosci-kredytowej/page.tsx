@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { HelpCircle, AlertTriangle } from "lucide-react";
-import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+import { sanitizeInput, validateNumericInput } from "@/lib/validation"; 
 import SaveCalculationButton from "@/components/SaveCalculationButton";
 
 // Komponent pomocniczy dla pól z tooltipami - POZA głównym komponentem
@@ -161,31 +161,66 @@ const CreditScoreCalculatorPageContent = () => {
   // Funkcja walidacji wszystkich pól
   const validateAllFields = () => {
     const errors: Record<string, string> = {};
-    const fieldDefinitions = FIELD_DEFINITIONS.CREDIT_SCORE;
 
-    const formData = {
-      monthlyIncome,
-      secondBorrowerIncome,
-      monthlyExpenses,
-      otherLoans,
-      creditCardLimits,
-      accountOverdrafts,
-      householdSize,
-      loanTerm,
-      interestRate,
-      dstiRatio
-    };
+    // Walidacja miesięcznego dochodu
+    if (!monthlyIncome || parseFloat(monthlyIncome) < 1000) {
+      errors.monthlyIncome = 'Dochód miesięczny musi być większy od 1000 zł';
+    } else if (parseFloat(monthlyIncome) > 500000) {
+      errors.monthlyIncome = 'Dochód miesięczny nie może przekraczać 500 000 zł';
+    }
 
-    // Walidacja każdego pola
-    Object.entries(formData).forEach(([fieldName, value]) => {
-      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
-      if (rules) {
-        const result = validateField(value, fieldName, rules);
-        if (!result.isValid) {
-          errors[fieldName] = result.errors[0].message;
-        }
-      }
-    });
+    // Walidacja drugiego kredytobiorcy (opcjonalne)
+    if (secondBorrowerIncome && parseFloat(secondBorrowerIncome) < 0) {
+      errors.secondBorrowerIncome = 'Dochód drugiego kredytobiorcy nie może być ujemny';
+    }
+
+    // Walidacja wydatków miesięcznych
+    if (monthlyExpenses && parseFloat(monthlyExpenses) < 0) {
+      errors.monthlyExpenses = 'Wydatki miesięczne nie mogą być ujemne';
+    }
+
+    // Walidacja innych kredytów
+    if (otherLoans && parseFloat(otherLoans) < 0) {
+      errors.otherLoans = 'Raty innych kredytów nie mogą być ujemne';
+    }
+
+    // Walidacja limitów kart kredytowych
+    if (creditCardLimits && parseFloat(creditCardLimits) < 0) {
+      errors.creditCardLimits = 'Limity kart kredytowych nie mogą być ujemne';
+    }
+
+    // Walidacja debetów
+    if (accountOverdrafts && parseFloat(accountOverdrafts) < 0) {
+      errors.accountOverdrafts = 'Limity debetowe nie mogą być ujemne';
+    }
+
+    // Walidacja liczby osób w gospodarstwie
+    if (!householdSize || parseInt(householdSize) < 1) {
+      errors.householdSize = 'Liczba osób w gospodarstwie musi być większa od 0';
+    } else if (parseInt(householdSize) > 20) {
+      errors.householdSize = 'Liczba osób w gospodarstwie nie może przekraczać 20';
+    }
+
+    // Walidacja okresu kredytowania
+    if (!loanTerm || parseInt(loanTerm) < 1) {
+      errors.loanTerm = 'Okres kredytowania musi być większy od 0';
+    } else if (parseInt(loanTerm) > 30) {
+      errors.loanTerm = 'Okres kredytowania nie może przekraczać 30 lat';
+    }
+
+    // Walidacja oprocentowania
+    if (!interestRate || parseFloat(interestRate) < 0) {
+      errors.interestRate = 'Oprocentowanie nie może być ujemne';
+    } else if (parseFloat(interestRate) > 20) {
+      errors.interestRate = 'Oprocentowanie nie może przekraczać 20%';
+    }
+
+    // Walidacja DSTI
+    if (!dstiRatio || parseFloat(dstiRatio) < 10) {
+      errors.dstiRatio = 'Wskaźnik DSTI musi być większy od 10%';
+    } else if (parseFloat(dstiRatio) > 60) {
+      errors.dstiRatio = 'Wskaźnik DSTI nie może przekraczać 60%';
+    }
 
     // Dodatkowa walidacja biznesowa
     if (parseFloat(monthlyIncome) < 3000 && parseFloat(dstiRatio) > 40) {
@@ -211,9 +246,9 @@ const CreditScoreCalculatorPageContent = () => {
       interestRate, dstiRatio]);
 
   // Funkcje pomocnicze do obsługi input-ów z sanityzacją
-  const handleNumericInput = (setValue: (value: string) => void, allowDecimals = true) => {
+  const handleNumericInput = (setValue: (value: string) => void, allowDecimals = false) => {
     return (value: string) => {
-      const sanitized = sanitizeInput(value, allowDecimals);
+      const sanitized = sanitizeInput(value);
       setValue(sanitized);
     };
   };

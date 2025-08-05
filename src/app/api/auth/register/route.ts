@@ -1,10 +1,48 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, generateToken } from '@/lib/jwt';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name } = await request.json();
+    // Rate limiting - 3 próby na godzinę dla rejestracji
+    const rateLimitResult = rateLimitMiddleware(3, 3600000)(request as any);
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
+    const body = await request.json();
+    const { email, password, name, timestamp, userAgent, screenResolution, timezone } = body;
+
+    // Sprawdź nagłówki zabezpieczeń
+    const requestedWith = request.headers.get('X-Requested-With');
+    const requestTimestamp = request.headers.get('X-Timestamp');
+    
+    if (!requestedWith || requestedWith !== 'XMLHttpRequest') {
+      return NextResponse.json(
+        { error: 'Nieprawidłowe żądanie' },
+        { status: 400 }
+      );
+    }
+
+    // Sprawdź timestamp
+    if (requestTimestamp) {
+      const timestampDiff = Date.now() - parseInt(requestTimestamp);
+      if (timestampDiff > 300000) { // 5 minut
+        return NextResponse.json(
+          { error: 'Żądanie wygasło' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Sprawdź User-Agent
+    if (!userAgent || userAgent.length < 10) {
+      return NextResponse.json(
+        { error: 'Nieprawidłowy User-Agent' },
+        { status: 400 }
+      );
+    }
 
     // Walidacja danych wejściowych
     if (!email || !password) {

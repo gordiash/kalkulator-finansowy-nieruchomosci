@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
-import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+import { validateNumericInput, sanitizeInput } from "@/lib/validation";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
@@ -360,29 +360,62 @@ function RealEstateCalculatorPageContent() {
   // Funkcja walidacji wszystkich pól
   const validateAllFields = () => {
     const errors: Record<string, string> = {};
-    const fieldDefinitions = FIELD_DEFINITIONS.PURCHASE;
 
-    const formDataToValidate = {
-      propertyValue: formData.propertyValue,
-      loanAmount: formData.loanAmount,
-      loanTerm: formData.loanTerm,
-      bankMargin: formData.bankMargin,
-      referenceRate: formData.referenceRate,
-      bankCommission: formData.bankCommission,
-      agencyCommission: formData.agencyCommission,
-      pccTaxRate: formData.pccTaxRate
-    };
+    // Walidacja wartości nieruchomości
+    if (!formData.propertyValue || parseFloat(formData.propertyValue) < 50000) {
+      errors.propertyValue = 'Wartość nieruchomości musi być większa od 50 000 zł';
+    } else if (parseFloat(formData.propertyValue) > 50000000) {
+      errors.propertyValue = 'Wartość nieruchomości nie może przekraczać 50 000 000 zł';
+    }
 
-    // Walidacja każdego pola
-    Object.entries(formDataToValidate).forEach(([fieldName, value]) => {
-      const rules = fieldDefinitions[fieldName as keyof typeof fieldDefinitions];
-      if (rules) {
-        const result = validateField(value, fieldName, rules);
-        if (!result.isValid) {
-          errors[fieldName] = result.errors[0].message;
-        }
-      }
-    });
+    // Walidacja kwoty kredytu
+    if (!formData.loanAmount || parseFloat(formData.loanAmount) < 10000) {
+      errors.loanAmount = 'Kwota kredytu musi być większa od 10 000 zł';
+    } else if (parseFloat(formData.loanAmount) > 45000000) {
+      errors.loanAmount = 'Kwota kredytu nie może przekraczać 45 000 000 zł';
+    }
+
+    // Walidacja okresu kredytowania
+    if (!formData.loanTerm || parseInt(formData.loanTerm) < 1) {
+      errors.loanTerm = 'Okres kredytowania musi być większy od 0';
+    } else if (parseInt(formData.loanTerm) > 40) {
+      errors.loanTerm = 'Okres kredytowania nie może przekraczać 40 lat';
+    }
+
+    // Walidacja marży banku
+    if (!formData.bankMargin || parseFloat(formData.bankMargin) < 0.1) {
+      errors.bankMargin = 'Marża banku musi być większa od 0.1%';
+    } else if (parseFloat(formData.bankMargin) > 10) {
+      errors.bankMargin = 'Marża banku nie może przekraczać 10%';
+    }
+
+    // Walidacja stopy referencyjnej
+    if (!formData.referenceRate || parseFloat(formData.referenceRate) < 0) {
+      errors.referenceRate = 'Stopa referencyjna nie może być ujemna';
+    } else if (parseFloat(formData.referenceRate) > 20) {
+      errors.referenceRate = 'Stopa referencyjna nie może przekraczać 20%';
+    }
+
+    // Walidacja prowizji banku
+    if (formData.bankCommission && parseFloat(formData.bankCommission) < 0) {
+      errors.bankCommission = 'Prowizja banku nie może być ujemna';
+    } else if (formData.bankCommission && parseFloat(formData.bankCommission) > 10) {
+      errors.bankCommission = 'Prowizja banku nie może przekraczać 10%';
+    }
+
+    // Walidacja prowizji agencji
+    if (formData.agencyCommission && parseFloat(formData.agencyCommission) < 0) {
+      errors.agencyCommission = 'Prowizja agencji nie może być ujemna';
+    } else if (formData.agencyCommission && parseFloat(formData.agencyCommission) > 10) {
+      errors.agencyCommission = 'Prowizja agencji nie może przekraczać 10%';
+    }
+
+    // Walidacja stawki PCC
+    if (formData.pccTaxRate && parseFloat(formData.pccTaxRate) < 0) {
+      errors.pccTaxRate = 'Stawka PCC nie może być ujemna';
+    } else if (formData.pccTaxRate && parseFloat(formData.pccTaxRate) > 5) {
+      errors.pccTaxRate = 'Stawka PCC nie może przekraczać 5%';
+    }
 
     // Dodatkowa walidacja biznesowa
     if (parseFloat(formData.loanAmount) > parseFloat(formData.propertyValue)) {
@@ -414,9 +447,9 @@ function RealEstateCalculatorPageContent() {
       formData.agencyCommission, formData.pccTaxRate]);
 
   // Funkcje pomocnicze do obsługi input-ów z sanityzacją
-  const handleNumericInput = (name: string, allowDecimals = true) => {
+  const handleNumericInput = (name: string) => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const sanitized = sanitizeInput(e.target.value, allowDecimals);
+      const sanitized = sanitizeInput(e.target.value);
       setFormData(prev => ({ ...prev, [name]: sanitized }));
     };
   };
