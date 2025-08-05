@@ -1075,7 +1075,7 @@ function RealEstateCalculatorPageContent() {
           {isClient && !results && !isLoading && (
             <div className="text-center py-12 text-gray-500">
               <h2 className="text-2xl font-semibold mb-2">Gotowy do obliczeń?</h2>
-              <p>Wprowadź dane i kliknij "Oblicz", aby zobaczyć szczegółową analizę kredytu.</p>
+              <p>Wprowadź dane i kliknij &quot;Oblicz&quot;, aby zobaczyć szczegółową analizę kredytu.</p>
             </div>
           )}
           {/* LOADING */}

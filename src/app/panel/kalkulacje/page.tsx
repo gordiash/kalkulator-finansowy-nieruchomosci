@@ -218,7 +218,7 @@ export default function KalkulacjePage() {
             
             <div className="mb-4">
               <p className="text-sm text-gray-500">
-                Czy na pewno chcesz usunąć kalkulację <strong>"{calculationToDelete.title}"</strong>?
+                Czy na pewno chcesz usunąć kalkulację <strong>&quot;{calculationToDelete.title}&quot;</strong>?
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 Tej operacji nie można cofnąć.

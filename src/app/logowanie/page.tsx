@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [isLogin, setIsLogin] = useState(true);
   const searchParams = useSearchParams();
   
@@ -99,8 +99,10 @@ export default function LoginPage() {
       } else {
         await handleRegister(formData.email, formData.password, formData.name);
       }
-      
+
+      // Przekieruj do panelu po zalogowaniu
       router.push('/panel');
+      
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Wystąpił błąd' });
     } finally {
@@ -111,164 +113,195 @@ export default function LoginPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Usuń błąd dla tego pola
+    
+    // Wyczyść błąd dla tego pola
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6 text-center">
-            <h1 className="text-2xl font-bold text-white">
-              {isLogin ? 'Logowanie' : 'Rejestracja'}
-            </h1>
-            <p className="text-blue-100 mt-2">
-              {isLogin ? 'Zaloguj się do swojego konta' : 'Utwórz nowe konto'}
-            </p>
-          </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {isLogin ? 'Zaloguj się' : 'Zarejestruj się'}
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          {isLogin ? (
+            <>
+              Lub{' '}
+              <button
+                onClick={() => setIsLogin(false)}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                utwórz nowe konto
+              </button>
+            </>
+          ) : (
+            <>
+              Lub{' '}
+              <button
+                onClick={() => setIsLogin(true)}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                zaloguj się do istniejącego konta
+              </button>
+            </>
+          )}
+        </p>
+      </div>
 
-          {/* Form */}
-          <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLogin && (
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Imię i nazwisko
-                  </label>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {errors.general && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {errors.general}
+              </div>
+            )}
+
+            {!isLogin && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Imię
+                </label>
+                <div className="mt-1">
                   <input
-                    type="text"
                     id="name"
                     name="name"
+                    type="text"
+                    required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Wprowadź swoje imię i nazwisko"
+                    className={`appearance-none block w-full px-3 py-2 border ${
+                      errors.name ? 'border-red-300' : 'border-gray-300'
+                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   />
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                  )}
                 </div>
-              )}
+                {errors.name && (
+                  <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+                )}
+              </div>
+            )}
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Adres email
-                </label>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Adres email
+              </label>
+              <div className="mt-1">
                 <input
-                  type="email"
                   id="email"
                   name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="twoj@email.com"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.email ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
               </div>
+              {errors.email && (
+                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Hasło
-                </label>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Hasło
+              </label>
+              <div className="mt-1">
                 <input
-                  type="password"
                   id="password"
                   name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder={isLogin ? 'Wprowadź hasło' : 'Minimum 6 znaków'}
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                )}
               </div>
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+              )}
+            </div>
 
-              {!isLogin && (
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                    Potwierdź hasło
-                  </label>
+            {!isLogin && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  Potwierdź hasło
+                </label>
+                <div className="mt-1">
                   <input
-                    type="password"
                     id="confirmPassword"
                     name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Powtórz hasło"
+                    className={`appearance-none block w-full px-3 py-2 border ${
+                      errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   />
-                  {errors.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-                  )}
                 </div>
-              )}
+                {errors.confirmPassword && (
+                  <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
+                )}
+              </div>
+            )}
 
-              {errors.general && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-red-600 text-sm">{errors.general}</p>
-                </div>
-              )}
-
+            <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    {isLogin ? 'Logowanie...' : 'Rejestracja...'}
-                  </div>
-                ) : (
-                  isLogin ? 'Zaloguj się' : 'Zarejestruj się'
-                )}
+                {isLoading ? 'Przetwarzanie...' : (isLogin ? 'Zaloguj się' : 'Zarejestruj się')}
               </button>
-            </form>
+            </div>
+          </form>
 
-            {/* Toggle between login/register */}
-            <div className="mt-8 text-center">
-              <p className="text-gray-600">
-                {isLogin ? 'Nie masz konta?' : 'Masz już konto?'}
-                <button
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setErrors({});
-                    setFormData({ email: '', password: '', name: '', confirmPassword: '' });
-                  }}
-                  className="ml-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
-                >
-                  {isLogin ? 'Zarejestruj się' : 'Zaloguj się'}
-                </button>
-              </p>
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Lub</span>
+              </div>
             </div>
 
-            {/* Back to home */}
-            <div className="mt-6 text-center">
+            <div className="mt-6">
               <Link
                 href="/"
-                className="text-gray-500 hover:text-gray-700 text-sm transition-colors duration-200"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                ← Powrót do strony głównej
+                Wróć do strony głównej
               </Link>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Ładowanie...</p>
+        </div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 } 
