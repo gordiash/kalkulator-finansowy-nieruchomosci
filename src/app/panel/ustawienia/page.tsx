@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import ChangePasswordForm from '@/components/ChangePasswordForm';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export const metadata: Metadata = {
   title: 'Ustawienia - Panel użytkownika',
@@ -21,12 +22,10 @@ export default function UstawieniaPage() {
           <ChangePasswordForm />
         </div>
         
-        {/* Placeholder dla innych ustawień */}
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">Inne ustawienia</h3>
-          <p className="text-gray-600">
-            Tutaj będą dodane dodatkowe opcje konfiguracyjne w przyszłości.
-          </p>
+        {/* Sekcja powiadomień i subskrypcji */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Powiadomienia i subskrypcje</h2>
+          <NotificationSettings />
         </div>
       </div>
     </div>
