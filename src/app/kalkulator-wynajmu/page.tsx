@@ -35,6 +35,7 @@ import {
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
 import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+import SaveCalculationButton from "@/components/SaveCalculationButton";
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -269,14 +270,29 @@ const RentalProfitabilityCalculatorPageContent = () => {
       const data = await response.json();
       setResults(data);
       
-      // Śledzenie wyniku kalkulatora
-      trackCalculatorResult('rental', {
-        roi: data.roi,
-        purchase_price: parseFloat(purchasePrice),
-        monthly_rent: parseFloat(monthlyRent),
-        annual_income: data.annualIncome,
-        net_cash_flow: data.netCashFlow
-      });
+      // Zbierz wszystkie dane wejściowe do jednego obiektu
+      const inputData = {
+        purchasePrice,
+        monthlyRent,
+        transactionCosts,
+        renovationCosts,
+        adminFees,
+        utilities,
+        insurance,
+        otherCosts,
+        vacancyPeriod,
+        downPayment,
+        downPaymentType,
+        interestRate,
+        loanYears,
+        taxationType,
+        taxScale,
+        propertyAppreciation,
+        rentGrowth
+      };
+
+      // Śledzenie wyników
+      trackCalculatorResult('rental', { input: inputData, output: data });
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Nieoczekiwany błąd';
@@ -291,479 +307,515 @@ const RentalProfitabilityCalculatorPageContent = () => {
   };
 
   return (
-          <div className="container max-w-7xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-        <Card className="max-w-6xl mx-auto">
-        <CardHeader className="text-center pb-4 sm:pb-6">
-          <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold">
-            Kalkulator Opłacalności Wynajmu
+    <div className="container grid grid-cols-3 md:grid-cols-1 mx-auto p-4 md:p-8">
+      <Card className="max-w-4xl mx-auto shadow-2xl col-span-3">
+        <CardHeader className="text-center bg-gray-50 rounded-t-lg py-8">
+          <CardTitle className="text-3xl md:text-4xl font-extrabold">
+            Kalkulator opłacalności wynajmu
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
-            Przeanalizuj zwrot z inwestycji w nieruchomość na wynajem
-            {initialPrice && (
-              <div className="mt-2 text-green-600 bg-green-100 px-3 py-1 rounded-lg inline-block">
-                💰 Cena z kalkulatora wyceny: {parseInt(initialPrice).toLocaleString('pl-PL')} zł
-              </div>
-            )}
+          <CardDescription className="mt-2 text-lg">
+            Przeanalizuj potencjalny zwrot z inwestycji w nieruchomość na wynajem.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            <InputWithValidation
-              id="purchasePrice"
-              label="Cena zakupu (zł)"
-              value={purchasePrice}
-              onChange={handleNumericInput(setPurchasePrice)}
-              placeholder="np. 450000"
-              error={validationErrors.purchasePrice}
-            />
-            <InputWithValidation
-              id="monthlyRent"
-              label="Mies. przychód z najmu (zł)"
-              value={monthlyRent}
-              onChange={handleNumericInput(setMonthlyRent)}
-              placeholder="np. 2500"
-              error={validationErrors.monthlyRent}
-            />
-            <InputWithValidation
-              id="transactionCosts"
-              label="Koszty transakcyjne (zł)"
-              value={transactionCosts}
-              onChange={handleNumericInput(setTransactionCosts)}
-              placeholder="np. 15000"
-              error={validationErrors.transactionCosts}
-              helperText="PCC, taksa notarialna, prowizja agencji"
-            />
-            <InputWithValidation
-              id="renovationCosts"
-              label="Koszt remontu (zł)"
-              value={renovationCosts}
-              onChange={handleNumericInput(setRenovationCosts)}
-              placeholder="np. 25000"
-              error={validationErrors.renovationCosts}
-              helperText="Remont i wyposażenie mieszkania"
-            />
-            <InputWithValidation
-              id="adminFees"
-              label="Czynsz administracyjny (zł/mies.)"
-              value={adminFees}
-              onChange={handleNumericInput(setAdminFees)}
-              placeholder="np. 300"
-              error={validationErrors.adminFees}
-              helperText="Do spółdzielni/wspólnoty"
-            />
-            <InputWithValidation
-              id="utilities"
-              label="Opłaty za media (zł/mies.)"
-              value={utilities}
-              onChange={handleNumericInput(setUtilities)}
-              placeholder="np. 200"
-              error={validationErrors.utilities}
-              helperText="Prąd, woda, gaz, internet"
-            />
-            <InputWithValidation
-              id="insurance"
-              label="Ubezpieczenie (zł/rok)"
-              value={insurance}  
-              onChange={handleNumericInput(setInsurance)}
-              placeholder="np. 600"
-              error={validationErrors.insurance}
-              helperText="Roczna składka ubezpieczeniowa"
-            />
-            <InputWithValidation
-              id="otherCosts"
-              label="Inne koszty (zł/mies.)"
-              value={otherCosts}
-              onChange={handleNumericInput(setOtherCosts)}
-              placeholder="np. 100"
-              error={validationErrors.otherCosts}
-              helperText="Podatek od nieruchomości, itp."
-            />
-          </div>
-          
-          <div className="mb-6 p-4 bg-blue-50 rounded-md w-sm">
-            <InputWithValidation
-              id="vacancyPeriod"
-              label="Okres pustostanów (mies./rok)"
-              value={vacancyPeriod}
-              onChange={handleNumericInput(setVacancyPeriod)}
-              placeholder="1"
-              error={validationErrors.vacancyPeriod}
-              helperText="Średni czas w roku kiedy mieszkanie pozostaje puste (0-12 miesięcy)"
-            />
-          </div>
-
-          <div className="mb-6 p-4 bg-green-50 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Finansowanie Kredytem</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="downPayment" className={validationErrors.downPayment ? "text-red-600" : ""}>Wkład własny</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="downPayment"
-                    type="number"
-                    value={downPayment}
-                    onChange={(e) => handleNumericInput(setDownPayment)(e.target.value)}
-                    placeholder="np. 150000"
-                    className={validationErrors.downPayment ? "border-red-500 focus:border-red-500" : ""}
+        <CardContent className="p-6 md:p-8">
+          <SaveCalculationButton
+            calculationData={{
+              purchasePrice, monthlyRent, transactionCosts, renovationCosts, adminFees,
+              utilities, insurance, otherCosts, vacancyPeriod, downPayment,
+              downPaymentType, interestRate, loanYears, taxationType, taxScale,
+              propertyAppreciation, rentGrowth
+            }}
+            resultData={results}
+            calculationType="rentability"
+            className="mb-8"
+          />
+          <div className="grid grid-cols-4 md:grid-cols-1 gap-8 mb-8">
+            {/* Sekcja Danych Podstawowych */}
+            <Card className="shadow-lg col-span-4">
+              <CardHeader className="text-center pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                  Dane Podstawowe
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                  Wprowadź podstawowe dane dotyczące inwestycji.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                  <InputWithValidation
+                    id="purchasePrice"
+                    label="Cena zakupu (zł)"
+                    value={purchasePrice}
+                    onChange={handleNumericInput(setPurchasePrice)}
+                    placeholder="np. 450000"
+                    error={validationErrors.purchasePrice}
                   />
-                  <Select value={downPaymentType} onValueChange={setDownPaymentType}>
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pln">zł</SelectItem>
-                      <SelectItem value="percent">%</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <InputWithValidation
+                    id="monthlyRent"
+                    label="Mies. przychód z najmu (zł)"
+                    value={monthlyRent}
+                    onChange={handleNumericInput(setMonthlyRent)}
+                    placeholder="np. 2500"
+                    error={validationErrors.monthlyRent}
+                  />
+                  <InputWithValidation
+                    id="transactionCosts"
+                    label="Koszty transakcyjne (zł)"
+                    value={transactionCosts}
+                    onChange={handleNumericInput(setTransactionCosts)}
+                    placeholder="np. 15000"
+                    error={validationErrors.transactionCosts}
+                    helperText="PCC, taksa notarialna, prowizja agencji"
+                  />
+                  <InputWithValidation
+                    id="renovationCosts"
+                    label="Koszt remontu (zł)"
+                    value={renovationCosts}
+                    onChange={handleNumericInput(setRenovationCosts)}
+                    placeholder="np. 25000"
+                    error={validationErrors.renovationCosts}
+                    helperText="Remont i wyposażenie mieszkania"
+                  />
+                  <InputWithValidation
+                    id="adminFees"
+                    label="Czynsz administracyjny (zł/mies.)"
+                    value={adminFees}
+                    onChange={handleNumericInput(setAdminFees)}
+                    placeholder="np. 300"
+                    error={validationErrors.adminFees}
+                    helperText="Do spółdzielni/wspólnoty"
+                  />
+                  <InputWithValidation
+                    id="utilities"
+                    label="Opłaty za media (zł/mies.)"
+                    value={utilities}
+                    onChange={handleNumericInput(setUtilities)}
+                    placeholder="np. 200"
+                    error={validationErrors.utilities}
+                    helperText="Prąd, woda, gaz, internet"
+                  />
+                  <InputWithValidation
+                    id="insurance"
+                    label="Ubezpieczenie (zł/rok)"
+                    value={insurance}  
+                    onChange={handleNumericInput(setInsurance)}
+                    placeholder="np. 600"
+                    error={validationErrors.insurance}
+                    helperText="Roczna składka ubezpieczeniowa"
+                  />
+                  <InputWithValidation
+                    id="otherCosts"
+                    label="Inne koszty (zł/mies.)"
+                    value={otherCosts}
+                    onChange={handleNumericInput(setOtherCosts)}
+                    placeholder="np. 100"
+                    error={validationErrors.otherCosts}
+                    helperText="Podatek od nieruchomości, itp."
+                  />
                 </div>
-                {validationErrors.downPayment && (
-                  <div className="flex items-center gap-1 text-sm text-red-600">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>{validationErrors.downPayment}</span>
+                
+                <div className="mb-6 p-4 bg-blue-50 rounded-md w-sm">
+                  <InputWithValidation
+                    id="vacancyPeriod"
+                    label="Okres pustostanów (mies./rok)"
+                    value={vacancyPeriod}
+                    onChange={handleNumericInput(setVacancyPeriod)}
+                    placeholder="1"
+                    error={validationErrors.vacancyPeriod}
+                    helperText="Średni czas w roku kiedy mieszkanie pozostaje puste (0-12 miesięcy)"
+                  />
+                </div>
+
+                <div className="mb-6 p-4 bg-green-50 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">Finansowanie Kredytem</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="downPayment" className={validationErrors.downPayment ? "text-red-600" : ""}>Wkład własny</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="downPayment"
+                          type="number"
+                          value={downPayment}
+                          onChange={(e) => handleNumericInput(setDownPayment)(e.target.value)}
+                          placeholder="np. 150000"
+                          className={validationErrors.downPayment ? "border-red-500 focus:border-red-500" : ""}
+                        />
+                        <Select value={downPaymentType} onValueChange={setDownPaymentType}>
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pln">zł</SelectItem>
+                            <SelectItem value="percent">%</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {validationErrors.downPayment && (
+                        <div className="flex items-center gap-1 text-sm text-red-600">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>{validationErrors.downPayment}</span>
+                        </div>
+                      )}
+                    </div>
+                    <InputWithValidation
+                      id="interestRate"
+                      label="Oprocentowanie (%)"
+                      value={interestRate}
+                      onChange={handleNumericInput(setInterestRate)}
+                      placeholder="np. 6.5"
+                      error={validationErrors.interestRate}
+                    />
+                    <InputWithValidation
+                      id="loanYears"
+                      label="Okres kredytowania (lata)"
+                      value={loanYears}
+                      onChange={handleNumericInput(setLoanYears, false)}
+                      placeholder="np. 25"
+                      error={validationErrors.loanYears}
+                    />
                   </div>
-                )}
-              </div>
-              <InputWithValidation
-                id="interestRate"
-                label="Oprocentowanie (%)"
-                value={interestRate}
-                onChange={handleNumericInput(setInterestRate)}
-                placeholder="np. 6.5"
-                error={validationErrors.interestRate}
-              />
-              <InputWithValidation
-                id="loanYears"
-                label="Okres kredytowania (lata)"
-                value={loanYears}
-                onChange={handleNumericInput(setLoanYears, false)}
-                placeholder="np. 25"
-                error={validationErrors.loanYears}
-              />
-            </div>
-          </div>
-
-          <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Podatki</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="taxationType">Forma opodatkowania</Label>
-                <Select value={taxationType} onValueChange={setTaxationType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ryczalt">Ryczałt od przychodu</SelectItem>
-                    <SelectItem value="skala">Skala podatkowa</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {taxationType === "skala" && (
-                <div className="space-y-2">
-                  <Label htmlFor="taxScale">Próg podatkowy</Label>
-                  <Select value={taxScale} onValueChange={setTaxScale}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">12% (do 120 000 zł)</SelectItem>
-                      <SelectItem value="32">32% (powyżej 120 000 zł)</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
-              )}
-              {taxationType === "ryczalt" && (
-                <div className="space-y-2">
-                  <Label>Stawka ryczałtu</Label>
-                  <p className="text-sm text-gray-600 p-2 bg-gray-100 rounded">
-                    8,5% - do 100 000 zł przychodu rocznie<br/>
-                    12,5% - powyżej 100 000 zł przychodu rocznie
-                  </p>
+
+                <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">Podatki</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="taxationType">Forma opodatkowania</Label>
+                      <Select value={taxationType} onValueChange={setTaxationType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ryczalt">Ryczałt od przychodu</SelectItem>
+                          <SelectItem value="skala">Skala podatkowa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {taxationType === "skala" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="taxScale">Próg podatkowy</Label>
+                        <Select value={taxScale} onValueChange={setTaxScale}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="12">12% (do 120 000 zł)</SelectItem>
+                            <SelectItem value="32">32% (powyżej 120 000 zł)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {taxationType === "ryczalt" && (
+                      <div className="space-y-2">
+                        <Label>Stawka ryczałtu</Label>
+                        <p className="text-sm text-gray-600 p-2 bg-gray-100 rounded">
+                          8,5% - do 100 000 zł przychodu rocznie<br/>
+                          12,5% - powyżej 100 000 zł przychodu rocznie
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex justify-center mb-6">
-            <Button 
-              onClick={calculateProfitability} 
-              size="lg" 
-              className={`w-full sm:w-auto ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
-              disabled={isLoading || !isFormValid}
-            >
-              {isLoading ? 'Obliczanie...' : 'Oblicz opłacalność'}
-            </Button>
-          </div>
 
-          {!isFormValid && Object.keys(validationErrors).length > 0 && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Formularz zawiera błędy:</span>
-              </div>
-              <ul className="text-red-700 text-sm space-y-1">
-                {Object.entries(validationErrors).map(([field, message]) => (
-                  <li key={field}>• {message}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-center">
-              {error}
-            </div>
-          )}
-          
-          {results && (
-            <div className="mt-8">
-              <h3 className="text-lg sm:text-xl font-bold mb-4 text-center">Wyniki analizy:</h3>
-              
-              {/* Podstawowe wyniki */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg">Roczny przychód</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.annualIncome?.toFixed(2)} zł</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg">Roczny dochód netto</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.netAnnualIncome?.toFixed(2)} zł</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-green-50 border-green-200">
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg">ROI (roczny zwrot)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl sm:text-3xl font-bold text-green-700">{results.roi?.toFixed(2)}%</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-                            {/* Wyniki kredytowe */}
-              {results.loanAmount && results.loanAmount > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base sm:text-lg">Kwota kredytu</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.loanAmount?.toFixed(2)} zł</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base sm:text-lg">Miesięczna rata</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.monthlyLoanPayment?.toFixed(2)} zł</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardHeader>
-                      <CardTitle className="text-base sm:text-lg">Cash Flow (roczny)</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className={`text-2xl sm:text-3xl font-bold ${results.cashFlow && results.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                        {results.cashFlow?.toFixed(2)} zł
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-yellow-50 border-yellow-200 md:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return (brutto)</CardTitle>
-                      <CardDescription>Zwrot z zaangażowanego kapitału przed opodatkowaniem</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className={`text-2xl sm:text-3xl font-bold ${results.cocReturn && results.cocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                        {results.cocReturn?.toFixed(2)}%
-                      </p>
-                    </CardContent>
-                  </Card>
+                {/* Przycisk Oblicz */}
+                <div className="mt-8 text-center">
+                  <Button
+                    onClick={calculateProfitability}
+                    disabled={!isFormValid || isLoading}
+                    className="px-8 py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition-colors duration-200"
+                  >
+                    {isLoading ? 'Obliczanie...' : 'Oblicz opłacalność'}
+                  </Button>
+                  {error && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-red-700 text-center">{error}</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </CardContent>
+            </Card>
 
-                              {/* Wyniki podatkowe */}
-               <div className="mt-6">
-                 <h4 className="text-lg font-semibold mb-4 text-center">Analiza podatkowa (netto):</h4>
-                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                   <Card className="bg-red-50 border-red-200">
-                     <CardHeader>
-                       <CardTitle className="text-base sm:text-lg">Podatek roczny</CardTitle>
-                     </CardHeader>
-                     <CardContent>
-                       <p className="text-xl sm:text-2xl font-semibold text-red-700">{results.taxAmount?.toFixed(2)} zł</p>
-                     </CardContent>
-                   </Card>
-                   <Card className="bg-blue-50 border-blue-200">
-                     <CardHeader>
-                       <CardTitle className="text-base sm:text-lg">Cash Flow netto</CardTitle>
-                     </CardHeader>
-                     <CardContent>
-                       <p className={`text-xl sm:text-2xl font-semibold ${results.netCashFlow && results.netCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                         {results.netCashFlow?.toFixed(2)} zł
-                       </p>
-                     </CardContent>
-                   </Card>
-                   <Card className="bg-purple-50 border-purple-200 md:col-span-2">
-                     <CardHeader>
-                       <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return netto</CardTitle>
-                       <CardDescription>Zwrot z zaangażowanego kapitału po opodatkowaniu</CardDescription>
-                     </CardHeader>
-                     <CardContent>
-                       <p className={`text-2xl sm:text-3xl font-bold ${results.netCocReturn && results.netCocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                         {results.netCocReturn?.toFixed(2)}%
-                       </p>
-                     </CardContent>
-                   </Card>
-                 </div>
-               </div>
+            {/* Sekcja Wyników */}
+            {results && (
+              <Card className="shadow-lg col-span-4">
+                <CardHeader className="text-center pb-4 sm:pb-6">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                    Wyniki Analizy
+                  </CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
+                    Przeanalizuj wyniki swojej inwestycji w nieruchomość.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Podstawowe wyniki */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base sm:text-lg">Roczny przychód</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.annualIncome?.toFixed(2)} zł</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base sm:text-lg">Roczny dochód netto</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.netAnnualIncome?.toFixed(2)} zł</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-gray-50 border-gray-200">
+                      <CardHeader>
+                        <CardTitle className="text-base sm:text-lg">ROI (roczny zwrot)</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl sm:text-3xl font-bold text-gray-800">{results.roi?.toFixed(2)}%</p>
+                      </CardContent>
+                    </Card>
+                  </div>
 
-               {/* Wykresy */}
-               <div className="mt-8">
-                 <h4 className="text-lg font-semibold mb-6 text-center">Analiza wizualna:</h4>
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                   {/* Wykres kołowy kosztów miesięcznych */}
-                   <Card>
-                     <CardHeader>
-                       <CardTitle className="text-center">Struktura kosztów miesięcznych</CardTitle>
-                     </CardHeader>
-                     <CardContent>
-                       <ResponsiveContainer width="100%" height={400}>
-                         <PieChart>
-                           <Pie
-                             data={results.costBreakdown}
-                             cx="50%"
-                             cy="45%"
-                             labelLine={true}
-                             label={({ name, percent }) => {
-                               if (percent > 0.15) return `${name}\n${(percent * 100).toFixed(0)}%`;
-                               if (percent > 0.01) return `${(percent * 100).toFixed(0)}%`;
-                               return '';
-                             }}
-                             outerRadius={80}
-                             fill="#8884d8"
-                             dataKey="value"
-                           >
-                             {results.costBreakdown.map((entry, index: number) => (
-                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                             ))}
-                           </Pie>
-                           <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Koszt']} />
-                           <Legend 
-                             verticalAlign="bottom" 
-                             height={80}
-                             wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
-                           />
-                         </PieChart>
-                       </ResponsiveContainer>
-                     </CardContent>
-                   </Card>
+                  {/* Wyniki kredytowe */}
+                  {results.loanAmount && results.loanAmount > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Kwota kredytu</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.loanAmount?.toFixed(2)} zł</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Miesięczna rata</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.monthlyLoanPayment?.toFixed(2)} zł</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gray-50 border-gray-200">
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Cash Flow (roczny)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-2xl sm:text-3xl font-bold ${results.cashFlow && results.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {results.cashFlow?.toFixed(2)} zł
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gray-50 border-gray-200 md:col-span-2">
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return (brutto)</CardTitle>
+                          <CardDescription>Zwrot z zaangażowanego kapitału przed opodatkowaniem</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-2xl sm:text-3xl font-bold ${results.cocReturn && results.cocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {results.cocReturn?.toFixed(2)}%
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
 
-                   {/* Wykres słupkowy przychody vs koszty */}
-                   <Card>
-                     <CardHeader>
-                       <CardTitle className="text-center">Przychody vs Koszty (roczne)</CardTitle>
-                     </CardHeader>
-                     <CardContent>
-                       <ResponsiveContainer width="100%" height={350}>
-                         <BarChart data={results.incomeVsCosts} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                           <CartesianGrid strokeDasharray="3 3" />
-                           <XAxis 
-                             dataKey="name" 
-                             angle={-45}
-                             textAnchor="end"
-                             height={80}
-                             fontSize={11}
-                             interval={0}
-                             tick={{ dy: 10 }}
-                           />
-                           <YAxis tickFormatter={(value: number) => `${(value / 1000).toFixed(0)}k zł`} />
-                           <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Kwota']} />
-                           <Bar dataKey="Kwota" fill="#8884d8" />
-                         </BarChart>
-                       </ResponsiveContainer>
-                     </CardContent>
-                   </Card>
-                 </div>
-               </div>
+                  {/* Wyniki podatkowe */}
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold mb-4 text-center">Analiza podatkowa (netto):</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="bg-gray-50 border-gray-200">
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Podatek roczny</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xl sm:text-2xl font-semibold text-gray-800">{results.taxAmount?.toFixed(2)} zł</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gray-50 border-gray-200">
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Cash Flow netto</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-xl sm:text-2xl font-semibold ${results.netCashFlow && results.netCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {results.netCashFlow?.toFixed(2)} zł
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-gray-50 border-gray-200 md:col-span-2">
+                        <CardHeader>
+                          <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return netto</CardTitle>
+                          <CardDescription>Zwrot z zaangażowanego kapitału po opodatkowaniu</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-2xl sm:text-3xl font-bold ${results.netCocReturn && results.netCocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {results.netCocReturn?.toFixed(2)}%
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
 
-               {/* Projekcja wieloletnia */}
-               <div className="mt-8">
-                 <h4 className="text-lg font-semibold mb-4 text-center">Projekcja wieloletnia:</h4>
-                 
-                 {/* Ustawienia projekcji */}
-                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <InputWithValidation
-                       id="propertyAppreciation"
-                       label="Wzrost wartości nieruchomości (%/rok)"
-                       value={propertyAppreciation}
-                       onChange={handleNumericInput(setPropertyAppreciation)}
-                       placeholder="3"
-                       error={validationErrors.propertyAppreciation}
-                     />
-                     <InputWithValidation
-                       id="rentGrowth"
-                       label="Wzrost czynszu (%/rok)"
-                       value={rentGrowth}
-                       onChange={handleNumericInput(setRentGrowth)}
-                       placeholder="2"
-                       error={validationErrors.rentGrowth}
-                     />
-                   </div>
-                 </div>
+                  {/* Wykresy */}
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold mb-6 text-center">Analiza wizualna:</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Wykres kołowy kosztów miesięcznych */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-center">Struktura kosztów miesięcznych</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={400}>
+                            <PieChart>
+                              <Pie
+                                data={results.costBreakdown}
+                                cx="50%"
+                                cy="45%"
+                                labelLine={true}
+                                label={({ name, percent }) => {
+                                  if (percent > 0.15) return `${name}\n${(percent * 100).toFixed(0)}%`;
+                                  if (percent > 0.01) return `${(percent * 100).toFixed(0)}%`;
+                                  return '';
+                                }}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {results.costBreakdown.map((entry, index: number) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Koszt']} />
+                              <Legend 
+                                verticalAlign="bottom" 
+                                height={80}
+                                wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
 
-                 {/* Tabela projekcji */}
-                 <Card>
-                   <CardHeader>
-                     <CardTitle className="text-center">Projekcja na 10 lat</CardTitle>
-                     <CardDescription className="text-center">
-                       Wartość nieruchomości, pozostały dług kredytowy i zbudowany kapitał
-                     </CardDescription>
-                   </CardHeader>
-                   <CardContent>
-                     <div className="overflow-x-auto">
-                       <table className="w-full text-sm">
-                         <thead>
-                           <tr className="border-b">
-                             <th className="p-2 text-left">Rok</th>
-                             <th className="p-2 text-right">Wartość nieruchomości</th>
-                             <th className="p-2 text-right">Pozostały kredyt</th>
-                             <th className="p-2 text-right">Kapitał własny</th>
-                             <th className="p-2 text-right">Roczny czynsz</th>
-                             <th className="p-2 text-right">Cash Flow</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           {results.projection.map((row) => (
-                             <tr key={row.year} className="border-b hover:bg-gray-50">
-                               <td className="p-2 font-medium">{row.year}</td>
-                               <td className="p-2 text-right">{row.propertyValue.toLocaleString()} zł</td>
-                               <td className="p-2 text-right">{row.remainingLoan.toLocaleString()} zł</td>
-                               <td className="p-2 text-right font-semibold text-green-700">
-                                 {row.equity.toLocaleString()} zł
-                               </td>
-                               <td className="p-2 text-right">{row.yearlyRent.toLocaleString()} zł</td>
-                               <td className={`p-2 text-right font-medium ${row.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                                 {row.cashFlow.toLocaleString()} zł
-                               </td>
-                             </tr>
-                           ))}
-                         </tbody>
-                       </table>
-                     </div>
-                   </CardContent>
-                 </Card>
-               </div>
-              </div>
+                      {/* Wykres słupkowy przychody vs koszty */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-center">Przychody vs Koszty (roczne)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={350}>
+                            <BarChart data={results.incomeVsCosts} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="name" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                fontSize={11}
+                                interval={0}
+                                tick={{ dy: 10 }}
+                              />
+                              <YAxis tickFormatter={(value: number) => `${(value / 1000).toFixed(0)}k zł`} />
+                              <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Kwota']} />
+                              <Bar dataKey="Kwota" fill="#8884d8" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Projekcja wieloletnia */}
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold mb-4 text-center">Projekcja wieloletnia:</h4>
+                    
+                    {/* Ustawienia projekcji */}
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <InputWithValidation
+                          id="propertyAppreciation"
+                          label="Wzrost wartości nieruchomości (%/rok)"
+                          value={propertyAppreciation}
+                          onChange={handleNumericInput(setPropertyAppreciation)}
+                          placeholder="3"
+                          error={validationErrors.propertyAppreciation}
+                        />
+                        <InputWithValidation
+                          id="rentGrowth"
+                          label="Wzrost czynszu (%/rok)"
+                          value={rentGrowth}
+                          onChange={handleNumericInput(setRentGrowth)}
+                          placeholder="2"
+                          error={validationErrors.rentGrowth}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tabela projekcji */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-center">Projekcja na 10 lat</CardTitle>
+                        <CardDescription className="text-center">
+                          Wartość nieruchomości, pozostały dług kredytowy i zbudowany kapitał
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="p-2 text-left">Rok</th>
+                                <th className="p-2 text-right">Wartość nieruchomości</th>
+                                <th className="p-2 text-right">Pozostały kredyt</th>
+                                <th className="p-2 text-right">Kapitał własny</th>
+                                <th className="p-2 text-right">Roczny czynsz</th>
+                                <th className="p-2 text-right">Cash Flow</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {results.projection.map((row) => (
+                                <tr key={row.year} className="border-b hover:bg-gray-50">
+                                  <td className="p-2 font-medium">{row.year}</td>
+                                  <td className="p-2 text-right">{row.propertyValue.toLocaleString()} zł</td>
+                                  <td className="p-2 text-right">{row.remainingLoan.toLocaleString()} zł</td>
+                                  <td className="p-2 text-right font-semibold text-green-700">
+                                    {row.equity.toLocaleString()} zł
+                                  </td>
+                                  <td className="p-2 text-right">{row.yearlyRent.toLocaleString()} zł</td>
+                                  <td className={`p-2 text-right font-medium ${row.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                    {row.cashFlow.toLocaleString()} zł
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold mb-4 text-center">Projekcja przepływów pieniężnych:</h4>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-center">Przepływy pieniężne na 10 lat</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={results.projection}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis tickFormatter={(value: number) => `${(value / 1000).toFixed(0)}k zł`} />
+                            <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Kwota']} />
+                            <Bar dataKey="yearlyRent" fill="#8884d8" name="Roczny czynsz" />
+                            <Bar dataKey="cashFlow" fill="#82ca9d" name="Przepływy pieniężne" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
             )}
+          </div>
         </CardContent>
       </Card>
     </div>

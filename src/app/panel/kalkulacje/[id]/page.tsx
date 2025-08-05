@@ -1,1322 +1,1204 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, FileText, Calculator } from 'lucide-react';
+import { useState, useEffect, Fragment } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend as ChartLegend, ArcElement, BarElement } from 'chart.js';
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, ChartLegend, ArcElement, BarElement);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
-interface Calculation {
-  id: string;
-  title: string;
-  calculation_type: string;
-  input_json: any;
-  result_json: any;
-  created_at: string;
-  updated_at: string;
-}
-
-// Komponenty wykresów z kalkulatora zakupu
-const OverpaymentComparisonChart: React.FC<{
-  scheduleWithoutOverpayment: any[];
-  scheduleWithOverpayment: any[];
-}> = ({ scheduleWithoutOverpayment, scheduleWithOverpayment }) => {
-  if (!scheduleWithoutOverpayment || !scheduleWithOverpayment) return null;
+// Słownik tłumaczeń i formaterów dla różnych typów kalkulacji
+const FIELD_DEFINITIONS: { [key: string]: { label: string; format?: (value: any) => string; order: number } } = {
+  // Dane wejściowe wyceny
+  city: { label: 'Miasto', order: 1 },
+  district: { label: 'Dzielnica', order: 2 },
+  street: { label: 'Ulica', order: 3 },
+  area: { label: 'Powierzchnia', format: (v) => `${v} m²`, order: 4 },
+  rooms: { label: 'Liczba pokoi', order: 5 },
+  floor: { label: 'Piętro', order: 6 },
+  totalFloors: { label: 'Liczba pięter w budynku', order: 7 },
+  year: { label: 'Rok budowy', order: 8 },
+  lastRenovation: { label: 'Rok ostatniego remontu', order: 9 },
+  locationTier: { label: 'Klasa lokalizacji', format: (v: string) => ({ premium: 'Premium', standard: 'Standard', budget: 'Budżetowa' }[v] || v), order: 10 },
+  condition: { label: 'Stan mieszkania', format: (v: string) => ({ new: 'Nowe', good: 'Dobry', 'to_renovate': 'Do remontu' }[v] || v), order: 11 },
+  buildingType: { label: 'Typ budynku', format: (v: string) => ({ blok: 'Blok', kamienica: 'Kamienica', apartamentowiec: 'Apartamentowiec' }[v] || v), order: 12 },
+  buildingMaterial: { label: 'Materiał budynku', format: (v: string) => ({ brick: 'Cegła', 'brick_concrete': 'Cegła/Beton', 'wielka_plyta': 'Wielka płyta', other: 'Inny' }[v] || v), order: 13 },
+  parking: { label: 'Miejsce parkingowe', format: (v: string) => ({ garage: 'Garaż', dedicated: 'Dedykowane', street: 'Przy ulicy', none: 'Brak' }[v] || v), order: 14 },
+  finishing: { label: 'Standard wykończenia', format: (v: string) => ({ high: 'Wysoki', standard: 'Standard', basic: 'Podstawowy' }[v] || v), order: 15 },
+  elevator: { label: 'Winda', format: (v) => v === 'yes' ? 'Tak' : 'Nie', order: 16 },
+  balcony: { label: 'Balkon/Taras', format: (v) => v === 'yes' ? 'Tak' : 'Nie', order: 17 },
+  balconyArea: { label: 'Powierzchnia balkonu', format: (v) => `${v} m²`, order: 18 },
+  orientation: { label: 'Ekspozycja okien', format: (v: string) => ({ north: 'Północ', south: 'Południe', east: 'Wschód', west: 'Zachód' }[v] || v), order: 19 },
+  transport: { label: 'Dostęp do transportu', format: (v: string) => ({ excellent: 'Doskonały', good: 'Dobry', medium: 'Średni', poor: 'Słaby' }[v] || v), order: 20 },
+  heating: { label: 'Ogrzewanie', format: (v: string) => ({ central: 'Miejskie', gas: 'Gazowe', electric: 'Elektryczne' }[v] || v), order: 21 },
+  bathrooms: { label: 'Liczba łazienek', order: 22 },
+  kitchenType: { label: 'Typ kuchni', format: (v: string) => ({ separate: 'Oddzielna', kitchenette: 'Aneks', open: 'Otwarta' }[v] || v), order: 23 },
+  basement: { label: 'Piwnica/Komórka', format: (v: string) => v === 'basement' ? 'Tak' : 'Nie', order: 24 },
+  ownership: { label: 'Forma własności', format: (v: string) => ({ full: 'Pełna własność', cooperative: 'Spółdzielcze' }[v] || v), order: 25 },
   
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pl-PL', {
-      style: 'currency',
-      currency: 'PLN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  // Dane wejściowe zakupu nieruchomości
+  propertyValue: { label: 'Wartość nieruchomości', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 1 },
+  loanAmount: { label: 'Kwota kredytu', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 2 },
+  loanTerm: { label: 'Okres kredytowania', format: (v) => `${v} lat`, order: 3 },
+  bankMargin: { label: 'Marża banku', format: (v) => `${v}%`, order: 4 },
+  referenceRate: { label: 'Stopa referencyjna', format: (v) => `${v}%`, order: 5 },
+  installmentType: { label: 'Typ rat', format: (v: string) => ({ equal: 'Równe', decreasing: 'Malejące' }[v] || v), order: 6 },
+  bankCommission: { label: 'Prowizja banku', format: (v) => `${v}%`, order: 7 },
+  agencyCommission: { label: 'Prowizja agencji', format: (v) => `${v}%`, order: 8 },
+  pcctaxRate: { label: 'Stawka PCC', format: (v) => `${v}%`, order: 9 },
+  notaryFeeType: { label: 'Typ taksy notarialnej', format: (v: string) => ({ max: 'Maksymalna', custom: 'Własna' }[v] || v), order: 10 },
+  customNotaryFee: { label: 'Własna taksa notarialna', format: (v) => v ? new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v) : 'Brak', order: 11 },
+  referenceRateChange: { label: 'Zmiana stopy referencyjnej', format: (v) => `${v}%`, order: 12 },
+  bridgeInsuranceMonths: { label: 'Okres ubezpieczenia pomostowego', format: (v) => `${v} miesięcy`, order: 13 },
+  bridgeInsuranceMarginIncrease: { label: 'Zwiększenie marży pomostowej', format: (v) => `${v}%`, order: 14 },
+  overpaymentAmount: { label: 'Kwota nadpłaty', format: (v) => v > 0 ? new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v) : 'Brak', order: 15 },
+  overpaymentFrequency: { label: 'Częstotliwość nadpłat', format: (v: string) => ({ 'one-time': 'Jednorazowa', monthly: 'Miesięczna', yearly: 'Roczna' }[v] || v), order: 16 },
+  overpaymentStartMonth: { label: 'Miesiąc rozpoczęcia nadpłat', format: (v) => `${v}`, order: 17 },
+  overpaymentTarget: { label: 'Cel nadpłat', format: (v: string) => ({ 'shorten-period': 'Skrócenie okresu', 'reduce-payment': 'Obniżenie rat' }[v] || v), order: 18 },
+  overpaymentInterval: { label: 'Interwał nadpłat', format: (v) => `${v}`, order: 19 },
   
+  // Wyniki wyceny
+  price: { label: 'Szacowana wartość', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 0 }).format(v), order: 1 },
+  minPrice: { label: 'Cena minimalna', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 0 }).format(v), order: 2 },
+  maxPrice: { label: 'Cena maksymalna', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 0 }).format(v), order: 3 },
+  currency: { label: 'Waluta', order: 4 },
+  method: { label: 'Metoda wyceny', order: 5 },
+  confidence: { label: 'Poziom ufności', format: (v) => `${v}`, order: 6 },
+  note: { label: 'Uwagi', order: 7 },
+  timestamp: { label: 'Data wyceny', format: (v) => new Date(v).toLocaleString('pl-PL'), order: 8 },
+  
+  // Wyniki zakupu nieruchomości
+  pcctax: { label: 'Podatek PCC', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 1 },
+  notaryFee: { label: 'Taksa notarialna', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 2 },
+  bankCommissionAmount: { label: 'Prowizja banku', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 3 },
+  courtFees: { label: 'Opłaty sądowe', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 4 },
+  agencyCommissionAmount: { label: 'Prowizja agencji', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 5 },
+  schedule: { label: 'Harmonogram spłat', order: 6 },
+};
+
+
+const DataRow = ({ label, value }: { label: string, value: any }) => (
+  <div className="flex flex-col sm:flex-row sm:justify-between py-3 px-4 odd:bg-gray-50/50 rounded-md">
+    <span className="text-sm text-gray-500 mb-1 sm:mb-0 sm:mr-4">{label}</span>
+    <span className="font-semibold text-gray-800 text-right break-words">{value}</span>
+  </div>
+);
+
+// Komponent do renderowania sekcji danych
+const DataSection = ({ title, data, calculationType }: { title: string, data: any, calculationType?: string }) => {
+  const sortedKeys = Object.keys(data)
+    .filter(key => FIELD_DEFINITIONS[key] && data[key] && data[key] !== 'Brak' && data[key] !== '')
+    .sort((a, b) => (FIELD_DEFINITIONS[a]?.order || 99) - (FIELD_DEFINITIONS[b]?.order || 99));
+
+  // Wybierz odpowiedni komponent na podstawie typu kalkulacji
+  if (calculationType === 'valuation' && title === 'Wynik wyceny') {
+    return <ValuationResultSection data={data} />;
+  }
+  
+  if (calculationType === 'purchase' && title === 'Wynik kalkulacji') {
+    return <PurchaseResultSection data={data} />;
+  }
+
+  if (calculationType === 'purchase' && title === 'Dane wejściowe') {
+    return <PurchaseInputSection data={data} />;
+  }
+
+  if (calculationType === 'rentability' && title === 'Dane wejściowe') {
+    return <RentalInputSection data={data} />;
+  }
+
+  if (calculationType === 'rentability' && title === 'Wynik kalkulacji') {
+    return <RentalResultSection data={data} />;
+  }
+
   return (
-    <div className="h-96">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={scheduleWithoutOverpayment}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip formatter={(value: number) => formatCurrency(value)} />
-          <Legend />
-          <Bar dataKey="principalPart" fill="#8884d8" name="Kapitał" />
-          <Bar dataKey="interestPart" fill="#82ca9d" name="Odsetki" />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">{title}</h2>
+      <div className="space-y-2">
+        {sortedKeys.map((key) => {
+          const definition = FIELD_DEFINITIONS[key];
+          const rawValue = data[key];
+          const formattedValue = definition.format ? definition.format(rawValue) : rawValue;
+          return <DataRow key={key} label={definition.label} value={formattedValue} />;
+        })}
+      </div>
     </div>
   );
 };
 
-const OverpaymentTimelineChart: React.FC<{
-  schedule: any[];
-}> = ({ schedule }) => {
-  if (!schedule) return null;
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pl-PL', {
-      style: 'currency',
-      currency: 'PLN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+// Komponent dla danych wejściowych kalkulacji wynajmu
+const RentalInputSection = ({ data }: { data: any }) => {
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+  const formatPercentage = (value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return 'Brak danych';
+    }
+    return `${value.toFixed(2)}%`;
   };
-  
+
   return (
-    <div className="h-96">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={schedule}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip formatter={(value: number) => formatCurrency(value)} />
-          <Legend />
-          <Bar dataKey="remainingPrincipal" fill="#8884d8" name="Pozostały kapitał" />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="space-y-6">
+      {/* Dane podstawowe */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Dane Podstawowe</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Cena zakupu</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.purchasePrice ? formatCurrency(data.purchasePrice) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Miesięczny czynsz</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.monthlyRent ? formatCurrency(data.monthlyRent) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Koszty transakcyjne</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.transactionCosts ? formatCurrency(data.transactionCosts) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Koszt remontu</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.renovationCosts ? formatCurrency(data.renovationCosts) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Czynsz administracyjny</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.adminFees ? formatCurrency(data.adminFees) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Opłaty za media</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.utilities ? formatCurrency(data.utilities) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Ubezpieczenie (rocznie)</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.insurance ? formatCurrency(data.insurance) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Inne koszty</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.otherCosts ? formatCurrency(data.otherCosts) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Okres pustostanów</p>
+            <p className="text-lg font-bold text-gray-800">{data.vacancyPeriod ? `${data.vacancyPeriod} miesięcy/rok` : 'Brak danych'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Finansowanie kredytem */}
+      {data.downPayment && data.downPayment > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Finansowanie Kredytem</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Wkład własny</p>
+              <p className="text-lg font-bold text-gray-800 break-words">{formatCurrency(data.downPayment)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Oprocentowanie</p>
+              <p className="text-lg font-bold text-gray-800">{data.interestRate ? formatPercentage(data.interestRate) : 'Brak danych'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Okres kredytowania</p>
+              <p className="text-lg font-bold text-gray-800">{data.loanYears ? `${data.loanYears} lat` : 'Brak danych'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Podatki */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Podatki</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Forma opodatkowania</p>
+            <p className="text-lg font-bold text-gray-800">{data.taxationType === 'ryczalt' ? 'Ryczałt od przychodu' : 'Skala podatkowa'}</p>
+          </div>
+          {data.taxationType === 'skala' && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Próg podatkowy</p>
+              <p className="text-lg font-bold text-gray-800">{data.taxScale === '12' ? '12% (do 120 000 zł)' : '32% (powyżej 120 000 zł)'}</p>
+            </div>
+          )}
+          {data.taxationType === 'ryczalt' && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Stawka ryczałtu</p>
+              <p className="text-lg font-bold text-gray-800">8,5% - do 100 000 zł przychodu rocznie<br/>12,5% - powyżej 100 000 zł przychodu rocznie</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Projekcja wieloletnia */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Projekcja Wieloletnia</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Wzrost wartości nieruchomości</p>
+            <p className="text-lg font-bold text-gray-800">{data.propertyAppreciation ? formatPercentage(data.propertyAppreciation) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Wzrost czynszu</p>
+            <p className="text-lg font-bold text-gray-800">{data.rentGrowth ? formatPercentage(data.rentGrowth) : 'Brak danych'}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-const CalculationDetailPage = () => {
-  const params = useParams();
-  const router = useRouter();
-  const [calculation, setCalculation] = useState<Calculation | null>(null);
-  const [loading, setLoading] = useState(true);
+// Komponent dla danych wejściowych zakupu nieruchomości
+const PurchaseInputSection = ({ data }: { data: any }) => {
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+  const formatPercentage = (value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return 'Brak danych';
+    }
+    return `${value.toFixed(2)}%`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Główne parametry kredytu */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Parametry Kredytu</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Wartość nieruchomości</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.propertyValue ? formatCurrency(data.propertyValue) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Kwota kredytu</p>
+            <p className="text-lg font-bold text-gray-800 break-words">{data.loanAmount ? formatCurrency(data.loanAmount) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Okres kredytowania</p>
+            <p className="text-lg font-bold text-gray-800">{data.loanTerm ? `${data.loanTerm} lat` : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Typ rat</p>
+            <p className="text-lg font-bold text-gray-800">{data.installmentType ? (data.installmentType === 'equal' ? 'Równe' : 'Malejące') : 'Brak danych'}</p>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Stopy procentowe */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Stopy Procentowe</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Marża banku</p>
+            <p className="text-lg font-bold text-gray-800">{data.bankMargin ? formatPercentage(data.bankMargin) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Stopa referencyjna</p>
+            <p className="text-lg font-bold text-gray-800">{data.referenceRate ? formatPercentage(data.referenceRate) : 'Brak danych'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Koszty i prowizje */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Koszty i Prowizje</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Prowizja banku</p>
+            <p className="text-lg font-bold text-gray-800">{data.bankCommission ? formatPercentage(data.bankCommission) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Prowizja agencji</p>
+            <p className="text-lg font-bold text-gray-800">{data.agencyCommission ? formatPercentage(data.agencyCommission) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Stawka PCC</p>
+            <p className="text-lg font-bold text-gray-800">{data.pccTaxRate ? formatPercentage(data.pccTaxRate) : 'Brak danych'}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Typ taksy notarialnej</p>
+            <p className="text-lg font-bold text-gray-800">{data.notaryFeeType ? (data.notaryFeeType === 'max' ? 'Maksymalna' : 'Własna') : 'Brak danych'}</p>
+          </div>
+          {data.customNotaryFee && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Własna taksa notarialna</p>
+              <p className="text-lg font-bold text-gray-800 break-words">{formatCurrency(data.customNotaryFee)}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Ubezpieczenie pomostowe */}
+      {data.bridgeInsuranceMonths && parseFloat(data.bridgeInsuranceMonths) > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Ubezpieczenie Pomostowe</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Okres ubezpieczenia</p>
+              <p className="text-lg font-bold text-gray-800">{data.bridgeInsuranceMonths} miesięcy</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Zwiększenie marży</p>
+              <p className="text-lg font-bold text-gray-800">{formatPercentage(data.bridgeInsuranceMarginIncrease)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Nadpłaty */}
+      {data.overpaymentAmount && parseFloat(data.overpaymentAmount) > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Parametry Nadpłat</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Kwota nadpłaty</p>
+              <p className="text-lg font-bold text-gray-800 break-words">{formatCurrency(data.overpaymentAmount)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Częstotliwość</p>
+              <p className="text-lg font-bold text-gray-800">{
+                data.overpaymentFrequency === 'one-time' ? 'Jednorazowa' :
+                data.overpaymentFrequency === 'monthly' ? 'Miesięczna' : 'Roczna'
+              }</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Miesiąc rozpoczęcia</p>
+              <p className="text-lg font-bold text-gray-800">{data.overpaymentStartMonth}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Cel nadpłat</p>
+              <p className="text-lg font-bold text-gray-800">{
+                data.overpaymentTarget === 'shorten-period' ? 'Skrócenie okresu' : 'Obniżenie rat'
+              }</p>
+            </div>
+            {data.overpaymentFrequency !== 'one-time' && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-600 mb-1">Interwał nadpłat</p>
+                <p className="text-lg font-bold text-gray-800">Co {data.overpaymentInterval} {data.overpaymentFrequency === 'monthly' ? 'miesiąc' : 'rok'}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Zmiana stopy referencyjnej */}
+      {data.referenceRateChange && parseFloat(data.referenceRateChange) !== 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Symulacja Zmiany Stóp</h2>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Zmiana stopy referencyjnej</p>
+            <p className="text-lg font-bold text-gray-800">{data.referenceRateChange > 0 ? '+' : ''}{formatPercentage(data.referenceRateChange)}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Komponent dla wyników wyceny nieruchomości
+const ValuationResultSection = ({ data }: { data: any }) => {
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 0 }).format(value);
+  
+  const confidenceLevel = parseFloat(data.confidence?.replace('±', '').replace('%', ''));
+  let confidenceColor = 'bg-gray-200 text-gray-700';
+  if (confidenceLevel <= 2) {
+    confidenceColor = 'bg-green-100 text-green-800';
+  } else if (confidenceLevel <= 5) {
+    confidenceColor = 'bg-yellow-100 text-yellow-800';
+  } else {
+    confidenceColor = 'bg-red-100 text-red-800';
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Wynik wyceny</h2>
+      
+      {/* Główna cena */}
+      <div className="text-center bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
+        <p className="text-lg text-gray-700">Szacowana wartość nieruchomości</p>
+        <p className="text-5xl font-extrabold text-gray-800 py-2">
+          {formatCurrency(data.price)}
+        </p>
+        <p className="text-md text-gray-600 mt-2">
+          Przewidywany przedział cenowy: <strong>{formatCurrency(data.minPrice)} - {formatCurrency(data.maxPrice)}</strong>
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <DataRow label="Poziom ufności" value={
+          <span className={`px-2 py-1 text-sm font-semibold rounded-full ${confidenceColor}`}>
+            {data.confidence}
+          </span>
+        } />
+        <DataRow label="Metoda wyceny" value="Zaawansowany model AI (Ensemble)" />
+        <DataRow label="Data wyceny" value={new Date(data.timestamp).toLocaleString('pl-PL')} />
+      </div>
+       <div className="mt-6 text-center text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <p>Wycena jest estymacją opartą na zaawansowanych modelach statystycznych i nie stanowi oficjalnego operatu szacunkowego.</p>
+      </div>
+    </div>
+  );
+};
+
+// Komponent dla wyników kalkulacji wynajmu
+const RentalResultSection = ({ data }: { data: any }) => {
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+  const formatPercentage = (value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return 'Brak danych';
+    }
+    return `${value.toFixed(2)}%`;
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Podstawowe wyniki */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Podstawowe Wyniki</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Roczny przychód</p>
+            <p className="text-xl font-bold text-gray-800">{formatCurrency(data.annualIncome)}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Roczny dochód netto</p>
+            <p className="text-xl font-bold text-gray-800">{formatCurrency(data.netAnnualIncome)}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">ROI (roczny zwrot)</p>
+            <p className="text-2xl font-bold text-gray-800">{formatPercentage(data.roi)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Wyniki kredytowe */}
+      {data.loanAmount && data.loanAmount > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Wyniki Kredytowe</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Kwota kredytu</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(data.loanAmount)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Miesięczna rata</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(data.monthlyLoanPayment)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Cash Flow (roczny)</p>
+              <p className={`text-xl font-bold ${data.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {formatCurrency(data.cashFlow)}
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg text-center md:col-span-2 border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Cash-on-Cash Return (brutto)</p>
+              <p className={`text-2xl font-bold ${data.cocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {formatPercentage(data.cocReturn)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analiza podatkowa */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Analiza Podatkowa (Netto)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Podatek roczny</p>
+            <p className="text-xl font-bold text-gray-800">{formatCurrency(data.taxAmount)}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Cash Flow netto</p>
+            <p className={`text-xl font-bold ${data.netCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              {formatCurrency(data.netCashFlow)}
+            </p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p className="text-sm text-gray-600 mb-1">Cash-on-Cash Return netto</p>
+            <p className={`text-2xl font-bold ${data.netCocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              {formatPercentage(data.netCocReturn)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Wykresy */}
+      {data.costBreakdown && data.costBreakdown.length > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Struktura Kosztów Miesięcznych</h2>
+          <div className="h-80">
+            <Doughnut 
+              data={{
+                labels: data.costBreakdown.map((item: any) => item.name),
+                datasets: [{
+                  data: data.costBreakdown.map((item: any) => item.value),
+                  backgroundColor: [
+                    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316'
+                  ],
+                  borderWidth: 2,
+                  borderColor: '#ffffff'
+                }]
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                      }
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Wykres przychody vs koszty */}
+      {data.incomeVsCosts && data.incomeVsCosts.length > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Przychody vs Koszty (Roczne)</h2>
+          <div className="h-80">
+            <Bar 
+              data={{
+                labels: data.incomeVsCosts.map((item: any) => item.name),
+                datasets: [{
+                  label: 'Kwota',
+                  data: data.incomeVsCosts.map((item: any) => item.Kwota),
+                  backgroundColor: data.incomeVsCosts.map((item: any) => item.fill),
+                  borderColor: data.incomeVsCosts.map((item: any) => item.fill),
+                  borderWidth: 1
+                }]
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `${context.label}: ${formatCurrency(context.parsed.y)}`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: function(value) {
+                        return formatCurrency(value as number);
+                      }
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Projekcja 10-letnia */}
+      {data.projection && data.projection.length > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Projekcja 10-letnia</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 font-semibold text-gray-700">Rok</th>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Przychód</th>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Koszty</th>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Dochód netto</th>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">ROI</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.projection.map((year: any, index: number) => (
+                  <tr key={index} className="border-b border-gray-100">
+                    <td className="py-2 px-3 text-gray-800">{year.rok}</td>
+                    <td className="py-2 px-3 text-right text-gray-800">{formatCurrency(year.przychod)}</td>
+                    <td className="py-2 px-3 text-right text-gray-800">{formatCurrency(year.koszty)}</td>
+                    <td className="py-2 px-3 text-right text-gray-800">{formatCurrency(year.dochodNetto)}</td>
+                    <td className="py-2 px-3 text-right text-gray-800">{formatPercentage(year.roi)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Komponent dla wyników zakupu nieruchomości
+const PurchaseResultSection = ({ data }: { data: any }) => {
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+  const formatLoanTerm = (months: number | null) => {
+    if (!months) return '0';
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+    if (years === 0) return `${remainingMonths} miesięcy`;
+    if (remainingMonths === 0) return `${years} lat`;
+    return `${years} lat ${remainingMonths} miesięcy`;
+  };
+  
+  // Oblicz koszty jak w normalnej kalkulacji
+  const ancillaryCosts = (data.notaryFee || 0) + (data.pcctax || 0) + (data.bankCommissionAmount || 0) + (data.courtFees || 0) + (data.agencyCommissionAmount || 0);
+  const totalCreditCost = (data.totalInterest || 0) + (data.bankCommissionAmount || 0);
+  
+  // Pobierz dane wejściowe z kalkulacji (jeśli dostępne)
+  const inputData = data.inputData || {};
+  const propertyValue = parseFloat(inputData.propertyValue) || 0;
+  const loanAmount = parseFloat(inputData.loanAmount) || 0;
+  const downPayment = propertyValue - loanAmount;
+  const totalInitialOutlay = downPayment + ancillaryCosts;
+
+  // Dane dla wykresu struktury kosztów
+  const costStructureData = {
+    labels: ['Wkład własny', 'Podatek PCC', 'Taksa notarialna', 'Prowizja bankowa', 'Opłaty sądowe', 'Prowizja agencji'],
+    datasets: [
+      {
+        data: [
+          downPayment,
+          data.pcctax || 0,
+          data.notaryFee || 0,
+          data.bankCommissionAmount || 0,
+          data.courtFees || 0,
+          data.agencyCommissionAmount || 0
+        ],
+        backgroundColor: [
+          '#3B82F6', // blue
+          '#EF4444', // red
+          '#F59E0B', // amber
+          '#10B981', // emerald
+          '#8B5CF6', // violet
+          '#F97316'  // orange
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }
+    ]
+  };
+
+  // Dane dla wykresu harmonogramu spłat (cały okres)
+  const scheduleData = data.schedule && data.schedule.length > 0 ? {
+    labels: data.schedule.map((payment: any) => `Miesiąc ${payment.month}`),
+    datasets: [
+      {
+        label: 'Kapitał',
+        data: data.schedule.map((payment: any) => payment.principalPart),
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
+      },
+      {
+        label: 'Odsetki',
+        data: data.schedule.map((payment: any) => payment.interestPart),
+        borderColor: '#EF4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.4
+      }
+    ]
+  } : null;
+
+  // Dane dla wykresu porównania rat
+  const installmentComparisonData = {
+    labels: ['Pierwsza rata', 'Ostatnia rata'],
+    datasets: [
+      {
+        label: 'Wysokość raty',
+        data: [data.firstInstallment || 0, data.lastInstallment || 0],
+        backgroundColor: ['#3B82F6', '#EF4444'],
+        borderColor: ['#2563EB', '#DC2626'],
+        borderWidth: 2
+      }
+    ]
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Koszty Początkowe */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Koszty Początkowe</h2>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-gray-100 rounded-lg">
+            <p className="text-sm md:text-base text-gray-600 mb-2 sm:mb-0">Wkład własny</p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(downPayment)}</p>
+          </div>
+          <div className="p-4 md:p-6 bg-gray-100 rounded-lg">
+            <p className="text-sm md:text-base text-gray-600 mb-4 font-semibold">Koszty okołozakupowe</p>
+            <div className="space-y-3 text-sm md:text-base">
+              {(data.pcctax || 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Podatek PCC:</span> 
+                  <span className="font-semibold">{formatCurrency(data.pcctax)}</span>
+                </div>
+              )}
+              {(data.notaryFee || 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Taksa notarialna:</span> 
+                  <span className="font-semibold">{formatCurrency(data.notaryFee)}</span>
+                </div>
+              )}
+              {(data.bankCommissionAmount || 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Prowizja bankowa:</span> 
+                  <span className="font-semibold">{formatCurrency(data.bankCommissionAmount)}</span>
+                </div>
+              )}
+              {(data.courtFees || 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Opłaty sądowe:</span> 
+                  <span className="font-semibold">{formatCurrency(data.courtFees)}</span>
+                </div>
+              )}
+              {(data.agencyCommissionAmount || 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Prowizja agencji:</span> 
+                  <span className="font-semibold">{formatCurrency(data.agencyCommissionAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center font-bold border-t pt-3 mt-3 text-base md:text-lg">
+                <span>Suma kosztów okołozakupowych:</span> 
+                <span>{formatCurrency(ancillaryCosts)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-gray-100 rounded-lg border border-gray-200">
+            <p className="text-sm md:text-base font-semibold text-gray-700 mb-2 sm:mb-0">RAZEM (gotówka na start)</p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(totalInitialOutlay)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Wykres struktury kosztów */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Struktura Kosztów Początkowych</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80">
+            <Doughnut 
+              data={costStructureData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                      }
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+          <div className="space-y-3">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Wkład własny</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(downPayment)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Podatek PCC</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(data.pcctax || 0)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Taksa notarialna</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(data.notaryFee || 0)}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Prowizja bankowa</p>
+              <p className="text-xl font-bold text-gray-800">{formatCurrency(data.bankCommissionAmount || 0)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Podsumowanie Płatności Kredytu */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Podsumowanie Płatności Kredytu</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+            <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 break-words">{formatCurrency(data.firstInstallment)}</p>
+          </div>
+          <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+            <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 break-words">{formatCurrency(data.lastInstallment)}</p>
+          </div>
+          <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+            <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 break-words">{formatCurrency(data.totalInterest)}</p>
+          </div>
+          <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+            <p className="text-sm md:text-base text-gray-600 mb-2">Całkowity Koszt Kredytu</p>
+            <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 break-words">{formatCurrency(totalCreditCost)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Wykres porównania rat */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Porównanie Rat</h2>
+        <div className="h-80">
+          <Bar 
+            data={installmentComparisonData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return `${context.label}: ${formatCurrency(context.parsed.y)}`;
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return formatCurrency(value as number);
+                    }
+                  }
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Wykres harmonogramu spłat */}
+      {scheduleData && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Harmonogram Spłat (Cały okres)</h2>
+          <div className="h-80">
+            <Line 
+              data={scheduleData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'top'
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      callback: function(value) {
+                        return formatCurrency(value as number);
+                      }
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Wyniki Nadpłaty */}
+      {data.overpaymentResults && data.overpaymentResults.savedInterest > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Wyniki Nadpłaty</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+              <p className="text-sm md:text-base text-gray-700 mb-2">Zaoszczędzone odsetki</p>
+              <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(data.overpaymentResults.savedInterest)}</p>
+            </div>
+            <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+              <p className="text-sm md:text-base text-gray-700 mb-2">Kredyt spłacisz szybciej o</p>
+              <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">
+                {data.overpaymentResults.monthsShortened > 0 ? formatLoanTerm(data.overpaymentResults.monthsShortened) : '0'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Harmonogram spłat */}
+      {data.schedule && data.schedule.length > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Harmonogram Spłat</h2>
+           <div className="space-y-2 max-h-96 overflow-y-auto">
+             {data.schedule.map((payment: any, index: number) => (
+               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                 <div>
+                   <p className="text-md font-semibold text-gray-800">Miesiąc {payment.month}: {formatCurrency(payment.totalPayment)}</p>
+                   <div className="text-sm text-gray-600 mt-1">
+                     <span>Kapitał: {formatCurrency(payment.principalPart)}</span>
+                     <span className="mx-2">•</span>
+                     <span>Odsetki: {formatCurrency(payment.interestPart)}</span>
+                     {payment.overpayment > 0 && (
+                       <>
+                         <span className="mx-2">•</span>
+                         <span>Nadpłata: {formatCurrency(payment.overpayment)}</span>
+                       </>
+                     )}
+                   </div>
+                 </div>
+                 <div className="text-right text-sm text-gray-500">
+                   Pozostałe saldo: {formatCurrency(payment.remainingPrincipal)}
+                 </div>
+               </div>
+             ))}
+           </div>
+           
+           {/* Break-even point */}
+           {(() => {
+             const breakEvenMonth = data.schedule.findIndex((payment: any) => 
+               payment.principalPart >= payment.interestPart
+             );
+             if (breakEvenMonth !== -1) {
+               return (
+                 <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                   <p className="text-lg font-semibold text-gray-800 mb-2">Punkt Break-even</p>
+                   <p className="text-gray-600">
+                     W miesiącu {breakEvenMonth + 1} część kapitałowa raty ({formatCurrency(data.schedule[breakEvenMonth].principalPart)}) 
+                     będzie większa lub równa części odsetkowej ({formatCurrency(data.schedule[breakEvenMonth].interestPart)}).
+                   </p>
+                 </div>
+               );
+             }
+             return null;
+           })()}
+        </div>
+      )}
+
+      {/* Wynik Symulacji Zmiany Stóp Procentowych */}
+      {data.referenceRateChange && data.referenceRateChange !== 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Wynik Symulacji Zmiany Stóp Procentowych</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+              <p className="text-sm md:text-base text-gray-600 mb-2">Nowa pierwsza rata</p>
+              <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">{formatCurrency(data.newFirstInstallment)}</p>
+            </div>
+            <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center border border-gray-200">
+              <p className="text-sm md:text-base text-gray-600 mb-2">Różnica w racie</p>
+              <p className={`text-lg md:text-xl lg:text-2xl font-bold ${data.installmentDifference >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {data.installmentDifference >= 0 ? '+' : ''}{formatCurrency(data.installmentDifference)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+export default function CalculationDetailPage() {
+  const [calculation, setCalculation] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const id = params.id as string;
 
   useEffect(() => {
+    if (!id) return;
+    
     const fetchCalculation = async () => {
-      if (!params.id) return;
-      
-      setLoading(true);
-      setError(null);
-      
       try {
         const token = localStorage.getItem('auth_token');
-        
-        if (!token) {
-          setError('Brak tokenu autoryzacji');
-          return;
+        if (!token) throw new Error("Brak autoryzacji");
+
+        const response = await fetch(`/api/user/calculations/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Nie udało się pobrać danych kalkulacji');
         }
 
-        const response = await fetch(`/api/user/calculations/${params.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        const data = await response.json();
+        console.log('Pobrane dane kalkulacji:', data);
         
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Kalkulacja nie została znaleziona');
-          } else if (response.status === 401) {
-            setError('Brak uprawnień do wyświetlenia tej kalkulacji');
-          } else {
-            setError('Błąd podczas pobierania kalkulacji');
-          }
-          return;
+        // Sprawdź czy dane są poprawne
+        if (!data.input_json || Object.keys(data.input_json).length === 0) {
+          console.warn('Brak danych wejściowych w kalkulacji');
         }
         
-        const data = await response.json();
+        if (!data.result_json || Object.keys(data.result_json).length === 0) {
+          console.warn('Brak danych wynikowych w kalkulacji');
+        }
+        
         setCalculation(data);
+
       } catch (err) {
-        console.error('Error fetching calculation:', err);
-        setError('Błąd podczas pobierania kalkulacji');
+        console.error('Błąd podczas pobierania kalkulacji:', err);
+        setError(err instanceof Error ? err.message : 'Wystąpił błąd');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchCalculation();
-  }, [params.id]);
+  }, [id]);
 
-  const getCalculationTypeLabel = (type: string) => {
-    switch (type) {
-      case 'purchase': return 'Kalkulator zakupu nieruchomości';
-      case 'rental': return 'Kalkulator opłacalności wynajmu';
-      case 'creditScore': return 'Kalkulator zdolności kredytowej';
-      case 'valuation': return 'Kalkulator wyceny nieruchomości';
-      default: return 'Kalkulacja';
-    }
-  };
-
-  const getCalculationTypeColor = (type: string) => {
-    switch (type) {
-      case 'purchase': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'rental': return 'bg-green-100 text-green-800 border-green-200';
-      case 'creditScore': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'valuation': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pl-PL', {
-      style: 'currency',
-      currency: 'PLN'
-    }).format(amount);
-  };
-
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(2)}%`;
-  };
-
-  const isValidNumber = (value: any): boolean => {
-    if (!value) return false;
-    if (value === '' || value === '0' || value === 0) return false;
-    const num = parseFloat(value);
-    return !isNaN(num) && num > 0;
-  };
-
-  const renderValuationResults = (inputData: any, resultData: any) => {
-    if (!resultData) return null;
-
-    const mainPrice = resultData.price || resultData.estimated_value;
-    const hasRange = resultData.minPrice && resultData.maxPrice;
-    const area = inputData?.area ? parseFloat(inputData.area) : null;
-
-    const translateValuationMethod = (method: string) => {
-      switch (method) {
-        case 'EstymatorAI v2.7': return 'EstymatorAI v2.7';
-        case 'heuristic_fallback': return 'Analiza heurystyczna';
-        case 'comparative': return 'Metoda porównawcza';
-        case 'income': return 'Metoda dochodowa';
-        case 'cost': return 'Metoda kosztowa';
-        case 'market': return 'Analiza rynkowa';
-        default: return method;
-      }
-    };
-
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-xl text-blue-900">Wynik wyceny</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center space-y-6">
-              <div>
-                <p className="text-4xl font-bold text-blue-900 mb-2">
-                  {formatCurrency(mainPrice)}
-                </p>
-                <p className="text-sm text-blue-700">Szacowana wartość nieruchomości</p>
-              </div>
-              
-              {hasRange && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white/70 rounded-lg p-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Minimum</p>
-                    <p className="text-xl font-semibold text-gray-800">{formatCurrency(resultData.minPrice)}</p>
-                  </div>
-                  <div className="bg-white/70 rounded-lg p-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Maksimum</p>
-                    <p className="text-xl font-semibold text-gray-800">{formatCurrency(resultData.maxPrice)}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {resultData.confidence && (
-                  <div className="bg-white/70 rounded-lg p-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Pewność wyceny</p>
-                    <p className="text-lg font-semibold text-green-700">
-                      {typeof resultData.confidence === 'number' 
-                        ? `${Math.round(resultData.confidence * 100)}%` 
-                        : resultData.confidence}
-                    </p>
-                  </div>
-                )}
-                
-                {resultData.method && (
-                  <div className="bg-white/70 rounded-lg p-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Metoda wyceny</p>
-                    <p className="text-lg font-semibold text-gray-800">
-                      {translateValuationMethod(resultData.method)}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {resultData.note && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-sm font-medium text-amber-800 mb-2">Uwagi</p>
-                  <p className="text-sm text-amber-700">{resultData.note}</p>
-                </div>
-              )}
-
-              {resultData.timestamp && (
-                <div className="text-center pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">
-                    Wycena wykonana: {formatDate(resultData.timestamp)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {mainPrice && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-700 mb-1">
-                  {area ? formatCurrency(mainPrice / area) : 'N/A'}
-                </div>
-                <div className="text-sm text-green-600">Cena za m²</div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-700 mb-1">
-                  {hasRange ? formatCurrency((resultData.maxPrice - resultData.minPrice)) : 'N/A'}
-                </div>
-                <div className="text-sm text-blue-600">Dokładność szacowania</div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-purple-200 bg-purple-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-700 mb-1">
-                  {hasRange ? `±${formatPercent(((resultData.maxPrice - resultData.minPrice) / mainPrice) * 50)}` : 'N/A'}
-                </div>
-                <div className="text-sm text-purple-600">Przedział ufności</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-    const renderRentalResults = (inputData: any, resultData: any) => {
-    if (!resultData) return null;
-
-    // Kolory dla wykresów (identyczne z oryginalnym kalkulatorem)
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-    return (
-      <div className="mt-8">
-        <h3 className="text-lg sm:text-xl font-bold mb-4 text-center">Wyniki analizy:</h3>
-        
-        {/* Podstawowe wyniki */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Roczny przychód</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl sm:text-2xl font-semibold text-gray-800">{resultData.annualIncome?.toFixed(2)} zł</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Roczny dochód netto</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl sm:text-2xl font-semibold text-gray-800">{resultData.netAnnualIncome?.toFixed(2)} zł</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-green-50 border-green-200">
-            <CardHeader>
-              <CardTitle className="text-base sm:text-lg">ROI (roczny zwrot)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl sm:text-3xl font-bold text-green-700">{resultData.roi?.toFixed(2)}%</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Wyniki kredytowe */}
-        {resultData.loanAmount && resultData.loanAmount > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Kwota kredytu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-800">{resultData.loanAmount?.toFixed(2)} zł</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Miesięczna rata</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-800">{resultData.monthlyLoanPayment?.toFixed(2)} zł</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Cash Flow (roczny)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-2xl sm:text-3xl font-bold ${resultData.cashFlow && resultData.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {resultData.cashFlow?.toFixed(2)} zł
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-yellow-50 border-yellow-200 md:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return (brutto)</CardTitle>
-                <CardDescription>Zwrot z zaangażowanego kapitału przed opodatkowaniem</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-2xl sm:text-3xl font-bold ${resultData.cocReturn && resultData.cocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {resultData.cocReturn?.toFixed(2)}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Wyniki podatkowe */}
-        <div className="mt-6">
-          <h4 className="text-lg font-semibold mb-4 text-center">Analiza podatkowa (netto):</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-red-50 border-red-200">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Podatek roczny</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl sm:text-2xl font-semibold text-red-700">{resultData.taxAmount?.toFixed(2)} zł</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Cash Flow netto</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-xl sm:text-2xl font-semibold ${resultData.netCashFlow && resultData.netCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {resultData.netCashFlow?.toFixed(2)} zł
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-purple-50 border-purple-200 md:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Cash-on-Cash Return netto</CardTitle>
-                <CardDescription>Zwrot z zaangażowanego kapitału po opodatkowaniu</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-2xl sm:text-3xl font-bold ${resultData.netCocReturn && resultData.netCocReturn >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {resultData.netCocReturn?.toFixed(2)}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Wykresy */}
-        <div className="mt-8">
-          <h4 className="text-lg font-semibold mb-6 text-center">Analiza wizualna:</h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Wykres kołowy kosztów miesięcznych */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Struktura kosztów miesięcznych</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <PieChart>
-                    <Pie
-                      data={resultData.costBreakdown}
-                      cx="50%"
-                      cy="45%"
-                      labelLine={true}
-                      label={({ name, percent }) => {
-                        if (percent > 0.15) return `${name}\n${(percent * 100).toFixed(0)}%`;
-                        if (percent > 0.01) return `${(percent * 100).toFixed(0)}%`;
-                        return '';
-                      }}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {resultData.costBreakdown && resultData.costBreakdown.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Koszt']} />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={80}
-                      wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Wykres słupkowy przychody vs koszty */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Przychody vs Koszty (roczne)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={resultData.incomeVsCosts} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      fontSize={11}
-                      interval={0}
-                      tick={{ dy: 10 }}
-                    />
-                    <YAxis tickFormatter={(value: number) => `${(value / 1000).toFixed(0)}k zł`} />
-                    <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} zł`, 'Kwota']} />
-                    <Bar dataKey="Kwota" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Projekcja wieloletnia */}
-        {resultData.projection && resultData.projection.length > 0 && (
-          <div className="mt-8">
-            <h4 className="text-lg font-semibold mb-4 text-center">Projekcja wieloletnia:</h4>
-            
-            {/* Tabela projekcji */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Projekcja na 10 lat</CardTitle>
-                <CardDescription className="text-center">
-                  Wartość nieruchomości, pozostały dług kredytowy i zbudowany kapitał
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2 text-left">Rok</th>
-                        <th className="p-2 text-right">Wartość nieruchomości</th>
-                        <th className="p-2 text-right">Pozostały kredyt</th>
-                        <th className="p-2 text-right">Kapitał własny</th>
-                        <th className="p-2 text-right">Roczny czynsz</th>
-                        <th className="p-2 text-right">Cash Flow</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {resultData.projection.map((row: any) => (
-                        <tr key={row.year} className="border-b hover:bg-gray-50">
-                          <td className="p-2 font-medium">{row.year}</td>
-                          <td className="p-2 text-right">{row.propertyValue.toLocaleString()} zł</td>
-                          <td className="p-2 text-right">{row.remainingLoan.toLocaleString()} zł</td>
-                          <td className="p-2 text-right font-semibold text-green-700">
-                            {row.equity.toLocaleString()} zł
-                          </td>
-                          <td className="p-2 text-right">{row.yearlyRent.toLocaleString()} zł</td>
-                          <td className={`p-2 text-right font-medium ${row.cashFlow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                            {row.cashFlow.toLocaleString()} zł
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderCreditScoreResults = (inputData: any, resultData: any) => {
-    if (!resultData) return null;
-
-    // Przygotuj dane wykresu z oryginalnych danych lub konstruuj
-    const chartData = resultData.chartData || [
-      { 
-        name: 'Dostępne na spłatę', 
-        value: resultData.creditCapacity || 0, 
-        fill: '#22c55e' 
-      },
-      { 
-        name: 'Koszty utrzymania', 
-        value: resultData.costOfLiving || 0, 
-        fill: '#f97316' 
-      },
-      { 
-        name: 'Zobowiązania', 
-        value: resultData.totalCommitments || 0, 
-        fill: '#ef4444' 
-      }
-    ].filter(item => item.value > 0);
-
-    return (
-      <div className="mt-8">
-        <h3 className="text-2xl font-bold mb-6 text-center">Twoja szacunkowa zdolność kredytowa:</h3>
-        
-        {(!resultData.creditCapacity && !resultData.maxLoanAmount) && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center text-yellow-800">
-              <span className="text-lg mr-2">⚠️</span>
-              <span>Niektóre dane wyników mogą być niepełne lub niedostępne.</span>
-            </div>
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Wyniki liczbowe */}
-          <div className="lg:col-span-2 space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <h4 className="text-lg font-semibold mb-2">Maksymalna miesięczna rata:</h4>
-                <p className="text-2xl font-bold text-green-700">
-                  {resultData.creditCapacity ? formatCurrency(resultData.creditCapacity) : 'Brak danych'}
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <h4 className="text-lg font-semibold mb-2">Maksymalna kwota kredytu:</h4>
-                <p className="text-2xl font-bold text-green-700">
-                  {resultData.maxLoanAmount ? formatCurrency(resultData.maxLoanAmount) : 'Brak danych'}
-                </p>
-                
-                {inputData?.loanAmount && parseFloat(inputData.loanAmount) > 0 && (
-                  <div className="mt-3 p-3 rounded-lg border">
-                    <p className="text-sm font-medium mb-1">
-                      Porównanie z pożądaną kwotą ({parseInt(inputData.loanAmount).toLocaleString('pl-PL')} zł):
-                    </p>
-                    {parseFloat(inputData.loanAmount) <= (resultData.maxLoanAmount || 0) ? (
-                      <div className="flex items-center text-green-600">
-                        <span className="text-lg mr-2">✅</span>
-                        <span className="font-medium">Kredyt możliwy do uzyskania!</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-red-600">
-                        <span className="text-lg mr-2">❌</span>
-                        <span className="font-medium">
-                          Przekracza zdolność o {(parseFloat(inputData.loanAmount) - (resultData.maxLoanAmount || 0)).toFixed(0)} zł
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Wykres kołowy */}
-          {chartData.length > 0 && (
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle className="text-lg">Struktura miesięcznych dochodów i wydatków</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={120}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {chartData.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [`${value.toFixed(0)} zł`, 'Kwota']}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Szczegóły obliczeń */}
-        {resultData.calculationDetails && (
-          <div className="mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">📊 Szczegóły obliczeń</CardTitle>
-                <CardDescription>
-                  Transparentne wyjaśnienie jak kalkulator doszedł do Twojego wyniku
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-900 mb-2">💰 Całkowity dochód netto</h4>
-                    <p className="text-2xl font-bold text-blue-700">
-                      {resultData.calculationDetails.totalIncome?.toFixed(0)} zł
-                    </p>
-                    <p className="text-sm text-blue-600 mt-1">
-                      Po uwzględnieniu wag dla typu umowy
-                    </p>
-                  </div>
-
-                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                    <h4 className="font-semibold text-orange-900 mb-2">🏠 Koszty utrzymania</h4>
-                    <p className="text-2xl font-bold text-orange-700">
-                      {resultData.calculationDetails.costOfLiving?.toFixed(0)} zł
-                    </p>
-                    <p className="text-sm text-orange-600 mt-1">
-                      Dynamiczny model: baza + 10% dochodu
-                    </p>
-                  </div>
-
-                  <div className="bg-red-100 p-4 rounded-lg border border-red-200">
-                    <h4 className="font-semibold text-red-900 mb-2">📋 Suma zobowiązań</h4>
-                    <p className="text-2xl font-bold text-red-700">
-                      {resultData.calculationDetails.totalCommitments?.toFixed(0)} zł
-                    </p>
-                    <p className="text-sm text-red-600 mt-1">
-                      Opłaty + kredyty + 3% limitów kart/debetu
-                    </p>
-                  </div>
-
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h4 className="font-semibold text-purple-900 mb-2">📈 Oprocentowanie (stress test)</h4>
-                    <p className="text-2xl font-bold text-purple-700">
-                      {resultData.calculationDetails.stressedInterestRate?.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-purple-600 mt-1">
-                      Twoje {inputData?.interestRate}% + bufor 2.5 p.p.
-                    </p>
-                  </div>
-
-                  <div className="bg-green-100 p-4 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-green-900 mb-2">🎯 Zastosowany limit DSTI</h4>
-                    <p className="text-2xl font-bold text-green-700">
-                      {resultData.calculationDetails.effectiveDstiLimit?.toFixed(0)}%
-                    </p>
-                    <p className="text-sm text-green-600 mt-1">
-                      {resultData.calculationDetails.effectiveDstiLimit !== parseFloat(inputData?.dstiRatio) ? 
-                        'Automatycznie ograniczony' : 'Zgodnie z Twoim wyborem'}
-                    </p>
-                  </div>
-
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <h4 className="font-semibold text-indigo-900 mb-2">⚖️ Wykorzystane DSTI</h4>
-                    <p className="text-2xl font-bold text-indigo-700">
-                      {resultData.calculationDetails.dstiUsed?.toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-indigo-600 mt-1">
-                      Rzeczywiste obciążenie dochodów
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔍 Jak działają ograniczenia?</h4>
-                  <div className="text-sm text-gray-700 space-y-1">
-                    <p><strong>Limity DSTI:</strong> Dochód &lt;7500zł → max 40%, 7500-12000zł → max 50%, &gt;12000zł → do 60%</p>
-                    <p><strong>Stress test:</strong> Automatyczny bufor +2.5 p.p. do oprocentowania (wymóg KNF)</p>
-                    <p><strong>Okresy:</strong> Maksymalnie 30 lat niezależnie od wprowadzonej wartości</p>
-                    <p><strong>Koszty życia:</strong> Realistyczny model uwzględniający poziom Twoich dochodów</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderPurchaseResults = (resultData: any) => {
-    if (!resultData) return null;
-
-    return (
-      <div className="space-y-6">
-        {/* Główne wskaźniki */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
-            <CardContent className="p-6 text-center">
-              <h4 className="text-lg font-semibold text-blue-900 mb-2">Pierwsza rata</h4>
-              <p className="text-xl font-bold text-blue-800">
-                {formatCurrency(resultData.firstInstallment || 0)}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-6 text-center">
-              <h4 className="text-lg font-semibold text-green-900 mb-2">Ostatnia rata</h4>
-              <p className="text-xl font-bold text-green-800">
-                {formatCurrency(resultData.lastInstallment || 0)}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
-            <CardContent className="p-6 text-center">
-              <h4 className="text-lg font-semibold text-purple-900 mb-2">Łączne odsetki</h4>
-              <p className="text-xl font-bold text-purple-800">
-                {formatCurrency(resultData.totalInterest || 0)}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-            <CardContent className="p-6 text-center">
-              <h4 className="text-lg font-semibold text-orange-900 mb-2">Całkowita spłata</h4>
-              <p className="text-xl font-bold text-orange-800">
-                {formatCurrency(resultData.totalRepayment || 0)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Koszty dodatkowe */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Koszty dodatkowe</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {resultData.pccTax && (
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-600">Podatek PCC</p>
-                  <p className="text-lg font-semibold text-gray-800">{formatCurrency(resultData.pccTax)}</p>
-                </div>
-              )}
-              {resultData.notaryFee && (
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-600">Opłata notarialna</p>
-                  <p className="text-lg font-semibold text-gray-800">{formatCurrency(resultData.notaryFee)}</p>
-                </div>
-              )}
-              {resultData.bankCommissionAmount && (
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-600">Prowizja banku</p>
-                  <p className="text-lg font-semibold text-gray-800">{formatCurrency(resultData.bankCommissionAmount)}</p>
-                </div>
-              )}
-              {resultData.agencyCommissionAmount && (
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-600">Prowizja agencji</p>
-                  <p className="text-lg font-semibold text-gray-800">{formatCurrency(resultData.agencyCommissionAmount)}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Wykresy harmonogramu spłat */}
-        {resultData.schedule && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Struktura rat (kapitał vs odsetki)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <OverpaymentComparisonChart
-                  scheduleWithoutOverpayment={resultData.schedule}
-                  scheduleWithOverpayment={resultData.schedule}
-                />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Spadek zadłużenia w czasie</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <OverpaymentTimelineChart schedule={resultData.schedule} />
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderInputData = (inputData: any, type: string) => {
-    if (!inputData) return null;
-
-    switch (type) {
-      case 'valuation':
-        // Funkcje do tłumaczenia wartości
-        const translateCondition = (condition: string) => {
-          switch (condition) {
-            case 'new': return 'Nowy (po remoncie)';
-            case 'good': return 'Dobry (mieszkalny)';
-            case 'renovation': return 'Do remontu';
-            default: return condition;
-          }
-        };
-
-        const translateLocationTier = (tier: string) => {
-          switch (tier) {
-            case 'premium': return 'Premium (centrum, prestiżowe dzielnice)';
-            case 'standard': return 'Standard (typowe osiedla)';
-            default: return tier;
-          }
-        };
-
-        const translateBuildingType = (type: string) => {
-          switch (type) {
-            case 'blok': return 'Blok mieszkalny';
-            case 'kamienica': return 'Kamienica';
-            case 'dom': return 'Dom jednorodzinny';
-            case 'apartamentowiec': return 'Apartamentowiec';
-            default: return type;
-          }
-        };
-
-        const translateParking = (parking: string) => {
-          switch (parking) {
-            case 'garage': return 'Garaż';
-            case 'parking': return 'Miejsce parkingowe';
-            case 'street': return 'Parking uliczny';
-            case 'none': return 'Brak';
-            default: return parking;
-          }
-        };
-
-        const translateFinishing = (finishing: string) => {
-          switch (finishing) {
-            case 'developer': return 'Deweloperski';
-            case 'full': return 'Pod klucz';
-            case 'renovation': return 'Do remontu';
-            case 'standard': return 'Standard';
-            default: return finishing;
-          }
-        };
-
-        const translateYesNo = (value: string) => {
-          switch (value) {
-            case 'yes': return 'Tak';
-            case 'no': return 'Nie';
-            default: return value;
-          }
-        };
-
-        const translateOrientation = (orientation: string) => {
-          switch (orientation) {
-            case 'north': return 'Północ';
-            case 'south': return 'Południe';
-            case 'east': return 'Wschód';
-            case 'west': return 'Zachód';
-            case 'north-east': return 'Północny wschód';
-            case 'south-east': return 'Południowy wschód';
-            case 'north-west': return 'Północny zachód';
-            case 'south-west': return 'Południowy zachód';
-            default: return orientation;
-          }
-        };
-
-        const translateTransport = (transport: string) => {
-          switch (transport) {
-            case 'excellent': return 'Doskonały';
-            case 'good': return 'Dobry';
-            case 'medium': return 'Średni';
-            case 'poor': return 'Słaby';
-            default: return transport;
-          }
-        };
-
-        const translateHeating = (heating: string) => {
-          switch (heating) {
-            case 'central': return 'Centralne';
-            case 'gas': return 'Gazowe';
-            case 'electric': return 'Elektryczne';
-            case 'coal': return 'Węglowe';
-            case 'oil': return 'Olejowe';
-            default: return heating;
-          }
-        };
-
-        const translateKitchenType = (kitchen: string) => {
-          switch (kitchen) {
-            case 'separate': return 'Osobna';
-            case 'annex': return 'Aneks';
-            case 'open': return 'Otwarta';
-            case 'kitchenette': return 'Aneks kuchenny';
-            case 'closed': return 'Zamknięta';
-            default: return kitchen;
-          }
-        };
-
-        const translateBasement = (basement: string) => {
-          switch (basement) {
-            case 'basement': return 'Piwnica';
-            case 'storage': return 'Komórka';
-            case 'none': return 'Brak';
-            default: return basement;
-          }
-        };
-
-        const translateBuildingMaterial = (material: string) => {
-          switch (material) {
-            case 'brick': return 'Cegła';
-            case 'concrete': return 'Beton';
-            case 'brick_concrete': return 'Cegła i beton';
-            case 'reinforced_concrete': return 'Żelbet';
-            case 'wood': return 'Drewno';
-            case 'steel': return 'Stal';
-            case 'stone': return 'Kamień';
-            case 'other': return 'Inne';
-            default: return material;
-          }
-        };
-
-        const translateOwnership = (ownership: string) => {
-          switch (ownership) {
-            case 'full': return 'Pełna własność';
-            case 'cooperative': return 'Prawo spółdzielcze';
-            default: return ownership;
-          }
-        };
-
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Lokalizacja</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inputData.city && inputData.city.trim() && <div><span className="font-medium">Miasto:</span> {inputData.city}</div>}
-                  {inputData.district && inputData.district.trim() && <div><span className="font-medium">Dzielnica:</span> {inputData.district}</div>}
-                  {inputData.street && inputData.street.trim() && <div><span className="font-medium">Ulica:</span> {inputData.street}</div>}
-                  {inputData.locationTier && <div><span className="font-medium">Klasa lokalizacji:</span> {translateLocationTier(inputData.locationTier)}</div>}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Podstawowe parametry</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inputData.area && <div><span className="font-medium">Powierzchnia:</span> {inputData.area} m²</div>}
-                  {inputData.rooms && <div><span className="font-medium">Pokoje:</span> {inputData.rooms}</div>}
-                  {inputData.floor && <div><span className="font-medium">Piętro:</span> {inputData.floor}</div>}
-                  {inputData.totalFloors && <div><span className="font-medium">Pięter w budynku:</span> {inputData.totalFloors}</div>}
-                  {inputData.year && <div><span className="font-medium">Rok budowy:</span> {inputData.year}</div>}
-                  {inputData.condition && <div><span className="font-medium">Stan:</span> {translateCondition(inputData.condition)}</div>}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Typ i wykończenie</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inputData.buildingType && <div><span className="font-medium">Typ budynku:</span> {translateBuildingType(inputData.buildingType)}</div>}
-                  {inputData.finishing && <div><span className="font-medium">Wykończenie:</span> {translateFinishing(inputData.finishing)}</div>}
-                  {inputData.buildingMaterial && <div><span className="font-medium">Materiał budynku:</span> {translateBuildingMaterial(inputData.buildingMaterial)}</div>}
-                  {inputData.ownership && <div><span className="font-medium">Forma własności:</span> {translateOwnership(inputData.ownership)}</div>}
-                  {inputData.lastRenovation && <div><span className="font-medium">Ostatni remont:</span> {inputData.lastRenovation}</div>}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Udogodnienia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inputData.parking && <div><span className="font-medium">Parking:</span> {translateParking(inputData.parking)}</div>}
-                  {inputData.elevator && <div><span className="font-medium">Winda:</span> {translateYesNo(inputData.elevator)}</div>}
-                  {inputData.balcony && <div><span className="font-medium">Balkon:</span> {translateYesNo(inputData.balcony)}</div>}
-                  {inputData.balconyArea && <div><span className="font-medium">Powierzchnia balkonu:</span> {inputData.balconyArea} m²</div>}
-                  {inputData.basement && <div><span className="font-medium">Piwnica/komórka:</span> {translateBasement(inputData.basement)}</div>}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Instalacje i media</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inputData.heating && <div><span className="font-medium">Ogrzewanie:</span> {translateHeating(inputData.heating)}</div>}
-                  {inputData.bathrooms && <div><span className="font-medium">Łazienki:</span> {inputData.bathrooms}</div>}
-                  {inputData.kitchenType && <div><span className="font-medium">Typ kuchni:</span> {translateKitchenType(inputData.kitchenType)}</div>}
-                  {inputData.orientation && <div><span className="font-medium">Orientacja:</span> {translateOrientation(inputData.orientation)}</div>}
-                  {inputData.transport && <div><span className="font-medium">Transport:</span> {translateTransport(inputData.transport)}</div>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'rental':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Podstawowe dane</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.purchasePrice) && <div><span className="font-medium">Cena zakupu:</span> {formatCurrency(parseFloat(inputData.purchasePrice))}</div>}
-                  {isValidNumber(inputData.monthlyRent) && <div><span className="font-medium">Czynsz miesięczny:</span> {formatCurrency(parseFloat(inputData.monthlyRent))}</div>}
-                  {isValidNumber(inputData.transactionCosts) && <div><span className="font-medium">Koszty transakcji:</span> {formatCurrency(parseFloat(inputData.transactionCosts))}</div>}
-                  {isValidNumber(inputData.renovationCosts) && <div><span className="font-medium">Koszty remontu:</span> {formatCurrency(parseFloat(inputData.renovationCosts))}</div>}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Koszty miesięczne</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.adminFees) && <div><span className="font-medium">Opłaty administracyjne:</span> {formatCurrency(parseFloat(inputData.adminFees))}</div>}
-                  {isValidNumber(inputData.utilities) && <div><span className="font-medium">Media:</span> {formatCurrency(parseFloat(inputData.utilities))}</div>}
-                  {isValidNumber(inputData.insurance) && <div><span className="font-medium">Ubezpieczenie:</span> {formatCurrency(parseFloat(inputData.insurance))}</div>}
-                  {isValidNumber(inputData.maintenance) && <div><span className="font-medium">Konserwacja:</span> {formatCurrency(parseFloat(inputData.maintenance))}</div>}
-                  {isValidNumber(inputData.propertyTax) && <div><span className="font-medium">Podatek:</span> {formatCurrency(parseFloat(inputData.propertyTax))}</div>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'creditScore':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dochody</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.monthlyIncome) && <div><span className="font-medium">Miesięczny dochód:</span> {formatCurrency(parseFloat(inputData.monthlyIncome))}</div>}
-                  {isValidNumber(inputData.secondBorrowerIncome) && <div><span className="font-medium">Dochód współkredytobiorcy:</span> {formatCurrency(parseFloat(inputData.secondBorrowerIncome))}</div>}
-                  {inputData.employmentType && inputData.employmentType !== '' && <div><span className="font-medium">Typ zatrudnienia:</span> {
-                    inputData.employmentType === 'employment' ? 'Umowa o pracę' :
-                    inputData.employmentType === 'b2b' ? 'B2B / Działalność gospodarcza' :
-                    inputData.employmentType === 'contract' ? 'Umowa zlecenie/o dzieło' :
-                    inputData.employmentType
-                  }</div>}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Wydatki</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.monthlyExpenses) && <div><span className="font-medium">Miesięczne wydatki:</span> {formatCurrency(parseFloat(inputData.monthlyExpenses))}</div>}
-                  {isValidNumber(inputData.otherLoans) && <div><span className="font-medium">Inne kredyty:</span> {formatCurrency(parseFloat(inputData.otherLoans))}</div>}
-                  {isValidNumber(inputData.creditCardLimits) && <div><span className="font-medium">Limity kart kredytowych:</span> {formatCurrency(parseFloat(inputData.creditCardLimits))}</div>}
-                  {isValidNumber(inputData.accountOverdrafts) && <div><span className="font-medium">Debety w koncie:</span> {formatCurrency(parseFloat(inputData.accountOverdrafts))}</div>}
-                  {isValidNumber(inputData.householdSize) && <div><span className="font-medium">Liczba osób w gospodarstwie:</span> {inputData.householdSize}</div>}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Parametry kredytu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.loanAmount) && <div><span className="font-medium">Kwota kredytu:</span> {formatCurrency(parseFloat(inputData.loanAmount))}</div>}
-                  {isValidNumber(inputData.loanTerm) && <div><span className="font-medium">Okres kredytowania:</span> {inputData.loanTerm} lat</div>}
-                  {isValidNumber(inputData.interestRate) && <div><span className="font-medium">Oprocentowanie:</span> {inputData.interestRate}%</div>}
-                  {inputData.installmentType && inputData.installmentType !== '' && <div><span className="font-medium">Typ rat:</span> {inputData.installmentType === 'equal' ? 'Równe (annuitetowe)' : 'Malejące'}</div>}
-                  {isValidNumber(inputData.dstiRatio) && <div><span className="font-medium">Wskaźnik DSTI:</span> {inputData.dstiRatio}%</div>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'purchase':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Parametry kredytu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.propertyValue) && <div><span className="font-medium">Wartość nieruchomości:</span> {formatCurrency(parseFloat(inputData.propertyValue))}</div>}
-                  {isValidNumber(inputData.loanAmount) && <div><span className="font-medium">Kwota kredytu:</span> {formatCurrency(parseFloat(inputData.loanAmount))}</div>}
-                  {isValidNumber(inputData.loanTerm) && <div><span className="font-medium">Okres kredytowania:</span> {inputData.loanTerm} lat</div>}
-                  {isValidNumber(inputData.bankMargin) && <div><span className="font-medium">Marża banku:</span> {inputData.bankMargin}%</div>}
-                  {isValidNumber(inputData.referenceRate) && <div><span className="font-medium">Stopa referencyjna:</span> {inputData.referenceRate}%</div>}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Koszty dodatkowe</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {isValidNumber(inputData.bankCommission) && <div><span className="font-medium">Prowizja banku:</span> {inputData.bankCommission}%</div>}
-                  {isValidNumber(inputData.agencyCommission) && <div><span className="font-medium">Prowizja agencji:</span> {inputData.agencyCommission}%</div>}
-                  {isValidNumber(inputData.pccTaxRate) && <div><span className="font-medium">Podatek PCC:</span> {inputData.pccTaxRate}%</div>}
-                  {inputData.installmentType && inputData.installmentType !== '' && <div><span className="font-medium">Typ rat:</span> {inputData.installmentType === 'equal' ? 'Równe' : 'Malejące'}</div>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Ładowanie kalkulacji...</p>
-        </div>
+      <div className="text-center py-20">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-6 text-gray-600 text-lg">Ładowanie szczegółów kalkulacji...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Błąd</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Button onClick={() => router.push('/panel/kalkulacje')} className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Powrót do listy
-          </Button>
-        </div>
+      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-6" role="alert">
+        <p className="font-bold text-lg">Błąd</p>
+        <p>{error}</p>
+        <Link href="/panel/kalkulacje" className="text-blue-600 hover:underline mt-4 inline-block">
+          &larr; Wróć do listy kalkulacji
+        </Link>
       </div>
     );
   }
-
+  
   if (!calculation) {
-    return null;
+      return <div>Nie znaleziono kalkulacji.</div>
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            onClick={() => router.push('/panel/kalkulacje')}
-            variant="outline"
-            className="mb-4 flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Powrót do listy
-          </Button>
+  // Sprawdź czy dane są dostępne
+  const hasInputData = calculation.input_json && Object.keys(calculation.input_json).length > 0;
+  const hasResultData = calculation.result_json && Object.keys(calculation.result_json).length > 0;
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{calculation.title}</h1>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getCalculationTypeColor(calculation.calculation_type)}`}>
-                    {getCalculationTypeLabel(calculation.calculation_type)}
-                  </span>
-                  <div className="flex items-center gap-1 text-gray-500">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm">{formatDate(calculation.created_at)}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-gray-500">
-                <Calculator className="w-5 h-5" />
-                <span className="text-sm">ID: {calculation.id}</span>
-              </div>
+  return (
+    <div className="space-y-8">
+      <div>
+        <Link href="/panel/kalkulacje" className="text-blue-600 hover:underline mb-4 inline-block">
+          &larr; Wróć do listy
+        </Link>
+        <h1 className="text-3xl font-bold text-gray-800">{calculation.title}</h1>
+        <p className="text-gray-500 mt-2">
+          Szczegóły zapisanej kalkulacji z dnia {new Date(calculation.created_at).toLocaleDateString('pl-PL')}
+        </p>
+        <p className="text-sm text-gray-400 mt-1">
+          Typ kalkulacji: {calculation.calculation_type}
+        </p>
+      </div>
+
+      <div className="space-y-8">
+        {hasInputData && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-3">
+              <DataSection 
+                title={calculation.calculation_type === 'purchase' ? 'Dane wejściowe' : 'Dane wejściowe'} 
+                data={calculation.input_json} 
+                calculationType={calculation.calculation_type}
+              />
             </div>
           </div>
-        </div>
+        )}
+        
+        {hasResultData && (
+          <div className="w-full">
+            <DataSection 
+              title={
+                calculation.calculation_type === 'purchase' ? 'Wynik kalkulacji' : 
+                calculation.calculation_type === 'rentability' ? 'Wynik kalkulacji' : 
+                'Wynik wyceny'
+              } 
+              data={{
+                ...calculation.result_json,
+                inputData: calculation.input_json // Przekaż dane wejściowe do wyników
+              }} 
+              calculationType={calculation.calculation_type}
+            />
+          </div>
+        )}
 
-        {/* Dane wejściowe */}
-        <div className="mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Dane wejściowe
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {renderInputData(calculation.input_json, calculation.calculation_type)}
-            </CardContent>
-          </Card>
-        </div>
+        {!hasInputData && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">Dane wejściowe</h2>
+            <div className="text-center py-8 text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p>Brak zapisanych danych wejściowych</p>
+              <p className="text-sm mt-1">Dane mogły zostać uszkodzone lub nie zostały zapisane</p>
+            </div>
+          </div>
+        )}
 
-        {/* Wyniki */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="w-5 h-5" />
-                Wyniki kalkulacji
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {calculation.calculation_type === 'valuation' && renderValuationResults(calculation.input_json, calculation.result_json)}
-              {calculation.calculation_type === 'rental' && renderRentalResults(calculation.input_json, calculation.result_json)}
-              {calculation.calculation_type === 'creditScore' && renderCreditScoreResults(calculation.input_json, calculation.result_json)}
-              {calculation.calculation_type === 'purchase' && renderPurchaseResults(calculation.result_json)}
-            </CardContent>
-          </Card>
-        </div>
+        {!hasResultData && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              {calculation.calculation_type === 'purchase' ? 'Wynik kalkulacji' : 'Wynik wyceny'}
+            </h2>
+            <div className="text-center py-8 text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p>Brak zapisanych wyników</p>
+              <p className="text-sm mt-1">Wyniki mogły zostać uszkodzone lub nie zostały zapisane</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default CalculationDetailPage; 
+} 

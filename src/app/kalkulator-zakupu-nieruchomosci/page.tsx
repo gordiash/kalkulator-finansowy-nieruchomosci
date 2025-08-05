@@ -12,6 +12,15 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement } from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { CalculationService } from '@/lib/CalculationService';
+import { formatCurrency, normalizeText } from '@/lib/utils';
+import { AmortizationChart } from '@/components/charts/AmortizationChart';
+import { InstallmentStructureChart } from '@/components/charts/InstallmentStructureChart';
+import { OverpaymentImpactChart } from '@/components/charts/OverpaymentImpactChart';
+import SaveCalculationButton from '@/components/SaveCalculationButton';
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -60,14 +69,6 @@ const InputWithValidation = ({
     )}
   </div>
 );
-import { Line, Bar } from 'react-chartjs-2';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { CalculationService } from '@/lib/CalculationService';
-import { formatCurrency, normalizeText } from '@/lib/utils';
-import { AmortizationChart } from '@/components/charts/AmortizationChart';
-import { InstallmentStructureChart } from '@/components/charts/InstallmentStructureChart';
-import { OverpaymentImpactChart } from '@/components/charts/OverpaymentImpactChart';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -789,23 +790,28 @@ function RealEstateCalculatorPageContent() {
   const totalCreditCost = results ? (results.totalInterest ?? 0) + (results.bankCommissionAmount ?? 0) : 0;
 
   return (
-    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-              <Card className="mb-6 sm:mb-8">
-                  <CardHeader className="pb-4 sm:pb-6">
-          <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-center font-bold">
-            Kalkulator Zakupu Nieruchomości
-            {initialPrice && (
-              <div className="mt-3 text-sm text-green-600 bg-green-100 px-3 py-2 rounded-lg inline-block">
-                💰 Cena z kalkulatora wyceny: {parseInt(initialPrice).toLocaleString('pl-PL')} zł
-              </div>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Sekcja Nieruchomość i Kredyt */}
-              <div className="space-y-4">
+    <div className="bg-gray-50/50 min-h-screen">
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-7xl mx-auto shadow-2xl border-gray-200/50">
+          <CardHeader className="text-center border-b border-gray-200/80 bg-white rounded-t-lg pt-8 pb-4">
+            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              Kalkulator Zakupu Nieruchomości
+            </h1>
+            <p className="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">
+              Kompleksowe narzędzie do analizy kosztów kredytu hipotecznego, nadpłat i symulacji zmian stóp procentowych.
+            </p>
+          </CardHeader>
+          <CardContent className="p-6 md:p-8">
+            <SaveCalculationButton
+              calculationData={formData}
+              resultData={results}
+              calculationType="purchase"
+              className="mb-8"
+            />
+            {/* FORMULARZ */}
+            <form className="space-y-6">
+              {/* === Lewa kolumna: Formularz === */}
+              <div className="lg:col-span-1 space-y-6">
                 <h3 className="font-semibold text-lg border-b pb-2">Nieruchomość i Kredyt</h3>
                 <InputWithValidation
                   id="propertyValue"
@@ -961,7 +967,7 @@ function RealEstateCalculatorPageContent() {
                     )}
                 </div>
               </div>
-            </div>
+            
              <div className="pt-4 border-t">
                   <button type="button" onClick={() => setShowOverpayment(!showOverpayment)} className="font-semibold text-lg w-full text-left flex justify-between items-center">
                       <span>Nadpłata Kredytu</span>
@@ -1016,7 +1022,7 @@ function RealEstateCalculatorPageContent() {
                       )}
                     </div>
                   )}
-              </div>
+                  </div>
              <div className="pt-4 border-t">
                 <h3 className="font-semibold text-lg mb-4">Symulacja Zmiany Stóp Procentowych</h3>
                 <div className="space-y-4">
@@ -1039,282 +1045,260 @@ function RealEstateCalculatorPageContent() {
                   </div>
                 </div>
             </div>
+              {/* Przyciski Oblicz i Wyczyść */}
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+                <Button 
+                  onClick={handleCalculateClick} 
+                  disabled={isLoading || !isFormValid} 
+                  className={`w-full md:w-auto ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isLoading ? 'Obliczanie...' : 'Oblicz'}
+                </Button>
+                <Button onClick={clearForm} variant="outline" className="w-full md:w-auto">Wyczyść</Button>
+              </div>
           </form>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 mt-6">
-        <Button 
-          onClick={handleCalculateClick} 
-          disabled={isLoading || !isFormValid} 
-          className={`w-full md:w-auto ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          {isLoading ? 'Obliczanie...' : 'Oblicz'}
-        </Button>
-        <Button onClick={clearForm} variant="outline" className="w-full md:w-auto">Wyczyść</Button>
-      </div>
-
-      {!isFormValid && Object.keys(validationErrors).length > 0 && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
-            <AlertTriangle className="w-4 h-4" />
-            <span>Formularz zawiera błędy:</span>
-          </div>
-          <ul className="text-red-700 text-sm space-y-1">
-            {Object.entries(validationErrors).map(([field, message]) => (
-              <li key={field}>• {message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {isClient && !results && !isLoading && (
-        <div className="text-center py-12 text-gray-500">
-          <h2 className="text-2xl font-semibold mb-2">Gotowy do obliczeń?</h2>
-          <p>Wprowadź dane i kliknij &quot;Oblicz&quot;, aby zobaczyć szczegółową analizę kredytu.</p>
-        </div>
-      )}
-
-      {isLoading && <div className="text-center py-12">Wczytywanie wyników...</div>}
-      
-      {errors.api && <div className="text-center py-12 text-red-500">{errors.api}</div>}
-
-      {isClient && results && (
-          <div className="mt-8 space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Koszty Początkowe</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-gray-100 rounded-lg">
-                    <p className="text-sm md:text-base text-gray-600 mb-2 sm:mb-0">Wkład własny</p>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(downPayment)}</p>
-                </div>
-                <div className="p-4 md:p-6 bg-gray-100 rounded-lg">
-                    <p className="text-sm md:text-base text-gray-600 mb-4 font-semibold">Koszty okołozakupowe</p>
-                    <div className="space-y-3 text-sm md:text-base">
-                        {(results.pccTax ?? 0) > 0 && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold">{formatCurrency(results.pccTax)}</span></div>}
-                        {isFirstPropertyPurchase && (results.pccTax === 0) && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold text-green-600">Zwolnienie (pierwsza nieruchomość)</span></div>}
-                        {(results.notaryFee ?? 0) > 0 && <div className="flex justify-between items-center"><span>Taksa notarialna:</span> <span className="font-semibold">{formatCurrency(results.notaryFee)}</span></div>}
-                        {(results.bankCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja bankowa:</span> <span className="font-semibold">{formatCurrency(results.bankCommissionAmount)}</span></div>}
-                        {(results.courtFees ?? 0) > 0 && <div className="flex justify-between items-center"><span>Opłaty sądowe:</span> <span className="font-semibold">{formatCurrency(results.courtFees)}</span></div>}
-                        {(results.agencyCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja agencji:</span> <span className="font-semibold">{formatCurrency(results.agencyCommissionAmount)}</span></div>}
-                        <div className="flex justify-between items-center font-bold border-t pt-3 mt-3 text-base md:text-lg"><span>Suma kosztów okołozakupowych:</span> <span>{formatCurrency(ancillaryCosts)}</span></div>
-                    </div>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-blue-100 rounded-lg">
-                  <p className="text-sm md:text-base font-semibold text-gray-700 mb-2 sm:mb-0">RAZEM (gotówka na start)</p>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-800">{formatCurrency(totalInitialOutlay)}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Podsumowanie Płatności Kredytu</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                      <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
-                  </div>
-                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                      <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
-                  </div>
-                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                      <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
-                  </div>
-                  <div className="p-4 md:p-6 bg-red-100 rounded-lg text-center">
-                      <p className="text-sm md:text-base text-gray-700 mb-2">Całkowity Koszt Kredytu</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
-                  </div>
-              </CardContent>
-            </Card>
-
-            {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
+          {/* WALIDACJA */}
+          {!isFormValid && Object.keys(validationErrors).length > 0 && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Formularz zawiera błędy:</span>
+              </div>
+              <ul className="text-red-700 text-sm space-y-1">
+                {Object.entries(validationErrors).map(([field, message]) => (
+                  <li key={field}>• {message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {/* INFO START */}
+          {isClient && !results && !isLoading && (
+            <div className="text-center py-12 text-gray-500">
+              <h2 className="text-2xl font-semibold mb-2">Gotowy do obliczeń?</h2>
+              <p>Wprowadź dane i kliknij "Oblicz", aby zobaczyć szczegółową analizę kredytu.</p>
+            </div>
+          )}
+          {/* LOADING */}
+          {isLoading && <div className="text-center py-12">Wczytywanie wyników...</div>}
+          {/* BŁĘDY API */}
+          {errors.api && <div className="text-center py-12 text-red-500">{errors.api}</div>}
+          {/* WYNIKI */}
+          {isClient && results && (
+            <div className="mt-8 space-y-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg md:text-xl">Wyniki Nadpłaty</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Koszty Początkowe</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
-                    <p className="text-sm md:text-base text-green-800 mb-2">Zaoszczędzone odsetki</p>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{formatCurrency(results.overpaymentResults.savedInterest)}</p>
+                <CardContent className="space-y-4">
+                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-gray-100 rounded-lg">
+                      <p className="text-sm md:text-base text-gray-600 mb-2 sm:mb-0">Wkład własny</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">{formatCurrency(downPayment)}</p>
                   </div>
-                  <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
-                    <p className="text-sm md:text-base text-green-800 mb-2">Kredyt spłacisz szybciej o</p>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{results.overpaymentResults.monthsShortened > 0 ? formatLoanTerm(results.overpaymentResults.monthsShortened) : '0'}</p>
+                  <div className="p-4 md:p-6 bg-gray-100 rounded-lg">
+                      <p className="text-sm md:text-base text-gray-600 mb-4 font-semibold">Koszty okołozakupowe</p>
+                      <div className="space-y-3 text-sm md:text-base">
+                          {(results.pccTax ?? 0) > 0 && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold">{formatCurrency(results.pccTax)}</span></div>}
+                          {isFirstPropertyPurchase && (results.pccTax === 0) && <div className="flex justify-between items-center"><span>Podatek PCC:</span> <span className="font-semibold text-green-600">Zwolnienie (pierwsza nieruchomość)</span></div>}
+                          {(results.notaryFee ?? 0) > 0 && <div className="flex justify-between items-center"><span>Taksa notarialna:</span> <span className="font-semibold">{formatCurrency(results.notaryFee)}</span></div>}
+                          {(results.bankCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja bankowa:</span> <span className="font-semibold">{formatCurrency(results.bankCommissionAmount)}</span></div>}
+                          {(results.courtFees ?? 0) > 0 && <div className="flex justify-between items-center"><span>Opłaty sądowe:</span> <span className="font-semibold">{formatCurrency(results.courtFees)}</span></div>}
+                          {(results.agencyCommissionAmount ?? 0) > 0 && <div className="flex justify-between items-center"><span>Prowizja agencji:</span> <span className="font-semibold">{formatCurrency(results.agencyCommissionAmount)}</span></div>}
+                          <div className="flex justify-between items-center font-bold border-t pt-3 mt-3 text-base md:text-lg"><span>Suma kosztów okołozakupowych:</span> <span>{formatCurrency(ancillaryCosts)}</span></div>
+                      </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 md:p-6 bg-blue-100 rounded-lg">
+                    <p className="text-sm md:text-base font-semibold text-gray-700 mb-2 sm:mb-0">RAZEM (gotówka na start)</p>
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-800">{formatCurrency(totalInitialOutlay)}</p>
                   </div>
                 </CardContent>
               </Card>
-            )}
 
-            {useSimulationRate && results.simulationResults && (
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg md:text-xl">Wynik Symulacji Zmiany Stóp Procentowych</CardTitle>
-                    </CardHeader>
-                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
-                             <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa pierwsza rata</p>
-                             <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newFirstInstallment)}</p>
-                         </div>
-                         <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
-                            <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa ostatnia rata</p>
-                            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newLastInstallment)}</p>
-                         </div>
-                     </CardContent>
-                 </Card>
-            )}
-
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
-              <Button 
-                onClick={() => setShowSchedule(!showSchedule)} 
-                variant="secondary"
-                className="w-full sm:w-auto text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
-              >
-                {showSchedule ? 'Ukryj' : 'Pokaż'} Harmonogram Spłat
-              </Button>
-              <Button 
-                onClick={generatePdfReport} 
-                disabled={!results?.schedule}
-                className="w-full sm:w-auto text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
-              >
-                Pobierz raport PDF
-              </Button>
-            </div>
-            
-            {showSchedule && results?.schedule && (
-              <Card ref={scheduleRef} className="mt-6 w-full overflow-x-auto">
+              <Card>
                 <CardHeader>
-                    <CardTitle className="text-xl font-semibold text-center">Harmonogram Spłat</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">Podsumowanie Płatności Kredytu</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          {['Miesiąc', 'Część kapitałowa', 'Część odsetkowa', 'Nadpłata', 'Rata całkowita', 'Pozostałe saldo'].map(head => (
-                            <th key={head} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{head}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {results.schedule?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item) => (
-                          <tr key={item.month}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{item.month}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.principalPart)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.interestPart)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.overpayment)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{formatCurrency(item.totalPayment)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.remainingPrincipal)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-4">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                            <Button
-                                onClick={() => setCurrentPage(1)}
-                                disabled={currentPage === 1}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs sm:text-sm px-2 sm:px-3"
-                            >
-                                Pierwsza
-                            </Button>
-                            <Button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                size="sm"
-                                className="text-xs sm:text-sm px-2 sm:px-3"
-                            >
-                                Poprzednia
-                            </Button>
-                        </div>
-                        <span className="px-2 sm:px-4 text-xs sm:text-sm text-gray-600 text-center">
-                            Strona {currentPage} z {Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
-                        </span>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                            <Button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)))}
-                                disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
-                                size="sm"
-                                className="text-xs sm:text-sm px-2 sm:px-3"
-                            >
-                                Następna
-                            </Button>
-                            <Button
-                                onClick={() => setCurrentPage(Math.ceil((results.schedule?.length ?? 0) / itemsPerPage))}
-                                disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs sm:text-sm px-2 sm:px-3"
-                            >
-                                Ostatnia
-                            </Button>
-                        </div>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                        <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
+                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
+                    </div>
+                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                        <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
+                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
+                    </div>
+                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                        <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
+                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
+                    </div>
+                    <div className="p-4 md:p-6 bg-red-100 rounded-lg text-center">
+                        <p className="text-sm md:text-base text-gray-700 mb-2">Całkowity Koszt Kredytu</p>
+                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
                     </div>
                 </CardContent>
               </Card>
-            )}
-            
-            <div className="mt-8 grid grid-cols-1 gap-8">
-                <Card className="chart-container-pdf">
-                    <CardHeader><CardTitle>Struktura Raty</CardTitle></CardHeader>
-                    <CardContent><InstallmentStructureChart schedule={results.schedule ?? []} /></CardContent>
+
+              {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg md:text-xl">Wyniki Nadpłaty</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-green-800 mb-2">Zaoszczędzone odsetki</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{formatCurrency(results.overpaymentResults.savedInterest)}</p>
+                    </div>
+                    <div className="p-4 md:p-6 bg-green-100 rounded-lg text-center">
+                      <p className="text-sm md:text-base text-green-800 mb-2">Kredyt spłacisz szybciej o</p>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{results.overpaymentResults.monthsShortened > 0 ? formatLoanTerm(results.overpaymentResults.monthsShortened) : '0'}</p>
+                    </div>
+                  </CardContent>
                 </Card>
-                <Card className="chart-container-pdf">
-                    <CardHeader><CardTitle>Amortyzacja</CardTitle></CardHeader>
-                    <CardContent><AmortizationChart schedule={results.schedule ?? []} /></CardContent>
+              )}
+
+              {useSimulationRate && results.simulationResults && (
+                   <Card>
+                      <CardHeader>
+                          <CardTitle className="text-lg md:text-xl">Wynik Symulacji Zmiany Stóp Procentowych</CardTitle>
+                      </CardHeader>
+                       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
+                               <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa pierwsza rata</p>
+                               <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newFirstInstallment)}</p>
+                           </div>
+                           <div className="p-4 md:p-6 bg-yellow-100 rounded-lg text-center">
+                              <p className="text-sm md:text-base text-yellow-800 mb-2">Nowa ostatnia rata</p>
+                              <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{formatCurrency(results.simulationResults.newLastInstallment)}</p>
+                           </div>
+                       </CardContent>
+                   </Card>
+              )}
+
+              
+              {showSchedule && results?.schedule && (
+                <Card ref={scheduleRef} className="mt-6 w-full overflow-x-auto">
+                  <CardHeader>
+                      <CardTitle className="text-xl font-semibold text-center">Harmonogram Spłat</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            {['Miesiąc', 'Część kapitałowa', 'Część odsetkowa', 'Nadpłata', 'Rata całkowita', 'Pozostałe saldo'].map(head => (
+                              <th key={head} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{head}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {results.schedule?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item) => (
+                            <tr key={item.month}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">{item.month}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.principalPart)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.interestPart)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.overpayment)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">{formatCurrency(item.totalPayment)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatCurrency(item.remainingPrincipal)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-4">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                              <Button
+                                  onClick={() => setCurrentPage(1)}
+                                  disabled={currentPage === 1}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                              >
+                                  Pierwsza
+                              </Button>
+                              <Button
+                                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                  disabled={currentPage === 1}
+                                  size="sm"
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                              >
+                                  Poprzednia
+                              </Button>
+                          </div>
+                          <span className="px-2 sm:px-4 text-xs sm:text-sm text-gray-600 text-center">
+                              Strona {currentPage} z {Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
+                          </span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                              <Button
+                                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)))}
+                                  disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
+                                  size="sm"
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                              >
+                                  Następna
+                              </Button>
+                              <Button
+                                  onClick={() => setCurrentPage(Math.ceil((results.schedule?.length ?? 0) / itemsPerPage))}
+                                  disabled={currentPage === Math.ceil((results.schedule?.length ?? 0) / itemsPerPage)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
+                              >
+                                  Ostatnia
+                              </Button>
+                          </div>
+                      </div>
+                  </CardContent>
                 </Card>
-                {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
+              )}
+              
+              <div className="mt-8 grid grid-cols-1 gap-8">
                   <Card className="chart-container-pdf">
-                    <CardHeader><CardTitle>Wpływ Nadpłaty</CardTitle></CardHeader>
-                    <CardContent>
-                        <OverpaymentImpactChart 
-                            overpaymentResults={results.overpaymentResults}
-                        />
-                    </CardContent>
+                      <CardHeader><CardTitle>Struktura Raty</CardTitle></CardHeader>
+                      <CardContent><InstallmentStructureChart schedule={results.schedule ?? []} /></CardContent>
                   </Card>
-                )}
-                {results.baseSchedule && results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
+                  <Card className="chart-container-pdf">
+                      <CardHeader><CardTitle>Amortyzacja</CardTitle></CardHeader>
+                      <CardContent><AmortizationChart schedule={results.schedule ?? []} /></CardContent>
+                  </Card>
+                  {results.overpaymentResults && parseFloat(formData.overpaymentAmount) > 0 && (
                     <Card className="chart-container-pdf">
-                        <CardHeader><CardTitle>Porównanie Harmonogramów</CardTitle></CardHeader>
-                        <CardContent>
-                            <OverpaymentComparisonChart 
-                                scheduleWithoutOverpayment={results.baseSchedule}
-                                scheduleWithOverpayment={results.schedule}
-                            />
-                        </CardContent>
+                      <CardHeader><CardTitle>Wpływ Nadpłaty</CardTitle></CardHeader>
+                      <CardContent>
+                          <OverpaymentImpactChart 
+                              overpaymentResults={results.overpaymentResults}
+                          />
+                      </CardContent>
                     </Card>
-                )}
-                {results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
-                    <Card className="chart-container-pdf">
-                        <CardHeader><CardTitle>Harmonogram Nadpłat</CardTitle></CardHeader>
-                        <CardContent>
-                            <OverpaymentTimelineChart schedule={results.schedule} />
-                        </CardContent>
-                    </Card>
-                )}
+                  )}
+                  {results.baseSchedule && results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
+                      <Card className="chart-container-pdf">
+                          <CardHeader><CardTitle>Porównanie Harmonogramów</CardTitle></CardHeader>
+                          <CardContent>
+                              <OverpaymentComparisonChart 
+                                  scheduleWithoutOverpayment={results.baseSchedule}
+                                  scheduleWithOverpayment={results.schedule}
+                              />
+                          </CardContent>
+                      </Card>
+                  )}
+                  {results.schedule && parseFloat(formData.overpaymentAmount) > 0 && (
+                      <Card className="chart-container-pdf">
+                          <CardHeader><CardTitle>Harmonogram Nadpłat</CardTitle></CardHeader>
+                          <CardContent>
+                              <OverpaymentTimelineChart schedule={results.schedule} />
+                          </CardContent>
+                      </Card>
+                  )}
+              </div>
             </div>
-        </div>
-      )}
+          )}
+        </CardContent>
+      </Card>
+    </div>
     </div>
   );
 }
 
 export default function RealEstateCalculatorPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Ładowanie kalkulatora...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<div className="text-center p-10">Ładowanie kalkulatora...</div>}>
       <RealEstateCalculatorPageContent />
     </Suspense>
   );

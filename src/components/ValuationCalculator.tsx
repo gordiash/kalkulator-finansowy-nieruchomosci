@@ -8,6 +8,7 @@ import { Autocomplete } from './ui/autocomplete'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { valuationAnalytics } from '../lib/analytics'
+import SaveCalculationButton from './SaveCalculationButton' // <--- Import
 
 interface ValuationResponse {
   price: number
@@ -1280,6 +1281,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                       Nowa wycena
                     </Button>
                   </div>
+
+                  {/* Komponent do zapisywania kalkulacji */}
+                  <SaveCalculationButton
+                    calculationData={form}
+                    resultData={result}
+                    calculationType="valuation"
+                    className="mt-8 max-w-xl mx-auto"
+                  />
+
                 </div>
               )}
 

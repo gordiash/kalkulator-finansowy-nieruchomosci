@@ -49,7 +49,7 @@
     "@types/recharts": "^1.8.29",
     "axios": "^1.6.8",
     "bcryptjs": "^3.0.2",
-    "chart.js": "^4.4.9",
+    "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "editorjs-html": "^4.0.5",

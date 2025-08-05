@@ -12,6 +12,7 @@ import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { HelpCircle, AlertTriangle } from "lucide-react";
 import { validateField, sanitizeInput, FIELD_DEFINITIONS } from "@/lib/validation";
+import SaveCalculationButton from "@/components/SaveCalculationButton";
 
 // Komponent pomocniczy dla pól z tooltipami - POZA głównym komponentem
 const InputWithTooltip = ({ 
@@ -260,35 +261,20 @@ const CreditScoreCalculatorPageContent = () => {
         throw new Error('Błąd podczas komunikacji z serwerem');
       }
 
-      const result = await response.json();
+      const data = await response.json();
       
-      if (result.error) {
-        throw new Error(result.error);
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      setCreditCapacity(result.creditCapacity);
-      setMaxLoanAmount(result.maxLoanAmount);
-      setChartData(result.chartData || []);
+      setCreditCapacity(data.creditCapacity);
+      setMaxLoanAmount(data.maxLoanAmount);
+      setChartData(data.chartData || []);
+      setCalculationDetails(data.details);
+
+      // Śledzenie wyników
+      trackCalculatorResult('credit-score', { input: requestData, output: data });
       
-      // Zapisz szczegółowe dane z zaawansowanego algorytmu
-      setCalculationDetails({
-        totalIncome: result.details?.totalIncome,
-        costOfLiving: result.details?.costOfLiving,
-        totalCommitments: result.details?.totalCommitments,
-        stressedInterestRate: result.details?.stressedInterestRate,
-        effectiveDstiLimit: result.details?.effectiveDstiLimit,
-        dstiUsed: result.details?.dstiUsed
-      });
-
-      // Śledzenie wyniku kalkulatora
-      trackCalculatorResult('credit-score', {
-        max_loan_amount: result.maxLoanAmount,
-        credit_capacity: result.creditCapacity,
-        total_income: result.details?.totalIncome,
-        dsti_limit: result.details?.effectiveDstiLimit,
-        stressed_rate: result.details?.stressedInterestRate
-      });
-
     } catch (err) {
       console.error('Błąd podczas obliczeń:', err);
       const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd';
@@ -308,23 +294,31 @@ const CreditScoreCalculatorPageContent = () => {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Kalkulator Zdolności Kredytowej
-        </h1>
-        
-        <Card className="max-w-8xl mx-auto">
-          <CardHeader>
-            <CardTitle>Oblicz swoją zdolność kredytową</CardTitle>
-            <CardDescription>
-              Wprowadź swoje dane finansowe, aby poznać orientacyjną zdolność kredytową
+      <div className="container mx-auto p-4 md:p-8">
+        <Card className="max-w-4xl mx-auto shadow-2xl">
+          <CardHeader className="text-center bg-gray-50 rounded-t-lg py-8">
+            <CardTitle className="text-3xl md:text-4xl font-extrabold">
+              Kalkulator zdolności kredytowej
+            </CardTitle>
+            <CardDescription className="mt-2 text-lg">
+              Oszacuj swoją zdolność kredytową i sprawdź, na jaki kredyt Cię stać.
             </CardDescription>
           </CardHeader>
-          
-          <CardContent>
-            <div className="space-y-8">
-              {/* Sekcja dochodów */}
-              <div>
+          <CardContent className="p-6 md:p-8">
+             <SaveCalculationButton
+              calculationData={{
+                monthlyIncome, monthlyExpenses, otherLoans, householdSize,
+                loanAmount, loanTerm, interestRate, installmentType,
+                secondBorrowerIncome, employmentType, creditCardLimits,
+                accountOverdrafts, dstiRatio
+              }}
+              resultData={{ creditCapacity, maxLoanAmount, calculationDetails, chartData }}
+              calculationType="credit-score"
+              className="mb-8"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Sekcja Dochody i Zobowiązania */}
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold mb-4">Dochody</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <InputWithTooltip
