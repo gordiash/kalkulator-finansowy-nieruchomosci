@@ -8,9 +8,28 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
 
+  // Konfiguracja dla Vercel
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+
   webpack: (config, { dev, isServer }) => {
-    // Dodaj alias dla @
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    // Dodaj alias dla @ - używaj path.resolve dla lepszej kompatybilności
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+    };
+    
+    // Dodaj fallback dla modułów
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
     
     // Optymalizacje tylko dla produkcji
     if (!dev) {
