@@ -82,16 +82,16 @@ export default function SaveCalculationButton({
   }
 
   return (
-    <div className={`bg-gradient-to-r from-blue-50 to-indigo-50 border border-gray-200 rounded-2xl p-6 mt-8 shadow-sm ${className}`}>
-      <h3 className="text-xl font-bold text-gray-800 mb-2">Zapisz swoją kalkulację</h3>
-      <p className="text-gray-600 mb-4">
+    <div className={`bg-gradient-to-r from-blue-50 to-indigo-50 border border-gray-200 rounded-2xl p-4 sm:p-6 mt-6 sm:mt-8 shadow-sm ${className}`}>
+      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Zapisz swoją kalkulację</h3>
+      <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
         {resultData 
           ? 'Nadaj tytuł i zapisz wyniki na swoim koncie, aby wrócić do nich później.'
           : 'Po wykonaniu obliczeń, będziesz mógł zapisać tę kalkulację na swoim koncie.'
         }
       </p>
       
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <input
           type="text"
           value={title}
@@ -101,17 +101,17 @@ export default function SaveCalculationButton({
             if (success) setSuccess(null);
           }}
           placeholder="np. Moja pierwsza wycena, Mieszkanie w Warszawie"
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
           disabled={isSaving}
         />
         <button
           onClick={handleSave}
           disabled={isSaving || !title || !resultData}
-          className="w-full sm:w-auto bg-blue-600 text-white font-semibold py-3 px-8 rounded-xl hover:bg-blue-700 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center shadow-lg"
+          className="w-full sm:w-auto bg-blue-600 text-white font-semibold py-2 sm:py-3 px-6 sm:px-8 text-sm sm:text-base rounded-xl hover:bg-blue-700 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center shadow-lg"
         >
           {isSaving ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
               Zapisywanie...
             </>
           ) : (
@@ -120,8 +120,8 @@ export default function SaveCalculationButton({
         </button>
       </div>
 
-      {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
-      {success && <p className="text-green-600 text-sm mt-3">{success}</p>}
+      {error && <p className="text-red-500 text-xs sm:text-sm mt-2 sm:mt-3">{error}</p>}
+      {success && <p className="text-green-600 text-xs sm:text-sm mt-2 sm:mt-3">{success}</p>}
     </div>
   );
 } 

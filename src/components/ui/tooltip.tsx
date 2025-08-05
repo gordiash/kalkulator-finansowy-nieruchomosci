@@ -197,7 +197,7 @@ export function Tooltip({
       id={tooltipId}
       role="tooltip"
               className={`
-          fixed z-50 px-4 py-3 text-sm text-white bg-gray-800 rounded-lg shadow-xl max-w-sm
+          fixed z-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-white bg-gray-800 rounded-lg shadow-xl max-w-xs sm:max-w-sm
           pointer-events-none transform transition-all duration-200 opacity-100
           border border-gray-700 backdrop-blur-sm
           ${effectivePosition === 'top' ? '-translate-x-1/2 -translate-y-full' : ''}

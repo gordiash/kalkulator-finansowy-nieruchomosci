@@ -104,13 +104,13 @@ const NewsletterFooterForm: React.FC = () => {
             value={email}
             onChange={handleEmailChange}
             placeholder="Twój email"
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10 sm:h-11"
             disabled={status === 'loading' || status === 'success'}
           />
           <button
             type="submit"
             disabled={status === 'loading' || status === 'success' || !email}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 h-10 sm:h-11"
           >
             {status === 'loading' ? (
               <Loader2 className="w-4 h-4 animate-spin" />

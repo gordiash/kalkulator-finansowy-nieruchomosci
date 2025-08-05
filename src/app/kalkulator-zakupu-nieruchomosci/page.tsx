@@ -824,28 +824,28 @@ function RealEstateCalculatorPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-20 sm:pt-24">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Card className="max-w-7xl mx-auto shadow-2xl border-gray-200/50">
-          <CardHeader className="text-center border-b border-gray-200/80 bg-white rounded-t-lg pt-8 pb-4">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+          <CardHeader className="text-center border-b border-gray-200/80 bg-white rounded-t-lg pt-6 sm:pt-8 pb-4 px-4 sm:px-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
               Kalkulator Zakupu Nieruchomości
             </h1>
-            <p className="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="mt-2 text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Kompleksowe narzędzie do analizy kosztów kredytu hipotecznego, nadpłat i symulacji zmian stóp procentowych.
             </p>
           </CardHeader>
-          <CardContent className="p-6 md:p-8">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
             <SaveCalculationButton
               calculationData={formData}
               resultData={results}
               calculationType="purchase"
-              className="mb-8"
+              className="mb-6 sm:mb-8"
             />
             {/* FORMULARZ */}
             <form className="space-y-6">
               {/* === Lewa kolumna: Formularz === */}
-              <div className="lg:col-span-1 space-y-6">
-                <h3 className="font-semibold text-lg border-b pb-2">Nieruchomość i Kredyt</h3>
+              <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+                <h3 className="font-semibold text-base sm:text-lg border-b pb-2">Nieruchomość i Kredyt</h3>
                 <InputWithValidation
                   id="propertyValue"
                   name="propertyValue"

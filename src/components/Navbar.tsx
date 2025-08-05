@@ -48,18 +48,19 @@ const Navbar = () => {
         ? 'bg-white/95 backdrop-blur-xl shadow-2xl border-b border-gray-200/30' 
         : 'bg-gradient-to-r from-pink-50/90 via-purple-50/90 to-indigo-50/90 backdrop-blur-md'
     }`}>
-      <div className="container mx-auto px-6">
-        <div className="flex justify-between items-center py-5">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="flex justify-between items-center py-4 sm:py-5">
           {/* Logo */}
           <Link 
             href="/" 
-            className="text-2xl font-black text-gray-800 hover:text-purple-600 transition-all duration-300 flex items-center space-x-2" 
+            className="text-lg sm:text-xl lg:text-2xl font-black text-gray-800 hover:text-purple-600 transition-all duration-300 flex items-center space-x-2" 
             prefetch={true}
           >
-            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg">🏠</span>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm sm:text-lg">🏠</span>
             </div>
-            <span>Kalkulatory Nieruchomości</span>
+            <span className="hidden sm:inline">Kalkulatory Nieruchomości</span>
+            <span className="sm:hidden">KN</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -213,85 +214,85 @@ const Navbar = () => {
           <div className="lg:hidden">
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="relative w-12 h-12 text-gray-600 hover:text-purple-600 focus:outline-none transition-all duration-300 rounded-xl hover:bg-purple-100 hover:shadow-md hover:scale-105 flex items-center justify-center" 
+              className="relative w-10 h-10 sm:w-12 sm:h-12 text-gray-600 hover:text-purple-600 focus:outline-none transition-all duration-300 rounded-xl hover:bg-purple-100 hover:shadow-md hover:scale-105 flex items-center justify-center" 
               aria-label="Toggle menu"
             >
-              <div className="relative w-6 h-6">
-                <span className={`absolute top-0 left-0 w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                <span className={`absolute top-2 left-0 w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
-                <span className={`absolute top-4 left-0 w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+              <div className="relative w-5 h-5 sm:w-6 sm:h-6">
+                <span className={`absolute top-0 left-0 w-5 h-0.5 sm:w-6 sm:h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+                <span className={`absolute top-2 left-0 w-5 h-0.5 sm:w-6 sm:h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
+                <span className={`absolute top-4 left-0 w-5 h-0.5 sm:w-6 sm:h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
               </div>
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <div className={`lg:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100 visible' : 'max-h-0 opacity-0 invisible'}`}>
-          <div className="px-4 pt-4 pb-6 space-y-4 border-t border-gray-200/50 bg-gradient-to-b from-white/95 to-purple-50/95 backdrop-blur-xl rounded-b-3xl shadow-2xl">
+        <div className={`lg:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100 visible' : 'max-h-0 opacity-0 invisible'} z-50`}>
+          <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-6 space-y-3 sm:space-y-4 border-t border-gray-200/50 bg-gradient-to-b from-white/95 to-purple-50/95 backdrop-blur-xl rounded-b-3xl shadow-2xl relative z-50">
             <div className="space-y-2">
-              <div className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">Kalkulatory</div>
+              <div className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide">Kalkulatory</div>
               <Link 
                 href="/kalkulator-wyceny" 
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
                 prefetch={true}
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm">💰</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm">💰</span>
                 </div>
                 <div>
-                  <span>Kalkulator wyceny</span>
+                  <span className="text-sm sm:text-base">Kalkulator wyceny</span>
                   <p className="text-xs text-gray-500">Profesjonalna wycena nieruchomości</p>
                 </div>
               </Link>
               <Link 
                 href="/kalkulator-zakupu-nieruchomosci" 
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
                 prefetch={true}
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm">🏠</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm">🏠</span>
                 </div>
                 <div>
-                  <span>Zakup Nieruchomości</span>
+                  <span className="text-sm sm:text-base">Zakup Nieruchomości</span>
                   <p className="text-xs text-gray-500">Analiza opłacalności zakupu</p>
                 </div>
               </Link>
               <Link 
                 href="/kalkulator-wynajmu" 
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
                 prefetch={true}
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm">📊</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm">📊</span>
                 </div>
                 <div>
-                  <span>Opłacalność Wynajmu</span>
+                  <span className="text-sm sm:text-base">Opłacalność Wynajmu</span>
                   <p className="text-xs text-gray-500">Analiza rentowności wynajmu</p>
                 </div>
               </Link>
               <Link 
                 href="/kalkulator-zdolnosci-kredytowej" 
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
                 prefetch={true}
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm">💳</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm">💳</span>
                 </div>
                 <div>
-                  <span>Zdolność Kredytowa</span>
+                  <span className="text-sm sm:text-base">Zdolność Kredytowa</span>
                   <p className="text-xs text-gray-500">Sprawdź swoją zdolność kredytową</p>
                 </div>
               </Link>
             </div>
             
-            <div className="space-y-2 pt-4 border-t border-gray-200/50">
+            <div className="space-y-2 pt-3 sm:pt-4 border-t border-gray-200/50">
               <Link 
                 href="/blog" 
-                className="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
                 prefetch={true}
               >
@@ -301,7 +302,7 @@ const Navbar = () => {
                 href="https://suppi.pl/kalkulatorynieruchomosci" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Wesprzyj projekt
@@ -310,11 +311,11 @@ const Navbar = () => {
                 <>
                   <Link 
                     href="/panel" 
-                    className="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105 flex items-center space-x-3"
+                    className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105 flex items-center space-x-3"
                     onClick={() => setIsMenuOpen(false)}
                     prefetch={true}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span>Panel</span>
@@ -327,7 +328,7 @@ const Navbar = () => {
                       router.push('/');
                       setIsMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                    className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-red-600 hover:bg-red-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                   >
                     Wyloguj
                   </button>
@@ -336,7 +337,7 @@ const Navbar = () => {
                 <>
                   <Link 
                     href="/logowanie" 
-                    className="block px-4 py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                    className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
                     onClick={() => setIsMenuOpen(false)}
                     prefetch={true}
                   >
@@ -344,7 +345,7 @@ const Navbar = () => {
                   </Link>
                   <Link 
                     href="/rejestracja" 
-                    className="block px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-medium text-center hover:shadow-xl hover:scale-105"
+                    className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-medium text-center hover:shadow-xl hover:scale-105"
                     onClick={() => setIsMenuOpen(false)}
                     prefetch={true}
                   >

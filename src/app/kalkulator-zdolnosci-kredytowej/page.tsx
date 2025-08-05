@@ -330,17 +330,17 @@ const CreditScoreCalculatorPageContent = () => {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-20 sm:pt-24">
-        <div className="container mx-auto p-4 md:p-8">
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           <Card className="max-w-6xl mx-auto shadow-2xl">
-            <CardHeader className="text-center bg-gray-50 rounded-t-lg py-8">
-              <CardTitle className="text-3xl md:text-4xl font-extrabold">
+            <CardHeader className="text-center bg-gray-50 rounded-t-lg py-6 sm:py-8 px-4 sm:px-6">
+              <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-extrabold">
                 Kalkulator zdolności kredytowej
               </CardTitle>
-              <CardDescription className="mt-2 text-lg">
+              <CardDescription className="mt-2 text-base sm:text-lg">
                 Oszacuj swoją zdolność kredytową i sprawdź, na jaki kredyt Cię stać.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 md:p-8">
+            <CardContent className="p-4 sm:p-6 lg:p-8">
                <SaveCalculationButton
                 calculationData={{
                   monthlyIncome, monthlyExpenses, otherLoans, householdSize,
@@ -350,20 +350,20 @@ const CreditScoreCalculatorPageContent = () => {
                 }}
                 resultData={{ creditCapacity, maxLoanAmount, calculationDetails, chartData }}
                 calculationType="credit-score"
-                className="mb-8"
+                className="mb-6 sm:mb-8"
               />
               
               {/* Główny układ formularza */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                 
                 {/* Lewa kolumna - Dochody */}
                 <div className="lg:col-span-1">
                   <Card className="h-fit">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-xl">💰 Dochody</CardTitle>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-lg sm:text-xl">💰 Dochody</CardTitle>
                       <CardDescription>Wprowadź informacje o dochodach</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4 sm:space-y-6">
                       <InputWithTooltip
                         id="monthlyIncome"
                         label="Miesięczny dochód netto - główny kredytobiorca (zł)"

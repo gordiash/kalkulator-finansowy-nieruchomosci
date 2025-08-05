@@ -419,16 +419,16 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
 
       {/* Progress Steps - Modernized */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="px-8 py-10">
-          <div className="flex items-start justify-between max-w-5xl mx-auto">
+        <div className="px-2 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-10">
+          <div className="flex items-start justify-between max-w-5xl mx-auto overflow-x-auto pb-2">
             {STEPS.map((step, index) => (
               <div 
                 key={step.id}
-                className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : 'flex-none'}`}
+                className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : 'flex-none'} min-w-0 flex-shrink-0`}
               >
                 <div className="flex flex-col items-center relative z-10 min-w-0">
                   <div className={`
-                    w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 shadow-lg mb-4
+                    w-8 h-8 sm:w-10 sm:h-10 lg:w-14 lg:h-14 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-500 shadow-lg mb-1 sm:mb-2 lg:mb-4
                     ${index < currentStep 
                       ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white ring-4 ring-emerald-100' 
                       : index === currentStep
@@ -437,15 +437,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     }
                   `}>
                     {index < currentStep ? (
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-6 lg:h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     ) : (
                       index + 1
                     )}
                   </div>
-                  <div className="text-center max-w-[120px]">
-                    <div className={`text-sm font-bold transition-colors duration-300 mb-1 ${
+                  <div className="text-center max-w-[60px] sm:max-w-[80px] lg:max-w-[120px]">
+                    <div className={`text-xs sm:text-sm font-bold transition-colors duration-300 mb-1 ${
                       index < currentStep ? 'text-emerald-600' : 
                       index === currentStep ? 'text-blue-600' : 'text-gray-400'
                     }`}>
@@ -459,9 +459,9 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   </div>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className="flex-1 px-6 flex items-center" style={{ marginTop: '-60px' }}>
+                  <div className="flex-1 px-1 sm:px-2 lg:px-6 flex items-center" style={{ marginTop: '-30px' }}>
                     <div className={`
-                      w-full h-2 rounded-full transition-all duration-700 relative overflow-hidden
+                      w-full h-1 sm:h-2 rounded-full transition-all duration-700 relative overflow-hidden
                       ${index < currentStep ? 'bg-emerald-200' : 'bg-gray-200'}
                     `}>
                       <div className={`
@@ -486,22 +486,22 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Step 0: Basic Data - Modernized */}
         {currentStep === 0 && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-100">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <span className="text-blue-600 text-lg">🏠</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <span className="text-blue-600 text-sm sm:text-lg">🏠</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Podstawowe dane mieszkania</h2>
-                  <p className="text-gray-600 mt-1">Podaj lokalizację i podstawowe informacje o mieszkaniu</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Podstawowe dane mieszkania</h2>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base">Podaj lokalizację i podstawowe informacje o mieszkaniu</p>
                 </div>
               </div>
             </div>
             
-            <div className="p-8">
-              <div className="space-y-8">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="space-y-6 sm:space-y-8">
                 {/* Pierwsza grupa - Miasto i Dzielnica */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* Miasto */}
                   <div className="space-y-2">
                     <FieldWithTooltip
@@ -644,21 +644,21 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Step 1: Property Details - Modernized */}
         {currentStep === 1 && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-100">
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                  <span className="text-indigo-600 text-lg">📋</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                  <span className="text-indigo-600 text-sm sm:text-lg">📋</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Opis nieruchomości</h2>
-                  <p className="text-gray-600 mt-1">Dodatkowe informacje zwiększające dokładność wyceny</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Opis nieruchomości</h2>
+                  <p className="text-gray-600 mt-1 text-xs sm:text-sm lg:text-base">Dodatkowe informacje zwiększające dokładność wyceny</p>
                 </div>
               </div>
             </div>
             
-            <div className="p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Rok budowy */}
                 <FieldWithTooltip
                   label="Rok budowy"
@@ -724,7 +724,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="condition"
                     value={form.condition}
                     onChange={(e) => setForm({ ...form, condition: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="excellent">Doskonały (nowe, po remoncie)</option>
                     <option value="good">Dobry (mieszkalny, bez remontu)</option>
@@ -744,7 +744,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="buildingType"
                     value={form.buildingType}
                     onChange={(e) => setForm({ ...form, buildingType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="blok">Blok/apartamentowiec</option>
                     <option value="kamienica">Kamienica</option>
@@ -764,7 +764,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="locationTier"
                     value={form.locationTier}
                     onChange={(e) => setForm({ ...form, locationTier: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="premium">Premium (centrum, prestiżowe dzielnice)</option>
                     <option value="high">Wysoka (dobre dzielnice, dobra komunikacja)</option>
@@ -780,21 +780,21 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Step 2: Additional Features - Modernized */}
         {currentStep === 2 && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-8 py-6 border-b border-gray-100">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <span className="text-emerald-600 text-lg">✨</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <span className="text-emerald-600 text-sm sm:text-lg">✨</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Dodatkowe cechy</h2>
-                  <p className="text-gray-600 mt-1">Udogodnienia i wyposażenie wpływające na wartość</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Dodatkowe cechy</h2>
+                  <p className="text-gray-600 mt-1 text-xs sm:text-sm lg:text-base">Udogodnienia i wyposażenie wpływające na wartość</p>
                 </div>
               </div>
             </div>
             
-            <div className="p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Parking */}
                 <FieldWithTooltip
                   label="Miejsce parkingowe"
@@ -886,7 +886,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="finishing"
                     value={form.finishing}
                     onChange={(e) => setForm({ ...form, finishing: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="high">Wysoki (luksusowe materiały)</option>
                     <option value="standard">Standardowy (deweloperski)</option>
@@ -905,7 +905,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="orientation"
                     value={form.orientation}
                     onChange={(e) => setForm({ ...form, orientation: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="south">🌞 Południe</option>
                     <option value="east">🌅 Wschód</option>
@@ -925,7 +925,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="transport"
                     value={form.transport}
                     onChange={(e) => setForm({ ...form, transport: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="excellent">🚇 Doskonała (węzeł komunikacyjny)</option>
                     <option value="good">🚌 Dobra (blisko centrum)</option>
@@ -941,27 +941,27 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Step 3: Additional Details - Modernized */}
         {currentStep === 3 && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-8 py-6 border-b border-gray-100">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <span className="text-purple-600 text-lg">🔍</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <span className="text-purple-600 text-sm sm:text-lg">🔍</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Szczegółowe informacje</h2>
-                  <p className="text-gray-600 mt-1">Te informacje są opcjonalne, ale mogą zwiększyć dokładność wyceny</p>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Szczegółowe informacje</h2>
+                  <p className="text-gray-600 mt-1 text-xs sm:text-sm lg:text-base">Te informacje są opcjonalne, ale mogą zwiększyć dokładność wyceny</p>
                 </div>
               </div>
-              <div className="mt-4 p-4 bg-blue-50/50 backdrop-blur-sm rounded-xl border border-blue-200/50">
-                <p className="text-sm text-blue-700 flex items-center">
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50/50 backdrop-blur-sm rounded-xl border border-blue-200/50">
+                <p className="text-xs sm:text-sm text-blue-700 flex items-center">
                   <span className="mr-2">💡</span>
                   <strong className="mr-1">Wskazówka:</strong> Możesz pominąć ten krok lub wypełnić wybrane pola dla lepszej precyzji.
                 </p>
               </div>
             </div>
             
-            <div className="p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Ogrzewanie */}
                 <FieldWithTooltip
                   label="Typ ogrzewania"
@@ -973,7 +973,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="heating"
                     value={form.heating}
                     onChange={(e) => setForm({ ...form, heating: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="">Wybierz typ ogrzewania</option>
                     <option value="central">🏢 Centralne miejskie</option>
@@ -1013,7 +1013,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="kitchenType"
                     value={form.kitchenType}
                     onChange={(e) => setForm({ ...form, kitchenType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="">Wybierz typ kuchni</option>
                     <option value="separate">🍽️ Osobna kuchnia</option>
@@ -1033,7 +1033,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="basement"
                     value={form.basement}
                     onChange={(e) => setForm({ ...form, basement: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="">Wybierz opcję</option>
                     <option value="none">❌ Brak</option>
@@ -1054,7 +1054,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="buildingMaterial"
                     value={form.buildingMaterial}
                     onChange={(e) => setForm({ ...form, buildingMaterial: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="">Wybierz materiał</option>
                     <option value="brick">🧱 Cegła</option>
@@ -1076,7 +1076,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     name="ownership"
                     value={form.ownership}
                     onChange={(e) => setForm({ ...form, ownership: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                   >
                     <option value="">Wybierz formę własności</option>
                     <option value="full">📜 Pełna własność</option>
@@ -1129,61 +1129,61 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Step 4: Results - Modernized */}
         {currentStep === 4 && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="p-8">
-              {status === 'loading' && (
-                <div className="text-center py-16">
-                  <div className="relative">
-                    <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 bg-blue-600/10 rounded-full animate-pulse"></div>
+            <div className="p-4 sm:p-6 lg:p-8">
+                              {status === 'loading' && (
+                  <div className="text-center py-12 sm:py-16">
+                    <div className="relative">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4 sm:mb-6"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600/10 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">Obliczamy wycenę...</h2>
+                    <p className="text-gray-600 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6">Analizujemy dane przy użyciu EstymatorAI</p>
+                    <div className="max-w-sm mx-auto">
+                      <div className="bg-gray-100 rounded-full h-2 sm:h-3 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 sm:h-3 rounded-full animate-pulse transition-all duration-1000" style={{ width: '85%' }}></div>
+                      </div>
+                      <div className="flex justify-between text-xs sm:text-sm text-gray-500 mt-2">
+                        <span>Preprocessing...</span>
+                        <span>85%</span>
+                      </div>
                     </div>
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Obliczamy wycenę...</h2>
-                  <p className="text-gray-600 text-lg mb-6">Analizujemy dane przy użyciu EstymatorAI</p>
-                  <div className="max-w-sm mx-auto">
-                    <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
-                      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full animate-pulse transition-all duration-1000" style={{ width: '85%' }}></div>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-500 mt-2">
-                      <span>Preprocessing...</span>
-                      <span>85%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
 
               {status === 'success' && result && (
                 <div className="space-y-8">
                   <div className="text-center">
                     <div className="relative">
-                      <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                        <span className="text-4xl">💰</span>
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+                        <span className="text-2xl sm:text-4xl">💰</span>
                       </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="absolute -top-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
                     </div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-3">Wycena gotowa!</h2>
-                    <p className="text-gray-600 text-lg">Oto oszacowana wartość Twojego mieszkania</p>
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">Wycena gotowa!</h2>
+                    <p className="text-gray-600 text-sm sm:text-base lg:text-lg">Oto oszacowana wartość Twojego mieszkania</p>
                   </div>
 
-                  <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-2xl p-8 border border-emerald-200 shadow-lg">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 rounded-full -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-300/20 rounded-full -ml-12 -mb-12"></div>
+                  <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-2xl p-4 sm:p-6 lg:p-8 border border-emerald-200 shadow-lg">
+                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-emerald-200/30 rounded-full -mr-12 -mt-12 sm:-mr-16 sm:-mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-20 h-20 sm:w-24 sm:h-24 bg-emerald-300/20 rounded-full -ml-10 -mb-10 sm:-ml-12 sm:-mb-12"></div>
                     
                     <div className="relative text-center">
-                      <div className="text-lg text-emerald-700 mb-3 font-medium">Szacowana wartość</div>
-                      <div className="text-5xl font-bold text-emerald-800 mb-6 tracking-tight">
+                      <div className="text-sm sm:text-lg text-emerald-700 mb-2 sm:mb-3 font-medium">Szacowana wartość</div>
+                      <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-emerald-800 mb-4 sm:mb-6 tracking-tight">
                         {formatCurrency(result.price)}
                       </div>
-                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 inline-block border border-emerald-200/50">
-                        <div className="text-lg text-emerald-700 font-medium">
+                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 sm:p-4 inline-block border border-emerald-200/50">
+                        <div className="text-sm sm:text-lg text-emerald-700 font-medium">
                           Przedział: {formatCurrency(result.minPrice)} – {formatCurrency(result.maxPrice)}
                         </div>
                         {result.confidence && (
-                          <div className="text-sm text-emerald-600 mt-2 bg-emerald-100/50 px-3 py-1 rounded-full inline-block">
+                          <div className="text-xs sm:text-sm text-emerald-600 mt-2 bg-emerald-100/50 px-2 sm:px-3 py-1 rounded-full inline-block">
                             Pewność: {result.confidence}
                           </div>
                         )}
@@ -1192,15 +1192,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   </div>
 
                   {/* Method and timestamp - Modernized */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                          <span className="text-blue-600">🤖</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center space-x-3 mb-2 sm:mb-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <span className="text-blue-600 text-sm sm:text-base">🤖</span>
                         </div>
                         <div>
-                          <div className="text-sm text-blue-700 font-medium">Metoda wyceny</div>
-                          <div className="text-lg font-bold text-blue-900">
+                          <div className="text-xs sm:text-sm text-blue-700 font-medium">Metoda wyceny</div>
+                          <div className="text-sm sm:text-lg font-bold text-blue-900">
                             {result.method.includes('random_forest') ? 'Random Forest AI' : 
                              result.method.includes('heuristic_fallback') ? 'Heurystyka' : 
                              result.method.includes('ensemble') ? 'EstymatorAI' :
@@ -1210,14 +1210,14 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                       </div>
                     </div>
                     {result.timestamp && (
-                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                            <span className="text-gray-600">⏱️</span>
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center space-x-3 mb-2 sm:mb-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                            <span className="text-gray-600 text-sm sm:text-base">⏱️</span>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-700 font-medium">Czas wyceny</div>
-                            <div className="text-lg font-bold text-gray-900">
+                            <div className="text-xs sm:text-sm text-gray-700 font-medium">Czas wyceny</div>
+                            <div className="text-sm sm:text-lg font-bold text-gray-900">
                               {new Date(result.timestamp).toLocaleString('pl-PL')}
                             </div>
                           </div>
@@ -1227,46 +1227,46 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   </div>
 
                   {/* Action buttons - Modernized */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div className="text-center">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Co dalej?</h3>
-                      <p className="text-gray-600">Sprawdź powiązane kalkulatory finansowe</p>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Co dalej?</h3>
+                      <p className="text-gray-600 text-sm sm:text-base">Sprawdź powiązane kalkulatory finansowe</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       <Link
                         href={`/kalkulator-zdolnosci-kredytowej?kwota=${result.price}`}
-                        className="group block bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        className="group block bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
                         <div className="text-center">
-                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">💳</div>
-                          <div className="font-bold text-lg mb-2">Rata kredytu</div>
-                          <div className="text-blue-100 text-sm">Sprawdź miesięczną ratę hipoteki</div>
+                          <div className="text-2xl sm:text-3xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">💳</div>
+                          <div className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Rata kredytu</div>
+                          <div className="text-blue-100 text-xs sm:text-sm">Sprawdź miesięczną ratę hipoteki</div>
                         </div>
                       </Link>
                       <Link
                         href={`/kalkulator-wynajmu?cena=${result.price}`}
-                        className="group block bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        className="group block bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
                         <div className="text-center">
-                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">🏘️</div>
-                          <div className="font-bold text-lg mb-2">Rentowność</div>
-                          <div className="text-emerald-100 text-sm">Oblicz zysk z wynajmu</div>
+                          <div className="text-2xl sm:text-3xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">🏘️</div>
+                          <div className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Rentowność</div>
+                          <div className="text-emerald-100 text-xs sm:text-sm">Oblicz zysk z wynajmu</div>
                         </div>
                       </Link>
                       <Link
                         href={`/kalkulator-zakupu-nieruchomosci?cena=${result.price}`}
-                        className="group block bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        className="group block bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                       >
                         <div className="text-center">
-                          <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">💰</div>
-                          <div className="font-bold text-lg mb-2">Koszty zakupu</div>
-                          <div className="text-indigo-100 text-sm">Poznaj wszystkie wydatki</div>
+                          <div className="text-2xl sm:text-3xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">💰</div>
+                          <div className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Koszty zakupu</div>
+                          <div className="text-indigo-100 text-xs sm:text-sm">Poznaj wszystkie wydatki</div>
                         </div>
                       </Link>
                     </div>
                   </div>
 
-                  <div className="text-center border-t border-gray-200 pt-8">
+                  <div className="text-center border-t border-gray-200 pt-6 sm:pt-8">
                     <Button
                       type="button"
                       onClick={() => {
@@ -1275,7 +1275,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                         setResult(null)
                       }}
                       variant="outline"
-                      className="px-8 py-3 rounded-xl border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 hover:scale-105 font-semibold"
+                      className="px-6 sm:px-8 py-2 sm:py-3 rounded-xl border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 hover:scale-105 font-semibold text-sm sm:text-base"
                     >
                       <span className="mr-2">🔄</span>
                       Nowa wycena
@@ -1287,19 +1287,19 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     calculationData={form}
                     resultData={result}
                     calculationType="valuation"
-                    className="mt-8 max-w-xl mx-auto"
+                    className="mt-6 sm:mt-8 max-w-xl mx-auto"
                   />
 
                 </div>
               )}
 
               {status === 'error' && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">❌</span>
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <span className="text-2xl sm:text-3xl">❌</span>
                   </div>
-                  <h2 className="text-2xl font-bold text-red-900 mb-2">Wystąpił błąd</h2>
-                  <p className="text-red-700 mb-4">{error}</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-red-900 mb-2">Wystąpił błąd</h2>
+                  <p className="text-red-700 mb-4 text-sm sm:text-base">{error}</p>
                   <Button
                     type="button"
                     onClick={() => {
@@ -1308,6 +1308,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                       setCurrentStep(3)
                     }}
                     variant="outline"
+                    className="text-sm sm:text-base"
                   >
                     Spróbuj ponownie
                   </Button>
@@ -1320,15 +1321,15 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
         {/* Navigation Buttons - Modernized */}
         {currentStep < 4 && (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="p-6">
-              <div className="flex justify-between items-center">
+            <div className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
                 <Button
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 0}
                   variant="outline"
                   className={`
-                    px-8 py-3 rounded-xl border-2 transition-all duration-300 font-semibold
+                    w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-xl border-2 transition-all duration-300 font-semibold text-sm sm:text-base
                     ${currentStep === 0 
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'hover:scale-105 hover:shadow-lg border-gray-300 hover:border-blue-400 hover:bg-blue-50'
@@ -1339,19 +1340,19 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                   Wstecz
                 </Button>
 
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-700">
+                <div className="text-center order-first sm:order-none">
+                  <div className="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">
                     Krok {currentStep + 1} z {STEPS.length - 1}
                   </div>
                   {!isCurrentStepValid && currentStep === 0 && (
-                    <div className="text-sm text-red-600 mt-1 bg-red-50 px-3 py-1 rounded-full inline-block">
+                    <div className="text-xs sm:text-sm text-red-600 mt-1 bg-red-50 px-2 sm:px-3 py-1 rounded-full inline-block">
                       Wypełnij wymagane pola
                     </div>
                   )}
                 </div>
 
                 {currentStep === 3 ? (
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
                     <Button
                       type="button"
                       onClick={() => {
@@ -1359,7 +1360,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                         handleSubmit(mockEvent)
                       }}
                       disabled={!isFormValid || status === 'loading'}
-                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 hover:scale-105 hover:shadow-xl font-semibold"
+                      className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 hover:scale-105 hover:shadow-xl font-semibold text-sm sm:text-base"
                     >
                       <span className="mr-2">🏠</span>
                       Oblicz wycenę
@@ -1372,7 +1373,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                       }}
                       disabled={!isFormValid || status === 'loading'}
                       variant="outline"
-                      className="px-8 py-3 rounded-xl border-2 border-gray-300 hover:border-orange-400 hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-all duration-300 hover:scale-105 font-semibold"
+                      className="w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-xl border-2 border-gray-300 hover:border-orange-400 hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-all duration-300 hover:scale-105 font-semibold text-sm sm:text-base"
                     >
                       <span className="mr-2">⚡</span>
                       Pomiń szczegóły
@@ -1384,7 +1385,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     onClick={nextStep}
                     disabled={!isCurrentStepValid}
                     className={`
-                      px-8 py-3 rounded-xl font-semibold transition-all duration-300
+                      w-full sm:w-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base
                       ${!isCurrentStepValid 
                         ? 'opacity-50 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-xl'
