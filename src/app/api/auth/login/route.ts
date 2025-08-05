@@ -80,7 +80,10 @@ export async function POST(request: Request) {
     }
 
     // Wygeneruj token JWT
-    const token = generateToken(user.id.toString(), user.email);
+    const token = generateToken({
+      userId: user.id.toString(),
+      email: user.email
+    });
 
     // Zwróć token i dane użytkownika (konwertuj BigInt na Number)
     return NextResponse.json({

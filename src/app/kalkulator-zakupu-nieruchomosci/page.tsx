@@ -891,7 +891,7 @@ function RealEstateCalculatorPageContent() {
                   name="loanTerm"
                   label="Okres kredytowania (lata)"
                   value={formData.loanTerm}
-                  onChange={handleNumericInput('loanTerm', false)}
+                  onChange={handleNumericInput('loanTerm')}
                   placeholder="np. 30"
                   error={validationErrors.loanTerm}
                 />
