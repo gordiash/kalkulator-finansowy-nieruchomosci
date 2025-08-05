@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return (
-    <section className="container mx-auto p-4 md:p-8 max-w-3xl">
+    <section className="container mx-auto p-4 md:p-8 max-w-3xl pt-20 sm:pt-24">
       
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Kilka słów od twórcy</h2>

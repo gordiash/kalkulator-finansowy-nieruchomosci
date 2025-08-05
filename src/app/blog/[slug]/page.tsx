@@ -154,7 +154,7 @@ async function PostPageContent({ slug }: { slug: string }) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen pt-20 sm:pt-24">
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto" style={{ maxWidth: '1200px' }}>
           {/* Header */}

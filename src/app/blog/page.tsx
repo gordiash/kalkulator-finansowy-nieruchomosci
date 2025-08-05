@@ -34,7 +34,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
     const posts: BlogPostListing[] = postsAll.slice((page - 1) * pageSize, page * pageSize);
 
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 pt-20 sm:pt-24">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-12">

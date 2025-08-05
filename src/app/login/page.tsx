@@ -23,7 +23,7 @@ export default function LoginPage() {
   }, [router, redirect]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 pt-20 sm:pt-24">
       <div className="max-w-md w-full bg-white rounded-lg shadow p-8">
         <h1 className="text-2xl font-bold mb-6 text-center">Panel administracyjny</h1>
         <Auth

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function RegulaminPage() {
   return (
-    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen pt-20 sm:pt-24">
       <Card className="mb-6 sm:mb-8">
         <CardHeader className="pb-4 sm:pb-6">
           <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-center font-bold">

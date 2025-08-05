@@ -329,449 +329,451 @@ const CreditScoreCalculatorPageContent = () => {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto p-4 md:p-8">
-        <Card className="max-w-6xl mx-auto shadow-2xl">
-          <CardHeader className="text-center bg-gray-50 rounded-t-lg py-8">
-            <CardTitle className="text-3xl md:text-4xl font-extrabold">
-              Kalkulator zdolności kredytowej
-            </CardTitle>
-            <CardDescription className="mt-2 text-lg">
-              Oszacuj swoją zdolność kredytową i sprawdź, na jaki kredyt Cię stać.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8">
-             <SaveCalculationButton
-              calculationData={{
-                monthlyIncome, monthlyExpenses, otherLoans, householdSize,
-                loanAmount, loanTerm, interestRate, installmentType,
-                secondBorrowerIncome, employmentType, creditCardLimits,
-                accountOverdrafts, dstiRatio
-              }}
-              resultData={{ creditCapacity, maxLoanAmount, calculationDetails, chartData }}
-              calculationType="credit-score"
-              className="mb-8"
-            />
-            
-            {/* Główny układ formularza */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-20 sm:pt-24">
+        <div className="container mx-auto p-4 md:p-8">
+          <Card className="max-w-6xl mx-auto shadow-2xl">
+            <CardHeader className="text-center bg-gray-50 rounded-t-lg py-8">
+              <CardTitle className="text-3xl md:text-4xl font-extrabold">
+                Kalkulator zdolności kredytowej
+              </CardTitle>
+              <CardDescription className="mt-2 text-lg">
+                Oszacuj swoją zdolność kredytową i sprawdź, na jaki kredyt Cię stać.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 md:p-8">
+               <SaveCalculationButton
+                calculationData={{
+                  monthlyIncome, monthlyExpenses, otherLoans, householdSize,
+                  loanAmount, loanTerm, interestRate, installmentType,
+                  secondBorrowerIncome, employmentType, creditCardLimits,
+                  accountOverdrafts, dstiRatio
+                }}
+                resultData={{ creditCapacity, maxLoanAmount, calculationDetails, chartData }}
+                calculationType="credit-score"
+                className="mb-8"
+              />
               
-              {/* Lewa kolumna - Dochody */}
-              <div className="lg:col-span-1">
-                <Card className="h-fit">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl">💰 Dochody</CardTitle>
-                    <CardDescription>Wprowadź informacje o dochodach</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <InputWithTooltip
-                      id="monthlyIncome"
-                      label="Miesięczny dochód netto - główny kredytobiorca (zł)"
-                      tooltip="Wprowadź miesięczny dochód netto głównego kredytobiorcy po odliczeniu podatków i składek ZUS. To kwota, którą faktycznie otrzymujesz na konto."
-                      value={monthlyIncome}
-                      onChange={handleNumericInput(setMonthlyIncome)}
-                      placeholder="np. 6000"
-                      error={validationErrors.monthlyIncome}
-                    />
-                    
-                    <InputWithTooltip
-                      id="secondBorrowerIncome"
-                      label="Miesięczny dochód netto - drugi kredytobiorca (zł)"
-                      tooltip="Miesięczny dochód netto drugiego kredytobiorcy (np. współmałżonka). Pole opcjonalne - pozostaw puste jeśli kreduyt będzie zaciągany samodzielnie."
-                      value={secondBorrowerIncome}
-                      onChange={handleNumericInput(setSecondBorrowerIncome)}
-                      placeholder="np. 4000"
-                      error={validationErrors.secondBorrowerIncome}
-                    />
-                    
-                    <SelectWithTooltip
-                      id="employmentType"
-                      label="Typ umowy głównego kredytobiorcy"
-                      tooltip="Banki różnie oceniają stabilność dochodów w zależności od typu umowy. Umowa o pracę ma najwyższą wagę, B2B i umowy zlecenia są traktowane jako mniej stabilne."
-                      value={employmentType}
-                      onValueChange={setEmploymentType}
-                      placeholder="Wybierz typ umowy"
-                    >
-                      <SelectItem value="employment">Umowa o pracę</SelectItem>
-                      <SelectItem value="b2b">B2B / Działalność gospodarcza</SelectItem>
-                      <SelectItem value="contract">Umowa zlecenie/o dzieło</SelectItem>
-                    </SelectWithTooltip>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Środkowa kolumna - Wydatki i zobowiązania */}
-              <div className="lg:col-span-1">
-                <Card className="h-fit">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl">📋 Wydatki i zobowiązania</CardTitle>
-                    <CardDescription>Wprowadź informacje o wydatkach</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <InputWithTooltip
-                      id="monthlyExpenses"
-                      label="Miesięczne stałe opłaty (zł)"
-                      tooltip="Suma stałych miesięcznych wydatków takich jak: czynsz, media, telefon, internet, ubezpieczenia. Nie wliczaj kosztów żywności i rozrywki - są one uwzględnione w kosztach utrzymania."
-                      value={monthlyExpenses}
-                      onChange={handleNumericInput(setMonthlyExpenses)}
-                      placeholder="np. 1500"
-                      error={validationErrors.monthlyExpenses}
-                    />
-                    
-                    <InputWithTooltip
-                      id="otherLoans"
-                      label="Raty innych kredytów (zł)"
-                      tooltip="Suma wszystkich miesięcznych rat kredytów, które już spłacasz (kredyt samochodowy, konsumpcyjny, inne kredyty hipoteczne, karty kredytowe w ratach)."
-                      value={otherLoans}
-                      onChange={handleNumericInput(setOtherLoans)}
-                      placeholder="np. 500"
-                      error={validationErrors.otherLoans}
-                    />
-                    
-                    <InputWithTooltip
-                      id="creditCardLimits"
-                      label="Suma limitów na kartach kredytowych (zł)"
-                      tooltip="Łączna suma wszystkich przyznanych limitów na kartach kredytowych. Bank zakłada, że możesz wykorzystać 3% tych limitów miesięcznie, co obciąża Twoją zdolność kredytową."
-                      value={creditCardLimits}
-                      onChange={handleNumericInput(setCreditCardLimits)}
-                      placeholder="np. 10000"
-                      error={validationErrors.creditCardLimits}
-                    />
-                    
-                    <InputWithTooltip
-                      id="accountOverdrafts"
-                      label="Suma limitów w koncie - debet (zł)"
-                      tooltip="Łączna suma przyznanych debetów w koncie (możliwość przejścia na minus). Podobnie jak karty kredytowe, bank zakłada 3% miesięczne wykorzystanie."
-                      value={accountOverdrafts}
-                      onChange={handleNumericInput(setAccountOverdrafts)}
-                      placeholder="np. 5000"
-                      error={validationErrors.accountOverdrafts}
-                    />
-                    
-                    <InputWithTooltip
-                      id="householdSize"
-                      label="Liczba osób w gospodarstwie domowym"
-                      tooltip="Liczba osób w gospodarstwie domowym. Kalkulator używa dynamicznego modelu kosztów życia: bazowa kwota dla liczby osób + 10% całkowitego dochodu netto (osoby z wyższymi dochodami mają wyższe koszty życia)."
-                      value={householdSize}
-                      onChange={handleNumericInput(setHouseholdSize, false)}
-                      placeholder="np. 2"
-                      error={validationErrors.householdSize}
-                    />
-
-                    <SelectWithTooltip
-                      id="dstiRatio"
-                      label="Wskaźnik DSTI (%)"
-                      tooltip="Debt Service to Income - preferowany procent dochodu na zobowiązania. UWAGA: Kalkulator automatycznie ogranicza DSTI w zależności od wysokości dochodu: <7500zł→max40%, 7500-12000zł→max50%, >12000zł→zgodnie z wyborem."
-                      value={dstiRatio}
-                      onValueChange={setDstiRatio}
-                      placeholder="Wybierz poziom DSTI"
-                      error={validationErrors.dstiRatio}
-                    >
-                      <SelectItem value="40">40% - konserwatywnie</SelectItem>
-                      <SelectItem value="50">50% - standardowo</SelectItem>
-                      <SelectItem value="60">60% - agresywnie</SelectItem>
-                    </SelectWithTooltip>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Prawa kolumna - Parametry kredytu */}
-              <div className="lg:col-span-1">
-                <Card className="h-fit">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl">🏦 Parametry kredytu</CardTitle>
-                    <CardDescription>Wprowadź parametry kredytu</CardDescription>
-                    {initialLoanAmount && (
-                      <div className="mt-2 p-2 bg-green-100 border border-green-200 rounded text-sm text-green-800">
-                        💰 Kwota z kalkulatora wyceny: {parseInt(initialLoanAmount).toLocaleString('pl-PL')} zł
-                      </div>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {loanAmount && (
+              {/* Główny układ formularza */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Lewa kolumna - Dochody */}
+                <div className="lg:col-span-1">
+                  <Card className="h-fit">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl">💰 Dochody</CardTitle>
+                      <CardDescription>Wprowadź informacje o dochodach</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
                       <InputWithTooltip
-                        id="loanAmount"
-                        label="Kwota kredytu (zł)"
-                        tooltip="Kwota kredytu którą chcesz uzyskać. Zostanie porównana z Twoją maksymalną zdolnością kredytową."
-                        value={loanAmount}
-                        onChange={handleNumericInput(setLoanAmount, false)}
-                        placeholder="np. 500000"
+                        id="monthlyIncome"
+                        label="Miesięczny dochód netto - główny kredytobiorca (zł)"
+                        tooltip="Wprowadź miesięczny dochód netto głównego kredytobiorcy po odliczeniu podatków i składek ZUS. To kwota, którą faktycznie otrzymujesz na konto."
+                        value={monthlyIncome}
+                        onChange={handleNumericInput(setMonthlyIncome)}
+                        placeholder="np. 6000"
+                        error={validationErrors.monthlyIncome}
                       />
+                      
+                      <InputWithTooltip
+                        id="secondBorrowerIncome"
+                        label="Miesięczny dochód netto - drugi kredytobiorca (zł)"
+                        tooltip="Miesięczny dochód netto drugiego kredytobiorcy (np. współmałżonka). Pole opcjonalne - pozostaw puste jeśli kreduyt będzie zaciągany samodzielnie."
+                        value={secondBorrowerIncome}
+                        onChange={handleNumericInput(setSecondBorrowerIncome)}
+                        placeholder="np. 4000"
+                        error={validationErrors.secondBorrowerIncome}
+                      />
+                      
+                      <SelectWithTooltip
+                        id="employmentType"
+                        label="Typ umowy głównego kredytobiorcy"
+                        tooltip="Banki różnie oceniają stabilność dochodów w zależności od typu umowy. Umowa o pracę ma najwyższą wagę, B2B i umowy zlecenia są traktowane jako mniej stabilne."
+                        value={employmentType}
+                        onValueChange={setEmploymentType}
+                        placeholder="Wybierz typ umowy"
+                      >
+                        <SelectItem value="employment">Umowa o pracę</SelectItem>
+                        <SelectItem value="b2b">B2B / Działalność gospodarcza</SelectItem>
+                        <SelectItem value="contract">Umowa zlecenie/o dzieło</SelectItem>
+                      </SelectWithTooltip>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Środkowa kolumna - Wydatki i zobowiązania */}
+                <div className="lg:col-span-1">
+                  <Card className="h-fit">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl">📋 Wydatki i zobowiązania</CardTitle>
+                      <CardDescription>Wprowadź informacje o wydatkach</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <InputWithTooltip
+                        id="monthlyExpenses"
+                        label="Miesięczne stałe opłaty (zł)"
+                        tooltip="Suma stałych miesięcznych wydatków takich jak: czynsz, media, telefon, internet, ubezpieczenia. Nie wliczaj kosztów żywności i rozrywki - są one uwzględnione w kosztach utrzymania."
+                        value={monthlyExpenses}
+                        onChange={handleNumericInput(setMonthlyExpenses)}
+                        placeholder="np. 1500"
+                        error={validationErrors.monthlyExpenses}
+                      />
+                      
+                      <InputWithTooltip
+                        id="otherLoans"
+                        label="Raty innych kredytów (zł)"
+                        tooltip="Suma wszystkich miesięcznych rat kredytów, które już spłacasz (kredyt samochodowy, konsumpcyjny, inne kredyty hipoteczne, karty kredytowe w ratach)."
+                        value={otherLoans}
+                        onChange={handleNumericInput(setOtherLoans)}
+                        placeholder="np. 500"
+                        error={validationErrors.otherLoans}
+                      />
+                      
+                      <InputWithTooltip
+                        id="creditCardLimits"
+                        label="Suma limitów na kartach kredytowych (zł)"
+                        tooltip="Łączna suma wszystkich przyznanych limitów na kartach kredytowych. Bank zakłada, że możesz wykorzystać 3% tych limitów miesięcznie, co obciąża Twoją zdolność kredytową."
+                        value={creditCardLimits}
+                        onChange={handleNumericInput(setCreditCardLimits)}
+                        placeholder="np. 10000"
+                        error={validationErrors.creditCardLimits}
+                      />
+                      
+                      <InputWithTooltip
+                        id="accountOverdrafts"
+                        label="Suma limitów w koncie - debet (zł)"
+                        tooltip="Łączna suma przyznanych debetów w koncie (możliwość przejścia na minus). Podobnie jak karty kredytowe, bank zakłada 3% miesięczne wykorzystanie."
+                        value={accountOverdrafts}
+                        onChange={handleNumericInput(setAccountOverdrafts)}
+                        placeholder="np. 5000"
+                        error={validationErrors.accountOverdrafts}
+                      />
+                      
+                      <InputWithTooltip
+                        id="householdSize"
+                        label="Liczba osób w gospodarstwie domowym"
+                        tooltip="Liczba osób w gospodarstwie domowym. Kalkulator używa dynamicznego modelu kosztów życia: bazowa kwota dla liczby osób + 10% całkowitego dochodu netto (osoby z wyższymi dochodami mają wyższe koszty życia)."
+                        value={householdSize}
+                        onChange={handleNumericInput(setHouseholdSize, false)}
+                        placeholder="np. 2"
+                        error={validationErrors.householdSize}
+                      />
+
+                      <SelectWithTooltip
+                        id="dstiRatio"
+                        label="Wskaźnik DSTI (%)"
+                        tooltip="Debt Service to Income - preferowany procent dochodu na zobowiązania. UWAGA: Kalkulator automatycznie ogranicza DSTI w zależności od wysokości dochodu: <7500zł→max40%, 7500-12000zł→max50%, >12000zł→zgodnie z wyborem."
+                        value={dstiRatio}
+                        onValueChange={setDstiRatio}
+                        placeholder="Wybierz poziom DSTI"
+                        error={validationErrors.dstiRatio}
+                      >
+                        <SelectItem value="40">40% - konserwatywnie</SelectItem>
+                        <SelectItem value="50">50% - standardowo</SelectItem>
+                        <SelectItem value="60">60% - agresywnie</SelectItem>
+                      </SelectWithTooltip>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Prawa kolumna - Parametry kredytu */}
+                <div className="lg:col-span-1">
+                  <Card className="h-fit">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl">🏦 Parametry kredytu</CardTitle>
+                      <CardDescription>Wprowadź parametry kredytu</CardDescription>
+                      {initialLoanAmount && (
+                        <div className="mt-2 p-2 bg-green-100 border border-green-200 rounded text-sm text-green-800">
+                          💰 Kwota z kalkulatora wyceny: {parseInt(initialLoanAmount).toLocaleString('pl-PL')} zł
+                        </div>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {loanAmount && (
+                        <InputWithTooltip
+                          id="loanAmount"
+                          label="Kwota kredytu (zł)"
+                          tooltip="Kwota kredytu którą chcesz uzyskać. Zostanie porównana z Twoją maksymalną zdolnością kredytową."
+                          value={loanAmount}
+                          onChange={handleNumericInput(setLoanAmount, false)}
+                          placeholder="np. 500000"
+                        />
+                      )}
+                      
+                      <InputWithTooltip
+                        id="loanTerm"
+                        label="Okres kredytowania (lata)"
+                        tooltip="Okres na jaki chcesz zaciągnąć kredyt. UWAGA: Do obliczeń jest używany maksymalnie 30-letni okres niezależnie od wprowadzonej wartości, zgodnie z praktyką banków ograniczających ryzyko."
+                        value={loanTerm}
+                        onChange={handleNumericInput(setLoanTerm, false)}
+                        placeholder="30"
+                        error={validationErrors.loanTerm}
+                      />
+                      
+                      <InputWithTooltip
+                        id="interestRate"
+                        label="Oprocentowanie kredytu (%)"
+                        tooltip="Szacowane roczne oprocentowanie kredytu. UWAGA: Kalkulator automatycznie dodaje bufor +2.5 p.p. (stress test) do wprowadzonej wartości, zgodnie z wymogami KNF dotyczącymi scenariusza wzrostu stóp procentowych."
+                        value={interestRate}
+                        onChange={handleNumericInput(setInterestRate)}
+                        placeholder="7.5"
+                        step="0.1"
+                        error={validationErrors.interestRate}
+                      />
+                      
+                      <SelectWithTooltip
+                        id="installmentType"
+                        label="Rodzaj rat"
+                        tooltip="Raty równe (annuitetowe) - stała kwota przez cały okres. Raty malejące - wysoka rata na początku, która się zmniejsza. Raty równe są popularniejsze ze względu na przewidywalność."
+                        value={installmentType}
+                        onValueChange={setInstallmentType}
+                        placeholder="Wybierz rodzaj rat"
+                      >
+                        <SelectItem value="equal">Raty równe (annuitetowe)</SelectItem>
+                        <SelectItem value="decreasing">Raty malejące</SelectItem>
+                      </SelectWithTooltip>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              
+              {/* Przycisk obliczania */}
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={calculateCreditScore} 
+                  size="lg" 
+                  disabled={isLoading || !isFormValid}
+                  className={`px-8 py-3 text-lg ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isLoading ? 'Obliczanie...' : 'Oblicz zdolność kredytową'}
+                </Button>
+              </div>
+              
+              {/* Błędy walidacji */}
+              {!isFormValid && Object.keys(validationErrors).length > 0 && (
+                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>Formularz zawiera błędy:</span>
+                  </div>
+                  <ul className="text-red-700 text-sm space-y-1">
+                    {Object.entries(validationErrors).map(([field, message]) => (
+                      <li key={field}>• {message}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Błędy obliczeń */}
+              {error && (
+                <div className="mt-6">
+                  <Card className="border-red-500">
+                    <CardContent className="p-6">
+                      <p className="text-red-600 text-center">{error}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
+              {/* Wyniki */}
+              {creditCapacity !== null && !error && (
+                <div className="mt-8">
+                  <h3 className="text-2xl font-bold mb-6 text-center">Twoja szacunkowa zdolność kredytowa:</h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    {/* Wyniki liczbowe */}
+                    <div className="lg:col-span-2 space-y-4">
+                      <Card>
+                        <CardContent className="p-6">
+                          <h4 className="text-lg font-semibold mb-2">Maksymalna miesięczna rata:</h4>
+                          <p className="text-2xl font-bold text-green-700">{creditCapacity.toFixed(2)} zł</p>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-6">
+                          <h4 className="text-lg font-semibold mb-2">Maksymalna kwota kredytu:</h4>
+                          <p className="text-2xl font-bold text-green-700">{maxLoanAmount?.toFixed(0)} zł</p>
+                          
+                          {loanAmount && parseFloat(loanAmount) > 0 && (
+                            <div className="mt-3 p-3 rounded-lg border">
+                              <p className="text-sm font-medium mb-1">
+                                Porównanie z pożądaną kwotą ({parseInt(loanAmount).toLocaleString('pl-PL')} zł):
+                              </p>
+                              {parseFloat(loanAmount) <= (maxLoanAmount || 0) ? (
+                                <div className="flex items-center text-green-600">
+                                  <span className="text-lg mr-2">✅</span>
+                                  <span className="font-medium">Kredyt możliwy do uzyskania!</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center text-red-600">
+                                  <span className="text-lg mr-2">❌</span>
+                                  <span className="font-medium">
+                                    Przekracza zdolność o {(parseFloat(loanAmount) - (maxLoanAmount || 0)).toFixed(0)} zł
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Wykres kołowy */}
+                    {chartData.length > 0 && (
+                      <Card className="lg:col-span-3">
+                        <CardHeader>
+                          <CardTitle className="text-lg">Struktura miesięcznych dochodów i wydatków</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={400}>
+                            <PieChart>
+                              <Pie
+                                data={chartData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={120}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip 
+                                formatter={(value: number) => [`${value.toFixed(0)} zł`, 'Kwota']}
+                              />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
                     )}
-                    
-                    <InputWithTooltip
-                      id="loanTerm"
-                      label="Okres kredytowania (lata)"
-                      tooltip="Okres na jaki chcesz zaciągnąć kredyt. UWAGA: Do obliczeń jest używany maksymalnie 30-letni okres niezależnie od wprowadzonej wartości, zgodnie z praktyką banków ograniczających ryzyko."
-                      value={loanTerm}
-                      onChange={handleNumericInput(setLoanTerm, false)}
-                      placeholder="30"
-                      error={validationErrors.loanTerm}
-                    />
-                    
-                    <InputWithTooltip
-                      id="interestRate"
-                      label="Oprocentowanie kredytu (%)"
-                      tooltip="Szacowane roczne oprocentowanie kredytu. UWAGA: Kalkulator automatycznie dodaje bufor +2.5 p.p. (stress test) do wprowadzonej wartości, zgodnie z wymogami KNF dotyczącymi scenariusza wzrostu stóp procentowych."
-                      value={interestRate}
-                      onChange={handleNumericInput(setInterestRate)}
-                      placeholder="7.5"
-                      step="0.1"
-                      error={validationErrors.interestRate}
-                    />
-                    
-                    <SelectWithTooltip
-                      id="installmentType"
-                      label="Rodzaj rat"
-                      tooltip="Raty równe (annuitetowe) - stała kwota przez cały okres. Raty malejące - wysoka rata na początku, która się zmniejsza. Raty równe są popularniejsze ze względu na przewidywalność."
-                      value={installmentType}
-                      onValueChange={setInstallmentType}
-                      placeholder="Wybierz rodzaj rat"
-                    >
-                      <SelectItem value="equal">Raty równe (annuitetowe)</SelectItem>
-                      <SelectItem value="decreasing">Raty malejące</SelectItem>
-                    </SelectWithTooltip>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            
-            {/* Przycisk obliczania */}
-            <div className="flex justify-center mt-8">
-              <Button 
-                onClick={calculateCreditScore} 
-                size="lg" 
-                disabled={isLoading || !isFormValid}
-                className={`px-8 py-3 text-lg ${!isFormValid ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {isLoading ? 'Obliczanie...' : 'Oblicz zdolność kredytową'}
-              </Button>
-            </div>
-            
-            {/* Błędy walidacji */}
-            {!isFormValid && Object.keys(validationErrors).length > 0 && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 text-red-800 font-semibold mb-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>Formularz zawiera błędy:</span>
-                </div>
-                <ul className="text-red-700 text-sm space-y-1">
-                  {Object.entries(validationErrors).map(([field, message]) => (
-                    <li key={field}>• {message}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Błędy obliczeń */}
-            {error && (
-              <div className="mt-6">
-                <Card className="border-red-500">
-                  <CardContent className="p-6">
-                    <p className="text-red-600 text-center">{error}</p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-            
-            {/* Wyniki */}
-            {creditCapacity !== null && !error && (
-              <div className="mt-8">
-                <h3 className="text-2xl font-bold mb-6 text-center">Twoja szacunkowa zdolność kredytowa:</h3>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  {/* Wyniki liczbowe */}
-                  <div className="lg:col-span-2 space-y-4">
-                    <Card>
-                      <CardContent className="p-6">
-                        <h4 className="text-lg font-semibold mb-2">Maksymalna miesięczna rata:</h4>
-                        <p className="text-2xl font-bold text-green-700">{creditCapacity.toFixed(2)} zł</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-6">
-                        <h4 className="text-lg font-semibold mb-2">Maksymalna kwota kredytu:</h4>
-                        <p className="text-2xl font-bold text-green-700">{maxLoanAmount?.toFixed(0)} zł</p>
-                        
-                        {loanAmount && parseFloat(loanAmount) > 0 && (
-                          <div className="mt-3 p-3 rounded-lg border">
-                            <p className="text-sm font-medium mb-1">
-                              Porównanie z pożądaną kwotą ({parseInt(loanAmount).toLocaleString('pl-PL')} zł):
-                            </p>
-                            {parseFloat(loanAmount) <= (maxLoanAmount || 0) ? (
-                              <div className="flex items-center text-green-600">
-                                <span className="text-lg mr-2">✅</span>
-                                <span className="font-medium">Kredyt możliwy do uzyskania!</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center text-red-600">
-                                <span className="text-lg mr-2">❌</span>
-                                <span className="font-medium">
-                                  Przekracza zdolność o {(parseFloat(loanAmount) - (maxLoanAmount || 0)).toFixed(0)} zł
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
                   </div>
 
-                  {/* Wykres kołowy */}
-                  {chartData.length > 0 && (
-                    <Card className="lg:col-span-3">
-                      <CardHeader>
-                        <CardTitle className="text-lg">Struktura miesięcznych dochodów i wydatków</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={400}>
-                          <PieChart>
-                            <Pie
-                              data={chartData}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={120}
-                              fill="#8884d8"
-                              dataKey="value"
-                            >
-                              {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                              ))}
-                            </Pie>
-                            <RechartsTooltip 
-                              formatter={(value: number) => [`${value.toFixed(0)} zł`, 'Kwota']}
-                            />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
+                  {/* Szczegóły obliczeń */}
+                  {calculationDetails && (
+                    <div className="mt-8">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-xl">📊 Szczegóły obliczeń</CardTitle>
+                          <CardDescription>
+                            Transparentne wyjaśnienie jak kalkulator doszedł do Twojego wyniku
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                              <h4 className="font-semibold text-blue-900 mb-2">💰 Całkowity dochód netto</h4>
+                              <p className="text-2xl font-bold text-blue-700">
+                                {calculationDetails.totalIncome?.toFixed(0)} zł
+                              </p>
+                              <p className="text-sm text-blue-600 mt-1">
+                                Po uwzględnieniu wag dla typu umowy
+                              </p>
+                            </div>
+
+                            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                              <h4 className="font-semibold text-orange-900 mb-2">🏠 Koszty utrzymania</h4>
+                              <p className="text-2xl font-bold text-orange-700">
+                                {calculationDetails.costOfLiving?.toFixed(0)} zł
+                              </p>
+                              <p className="text-sm text-orange-600 mt-1">
+                                Dynamiczny model: baza + 10% dochodu
+                              </p>
+                            </div>
+
+                            <div className="bg-red-100 p-4 rounded-lg border border-red-200">
+                              <h4 className="font-semibold text-red-900 mb-2">📋 Suma zobowiązań</h4>
+                              <p className="text-2xl font-bold text-red-700">
+                                {calculationDetails.totalCommitments?.toFixed(0)} zł
+                              </p>
+                              <p className="text-sm text-red-600 mt-1">
+                                Opłaty + kredyty + 3% limitów kart/debetu
+                              </p>
+                            </div>
+
+                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                              <h4 className="font-semibold text-purple-900 mb-2">📈 Oprocentowanie (stress test)</h4>
+                              <p className="text-2xl font-bold text-purple-700">
+                                {calculationDetails.stressedInterestRate?.toFixed(1)}%
+                              </p>
+                              <p className="text-sm text-purple-600 mt-1">
+                                Twoje {interestRate}% + bufor 2.5 p.p.
+                              </p>
+                            </div>
+
+                            <div className="bg-green-100 p-4 rounded-lg border border-green-200">
+                              <h4 className="font-semibold text-green-900 mb-2">🎯 Zastosowany limit DSTI</h4>
+                              <p className="text-2xl font-bold text-green-700">
+                                {calculationDetails.effectiveDstiLimit?.toFixed(0)}%
+                              </p>
+                              <p className="text-sm text-green-600 mt-1">
+                                {calculationDetails.effectiveDstiLimit !== parseFloat(dstiRatio) ? 
+                                  'Automatycznie ograniczony' : 'Zgodnie z Twoim wyborem'}
+                              </p>
+                            </div>
+
+                            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                              <h4 className="font-semibold text-indigo-900 mb-2">⚖️ Wykorzystane DSTI</h4>
+                              <p className="text-2xl font-bold text-indigo-700">
+                                {calculationDetails.dstiUsed?.toFixed(1)}%
+                              </p>
+                              <p className="text-sm text-indigo-600 mt-1">
+                                Rzeczywiste obciążenie dochodów
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h4 className="font-semibold text-gray-900 mb-2">🔍 Jak działają ograniczenia?</h4>
+                            <div className="text-sm text-gray-700 space-y-1">
+                              <p><strong>Limity DSTI:</strong> Dochód &lt;7500zł → max 40%, 7500-12000zł → max 50%, &gt;12000zł → do 60%</p>
+                              <p><strong>Stress test:</strong> Automatyczny bufor +2.5 p.p. do oprocentowania (wymóg KNF)</p>
+                              <p><strong>Okresy:</strong> Maksymalnie 30 lat niezależnie od wprowadzonej wartości</p>
+                              <p><strong>Koszty życia:</strong> Realistyczny model uwzględniający poziom Twoich dochodów</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   )}
+                  
+                  {/* Dodatkowe informacje o zaawansowanym algorytmie */}
+                  {calculationDetails && (
+                    <div className="mt-6">
+                      <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                        <CardContent className="p-6">
+                          <div className="flex items-start space-x-4">
+                            <div className="text-2xl">🚀</div>
+                            <div>
+                              <h4 className="font-semibold text-green-900 mb-2">Zaawansowany algorytm bankowy</h4>
+                              <p className="text-sm text-green-800 mb-2">
+                                Ten kalkulator wykorzystuje rzeczywiste mechanizmy stosowane przez banki:
+                              </p>
+                              <ul className="text-xs text-green-700 space-y-1">
+                                <li>• <strong>Stress test</strong> - automatyczny bufor stóp procentowych (+2.5 p.p.)</li>
+                                <li>• <strong>Dynamiczne DSTI</strong> - ograniczenia w zależności od wysokości dochodu</li>
+                                <li>• <strong>Realistyczne koszty życia</strong> - model uwzględniający poziom zarobków</li>
+                                <li>• <strong>Pełna transparentność</strong> - widzisz każdy krok obliczeń</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
+                  <p className="text-sm text-gray-500 mt-6 text-center">
+                    Powyższe obliczenia są jedynie symulacją i nie stanowią oferty w rozumieniu przepisów prawa. 
+                    Rzeczywista zdolność kredytowa zależy od wielu czynników i jest oceniana indywidualnie przez bank.
+                  </p>
                 </div>
-
-                {/* Szczegóły obliczeń */}
-                {calculationDetails && (
-                  <div className="mt-8">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-xl">📊 Szczegóły obliczeń</CardTitle>
-                        <CardDescription>
-                          Transparentne wyjaśnienie jak kalkulator doszedł do Twojego wyniku
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <h4 className="font-semibold text-blue-900 mb-2">💰 Całkowity dochód netto</h4>
-                            <p className="text-2xl font-bold text-blue-700">
-                              {calculationDetails.totalIncome?.toFixed(0)} zł
-                            </p>
-                            <p className="text-sm text-blue-600 mt-1">
-                              Po uwzględnieniu wag dla typu umowy
-                            </p>
-                          </div>
-
-                          <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                            <h4 className="font-semibold text-orange-900 mb-2">🏠 Koszty utrzymania</h4>
-                            <p className="text-2xl font-bold text-orange-700">
-                              {calculationDetails.costOfLiving?.toFixed(0)} zł
-                            </p>
-                            <p className="text-sm text-orange-600 mt-1">
-                              Dynamiczny model: baza + 10% dochodu
-                            </p>
-                          </div>
-
-                          <div className="bg-red-100 p-4 rounded-lg border border-red-200">
-                            <h4 className="font-semibold text-red-900 mb-2">📋 Suma zobowiązań</h4>
-                            <p className="text-2xl font-bold text-red-700">
-                              {calculationDetails.totalCommitments?.toFixed(0)} zł
-                            </p>
-                            <p className="text-sm text-red-600 mt-1">
-                              Opłaty + kredyty + 3% limitów kart/debetu
-                            </p>
-                          </div>
-
-                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                            <h4 className="font-semibold text-purple-900 mb-2">📈 Oprocentowanie (stress test)</h4>
-                            <p className="text-2xl font-bold text-purple-700">
-                              {calculationDetails.stressedInterestRate?.toFixed(1)}%
-                            </p>
-                            <p className="text-sm text-purple-600 mt-1">
-                              Twoje {interestRate}% + bufor 2.5 p.p.
-                            </p>
-                          </div>
-
-                          <div className="bg-green-100 p-4 rounded-lg border border-green-200">
-                            <h4 className="font-semibold text-green-900 mb-2">🎯 Zastosowany limit DSTI</h4>
-                            <p className="text-2xl font-bold text-green-700">
-                              {calculationDetails.effectiveDstiLimit?.toFixed(0)}%
-                            </p>
-                            <p className="text-sm text-green-600 mt-1">
-                              {calculationDetails.effectiveDstiLimit !== parseFloat(dstiRatio) ? 
-                                'Automatycznie ograniczony' : 'Zgodnie z Twoim wyborem'}
-                            </p>
-                          </div>
-
-                          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                            <h4 className="font-semibold text-indigo-900 mb-2">⚖️ Wykorzystane DSTI</h4>
-                            <p className="text-2xl font-bold text-indigo-700">
-                              {calculationDetails.dstiUsed?.toFixed(1)}%
-                            </p>
-                            <p className="text-sm text-indigo-600 mt-1">
-                              Rzeczywiste obciążenie dochodów
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <h4 className="font-semibold text-gray-900 mb-2">🔍 Jak działają ograniczenia?</h4>
-                          <div className="text-sm text-gray-700 space-y-1">
-                            <p><strong>Limity DSTI:</strong> Dochód &lt;7500zł → max 40%, 7500-12000zł → max 50%, &gt;12000zł → do 60%</p>
-                            <p><strong>Stress test:</strong> Automatyczny bufor +2.5 p.p. do oprocentowania (wymóg KNF)</p>
-                            <p><strong>Okresy:</strong> Maksymalnie 30 lat niezależnie od wprowadzonej wartości</p>
-                            <p><strong>Koszty życia:</strong> Realistyczny model uwzględniający poziom Twoich dochodów</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                
-                {/* Dodatkowe informacje o zaawansowanym algorytmie */}
-                {calculationDetails && (
-                  <div className="mt-6">
-                    <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="text-2xl">🚀</div>
-                          <div>
-                            <h4 className="font-semibold text-green-900 mb-2">Zaawansowany algorytm bankowy</h4>
-                            <p className="text-sm text-green-800 mb-2">
-                              Ten kalkulator wykorzystuje rzeczywiste mechanizmy stosowane przez banki:
-                            </p>
-                            <ul className="text-xs text-green-700 space-y-1">
-                              <li>• <strong>Stress test</strong> - automatyczny bufor stóp procentowych (+2.5 p.p.)</li>
-                              <li>• <strong>Dynamiczne DSTI</strong> - ograniczenia w zależności od wysokości dochodu</li>
-                              <li>• <strong>Realistyczne koszty życia</strong> - model uwzględniający poziom zarobków</li>
-                              <li>• <strong>Pełna transparentność</strong> - widzisz każdy krok obliczeń</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-                <p className="text-sm text-gray-500 mt-6 text-center">
-                  Powyższe obliczenia są jedynie symulacją i nie stanowią oferty w rozumieniu przepisów prawa. 
-                  Rzeczywista zdolność kredytowa zależy od wielu czynników i jest oceniana indywidualnie przez bank.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </TooltipProvider>
   );

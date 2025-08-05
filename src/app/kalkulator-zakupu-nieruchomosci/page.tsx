@@ -823,7 +823,7 @@ function RealEstateCalculatorPageContent() {
   const totalCreditCost = results ? (results.totalInterest ?? 0) + (results.bankCommissionAmount ?? 0) : 0;
 
   return (
-    <div className="bg-gray-50/50 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-20 sm:pt-24">
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-7xl mx-auto shadow-2xl border-gray-200/50">
           <CardHeader className="text-center border-b border-gray-200/80 bg-white rounded-t-lg pt-8 pb-4">

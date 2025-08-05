@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function KontaktPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return (
-    <section className="container mx-auto p-4 md:p-8 max-w-3xl">
+    <section className="container mx-auto p-4 md:p-8 max-w-3xl pt-20 sm:pt-24">
       <h1 className="text-3xl font-bold mb-6">Kontakt</h1>
       <p className="mb-4 text-gray-700">Masz pytania lub sugestie? Skontaktuj się z nami, korzystając z poniższych danych lub formularza. Odpowiadamy zwykle w ciągu 24 godzin.</p>
 

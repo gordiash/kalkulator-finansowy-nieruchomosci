@@ -20,7 +20,7 @@ export default async function AdminDashboard() {
   const safePosts = posts ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-8 pt-20 sm:pt-24">
       <AdminHeader />
 
       <Link href="/admin/new" className="inline-block bg-blue-600 text-white px-4 py-2 rounded mb-6">Nowy wpis</Link>
