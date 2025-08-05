@@ -7,9 +7,11 @@ const nextConfig = {
     // optimizeCss: true, // Wyłączone - powoduje błąd z 'critters'
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
-  
-  // Webpack optimizations
+
   webpack: (config, { dev, isServer }) => {
+    // Dodaj alias dla @
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    
     // Optymalizacje tylko dla produkcji
     if (!dev) {
       config.optimization = {
@@ -26,9 +28,6 @@ const nextConfig = {
         },
       };
     }
-    
-    // Minimalna konfiguracja webpack - pozwól Next.js obsłużyć aliasy
-    // Usuń wszystkie custom aliasy - może powodują problemy na Vercel
 
     return config;
   },
@@ -185,16 +184,6 @@ const nextConfig = {
       },
     ];
   },  
-};
-
-
-const path = require('path');
-
-module.exports = {
-  webpack: (config) => {
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
-    return config;
-  },
 };
 
 
