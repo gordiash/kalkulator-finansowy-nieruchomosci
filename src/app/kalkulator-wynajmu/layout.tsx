@@ -7,7 +7,7 @@ export const generateMetadata = (): Metadata => {
     ...defaultMeta,
     title: 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne | Analityka Nieruchomości',
     description:
-      'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu.',
+      'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu. Kalkulator inwestycji nieruchomości.',
     keywords: [
       'kalkulator wynajmu',
       'rentowność wynajmu',
@@ -16,7 +16,21 @@ export const generateMetadata = (): Metadata => {
       'okres zwrotu inwestycji',
       'opłacalność wynajmu',
       'dochód z wynajmu',
-      'koszty wynajmu'
+      'koszty wynajmu',
+      'kalkulator inwestycji',
+      'kredyt na nieruchomość inwestycyjną',
+      'kredyt hipoteczny dla firm',
+      'refinansowanie kredytu hipotecznego',
+      'przedterminowa spłata kredytu kalkulator',
+      'kredyt gotówkowy czy hipoteczny',
+      'kredyt hipoteczny w CHF kalkulator',
+      'banki kredyt hipoteczny porównanie',
+      'kredyt hipoteczny PKO kalkulator',
+      'mBank kredyt hipoteczny warunki',
+      'ING kredyt mieszkaniowy oprocentowanie',
+      'Santander kredyt hipoteczny opinie',
+      'porównanie ofert kredytowych',
+      'kredyt mieszkaniowy warunki'
     ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-wynajmu`,
@@ -25,7 +39,7 @@ export const generateMetadata = (): Metadata => {
       ...defaultMeta.openGraph,
       title: 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne',
       description:
-        'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji.',
+        'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji. Kalkulator inwestycji nieruchomości.',
       url: `${baseUrl}/kalkulator-wynajmu`,
     },
   }

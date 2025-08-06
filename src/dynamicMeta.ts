@@ -44,18 +44,18 @@ export function generateDynamicMetadata(params: DynamicMetaParams): Metadata {
       url = `${baseUrl}/kalkulator-wyceny`
       break
     case 'credit':
-      title = 'Kalkulator Zdolności Kredytowej - Sprawdź Swoją Zdolność | Analityka Nieruchomości'
-      description = 'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej z analizą dochodów i kosztów.'
+      title = 'Kalkulator Zdolności Kredytowej - Oblicz Kredyt Hipoteczny | Analityka Nieruchomości'
+      description = 'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej z analizą dochodów, kosztów i RRSO.'
       url = `${baseUrl}/kalkulator-zdolnosci-kredytowej`
       break
     case 'rental':
       title = 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne | Analityka Nieruchomości'
-      description = 'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu.'
+      description = 'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu. Kalkulator inwestycji nieruchomości.'
       url = `${baseUrl}/kalkulator-wynajmu`
       break
     case 'purchase':
       title = 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz | Analityka Nieruchomości'
-      description = 'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości.'
+      description = 'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości z analizą kosztów.'
       url = `${baseUrl}/kalkulator-zakupu-nieruchomosci`
       break
   }

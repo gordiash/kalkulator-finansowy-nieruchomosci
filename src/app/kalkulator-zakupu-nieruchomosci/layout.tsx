@@ -9,7 +9,7 @@ export const generateMetadata = (): Metadata => {
     ...defaultMeta,
     title: 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz | Analityka Nieruchomości',
     description:
-      'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości.',
+      'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości z analizą kosztów.',
     keywords: [
       'kalkulator zakupu nieruchomości',
       'podatek PCC',
@@ -18,7 +18,21 @@ export const generateMetadata = (): Metadata => {
       'prowizja banku',
       'ubezpieczenie kredytu',
       'całkowity koszt zakupu',
-      'kalkulator PCC'
+      'kalkulator PCC',
+      'nieruchomości kalkulator kosztów',
+      'podatek od nieruchomości kalkulator',
+      'koszt notariusza przy kredycie',
+      'ubezpieczenie nieruchomości kalkulator',
+      'opłaty dodatkowe kredyt hipoteczny',
+      'rejestr zabezpieczeń koszt',
+      'kredyt hipoteczny dokumenty wymagane',
+      'kredyt na dom z działką',
+      'kredyt hipoteczny bez wkładu własnego',
+      'kredyt mieszkaniowy dla singla',
+      'kredyt na nieruchomość inwestycyjną',
+      'kredyt mieszkaniowy dla bezrobotnych',
+      'kredyt hipoteczny senior',
+      'kredyt mieszkaniowy rodzina 3+'
     ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-zakupu-nieruchomosci`,
@@ -27,7 +41,7 @@ export const generateMetadata = (): Metadata => {
       ...defaultMeta.openGraph,
       title: 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz',
       description:
-        'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie.',
+        'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości.',
       url: `${baseUrl}/kalkulator-zakupu-nieruchomosci`,
     },
   }
