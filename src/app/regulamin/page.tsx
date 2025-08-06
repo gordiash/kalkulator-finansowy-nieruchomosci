@@ -1,5 +1,32 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Regulamin - Kalkulatory Nieruchomości | Analityka Nieruchomości',
+  description: 'Regulamin korzystania z kalkulatorów nieruchomości. Zasady użytkowania, prawa i obowiązki użytkowników serwisu.',
+  keywords: [
+    'regulamin kalkulatory nieruchomości',
+    'zasady użytkowania',
+    'prawa użytkowników',
+    'obowiązki użytkowników',
+    'warunki korzystania',
+    'regulamin serwisu'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/regulamin`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Regulamin - Kalkulatory Nieruchomości',
+    description: 'Regulamin korzystania z kalkulatorów nieruchomości. Zasady użytkowania serwisu.',
+    url: `${baseUrl}/regulamin`,
+  },
+};
 
 export default function RegulaminPage() {
   return (

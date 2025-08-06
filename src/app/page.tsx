@@ -30,9 +30,9 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Analityka Nieruchomości – Kalkulatory Wyceny, Zakupu i Wynajmu',
+    title: 'Kalkulatory Nieruchomości - Wycena AI, Zdolność Kredytowa, Wynajem | Analityka Nieruchomości',
     description:
-      'Kalkulator wyceny mieszkań z AI (Random Forest), kalkulatory zakupu i wynajmu nieruchomości, zdolności kredytowej oraz blog inwestycyjny.',
+      'Profesjonalne kalkulatory nieruchomości: wycena mieszkań z AI (MAPE 0.79%), zdolność kredytowa, rentowność wynajmu i koszty zakupu. Blog ekspercki.',
     keywords: [
       'kalkulator wyceny mieszkania',
       'sztuczna inteligencja nieruchomości', 
@@ -42,16 +42,19 @@ export const generateMetadata = (): Metadata => {
       'zdolność kredytowa',
       'analityka nieruchomości',
       'wycena AI',
-      'Olsztyn mieszkania'
+      'Olsztyn mieszkania',
+      'kalkulator zdolności kredytowej',
+      'rentowność wynajmu',
+      'koszty zakupu nieruchomości'
     ],
     alternates: {
       canonical: baseUrl,
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Analityka Nieruchomości – Kalkulatory Wyceny, Zakupu i Wynajmu',
+      title: 'Kalkulatory Nieruchomości - Wycena AI, Zdolność Kredytowa, Wynajem',
       description:
-        'Kalkulator wyceny mieszkań z AI (Random Forest), kalkulatory zakupu i wynajmu nieruchomości, zdolności kredytowej oraz blog inwestycyjny.',
+        'Profesjonalne kalkulatory nieruchomości: wycena mieszkań z AI (MAPE 0.79%), zdolność kredytowa, rentowność wynajmu i koszty zakupu.',
       url: baseUrl,
     },
   }

@@ -5,25 +5,28 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Kalkulator Wyceny Mieszkania - AI Wycena Nieruchomości',
-    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji. Model EstymatorAI MAPE 0,79%. Sprawdź też zdolność kredytową i rentowność wynajmu.',
+    title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.79% | Analityka Nieruchomości',
+    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji EstymatorAI. Model ensemble MAPE 0.79%, wytrenowany na 7000+ ofertach. Sprawdź też zdolność kredytową i rentowność wynajmu.',
     keywords: [
       'kalkulator wyceny mieszkania',
       'wycena nieruchomości',
       'sztuczna inteligencja',
+      'EstymatorAI',
       'cena mieszkania',
       'wartość rynkowa',
       'Olsztyn',
       'zdolność kredytowa',
-      'rentowność wynajmu'
+      'rentowność wynajmu',
+      'model ensemble',
+      'MAPE 0.79%'
     ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-wyceny`,
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Kalkulator Wyceny Mieszkania - AI Wycena',
-      description: 'Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. Model EstymatorAI wytrenowany na 7000+ ofertach z całej Polski.',
+      title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.79%',
+      description: 'Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. Model ensemble MAPE 0.79%, wytrenowany na 7000+ ofertach z całej Polski.',
       url: `${baseUrl}/kalkulator-wyceny`,
       type: 'website',
       images: [
@@ -31,13 +34,13 @@ export const generateMetadata = (): Metadata => {
           url: `${baseUrl}/images/kalkulator-wyceny-og.jpg`,
           width: 1200,
           height: 630,
-          alt: 'Kalkulator Wyceny Mieszkania - AI'
+          alt: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI'
         }
       ]
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Kalkulator Wyceny Mieszkania - AI Wycena',
+      title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI',
       description: 'Oszacuj wartość mieszkania za pomocą EstymatorAI. Model ensemble MAPE 0.79%.',
       images: [`${baseUrl}/images/kalkulator-wyceny-twitter.jpg`]
     },

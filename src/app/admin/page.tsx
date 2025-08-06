@@ -3,6 +3,33 @@ import Link from 'next/link';
 import AdminHeader from '@/components/admin/AdminHeader';
 import PostActions from '@/components/admin/PostActions';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Panel Administratora - Zarządzanie Blogiem | Analityka Nieruchomości',
+  description: 'Panel administratora kalkulatorów nieruchomości. Zarządzaj wpisami bloga, statusem publikacji i treściami.',
+  keywords: [
+    'panel administratora',
+    'zarządzanie blogiem',
+    'wpisy bloga',
+    'status publikacji',
+    'administracja',
+    'zarządzanie treściami'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/admin`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Panel Administratora - Zarządzanie Blogiem',
+    description: 'Panel administratora kalkulatorów nieruchomości. Zarządzaj wpisami bloga.',
+    url: `${baseUrl}/admin`,
+  },
+};
 
 export const dynamic = 'force-dynamic';
 

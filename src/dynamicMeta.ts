@@ -44,18 +44,18 @@ export function generateDynamicMetadata(params: DynamicMetaParams): Metadata {
       url = `${baseUrl}/kalkulator-wyceny`
       break
     case 'credit':
-      title = 'Kalkulator Zdolności Kredytowej - Sprawdź Swoją Zdolność'
-      description = 'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej.'
+      title = 'Kalkulator Zdolności Kredytowej - Sprawdź Swoją Zdolność | Analityka Nieruchomości'
+      description = 'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej z analizą dochodów i kosztów.'
       url = `${baseUrl}/kalkulator-zdolnosci-kredytowej`
       break
     case 'rental':
-      title = 'Kalkulator Wynajmu - Rentowność Inwestycji'
-      description = 'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne i okres zwrotu inwestycji.'
+      title = 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne | Analityka Nieruchomości'
+      description = 'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu.'
       url = `${baseUrl}/kalkulator-wynajmu`
       break
     case 'purchase':
-      title = 'Kalkulator Kosztów Zakupu Nieruchomości'
-      description = 'Oblicz wszystkie koszty zakupu mieszkania: podatek, notariusz, kredyt, ubezpieczenie.'
+      title = 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz | Analityka Nieruchomości'
+      description = 'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości.'
       url = `${baseUrl}/kalkulator-zakupu-nieruchomosci`
       break
   }
@@ -120,7 +120,7 @@ function generateValuationTitle({ city, area, rooms, year, district }: Omit<Dyna
     title += ` ${year}r`
   }
   
-  title += ' | AI Wycena'
+  title += ' | AI Wycena Analityka Nieruchomości'
   
   return title
 }
@@ -153,7 +153,7 @@ function generateValuationDescription({ city, area, rooms, year, district }: Omi
     description += '. '
   }
   
-  description += 'Model Random Forest MAPE 15.56%. Sprawdź też zdolność kredytową i rentowność wynajmu.'
+  description += 'Model EstymatorAI MAPE 0.79%. Sprawdź też zdolność kredytową i rentowność wynajmu.'
   
   return description
 } 

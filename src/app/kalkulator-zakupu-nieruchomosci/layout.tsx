@@ -7,17 +7,27 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Kalkulator Zakupu Nieruchomości',
+    title: 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz | Analityka Nieruchomości',
     description:
-      'Oblicz ratę kredytu, podatek PCC, koszty notarialne i całkowity koszt zakupu nieruchomości.',
+      'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie. Kompletny kalkulator zakupu nieruchomości.',
+    keywords: [
+      'kalkulator zakupu nieruchomości',
+      'podatek PCC',
+      'koszty notarialne',
+      'koszty zakupu mieszkania',
+      'prowizja banku',
+      'ubezpieczenie kredytu',
+      'całkowity koszt zakupu',
+      'kalkulator PCC'
+    ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-zakupu-nieruchomosci`,
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Kalkulator Zakupu Nieruchomości',
+      title: 'Kalkulator Kosztów Zakupu Nieruchomości - Podatek PCC, Notariusz',
       description:
-        'Oblicz ratę kredytu, podatek PCC, koszty notarialne i całkowity koszt zakupu nieruchomości.',
+        'Oblicz wszystkie koszty zakupu mieszkania: podatek PCC, koszty notarialne, prowizja banku, ubezpieczenie.',
       url: `${baseUrl}/kalkulator-zakupu-nieruchomosci`,
     },
   }

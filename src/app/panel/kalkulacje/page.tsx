@@ -2,6 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Moje Kalkulacje - Panel Użytkownika | Analityka Nieruchomości',
+  description: 'Przeglądaj i zarządzaj swoimi zapisanymi kalkulacjami nieruchomości. Historia wycen, zdolności kredytowej i rentowności wynajmu.',
+  keywords: [
+    'moje kalkulacje',
+    'historia kalkulacji',
+    'zapisane wyniki',
+    'wyceny nieruchomości',
+    'zdolność kredytowa',
+    'rentowność wynajmu',
+    'panel użytkownika'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/panel/kalkulacje`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Moje Kalkulacje - Panel Użytkownika',
+    description: 'Przeglądaj i zarządzaj swoimi zapisanymi kalkulacjami nieruchomości.',
+    url: `${baseUrl}/panel/kalkulacje`,
+  },
+};
 
 interface Calculation {
   id: string;

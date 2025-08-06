@@ -1,5 +1,32 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Polityka Prywatności - Kalkulatory Nieruchomości | Analityka Nieruchomości',
+  description: 'Polityka prywatności kalkulatorów nieruchomości. Informacje o przetwarzaniu danych osobowych, cookies i bezpieczeństwie danych.',
+  keywords: [
+    'polityka prywatności',
+    'ochrona danych osobowych',
+    'cookies kalkulatory nieruchomości',
+    'RODO kalkulatory',
+    'bezpieczeństwo danych',
+    'przetwarzanie danych'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/polityka-prywatnosci`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Polityka Prywatności - Kalkulatory Nieruchomości',
+    description: 'Polityka prywatności kalkulatorów nieruchomości. Informacje o przetwarzaniu danych osobowych.',
+    url: `${baseUrl}/polityka-prywatnosci`,
+  },
+};
 
 export default function PolitykaPrywatnosciPage() {
   return (

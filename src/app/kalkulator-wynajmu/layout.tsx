@@ -5,17 +5,27 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Kalkulator Opłacalności Wynajmu',
+    title: 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne | Analityka Nieruchomości',
     description:
-      'Analizuj rentowność inwestycji w nieruchomość, ROI i czas zwrotu kapitału.',
+      'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji i analizę opłacalności wynajmu.',
+    keywords: [
+      'kalkulator wynajmu',
+      'rentowność wynajmu',
+      'ROI nieruchomości',
+      'przepływy pieniężne',
+      'okres zwrotu inwestycji',
+      'opłacalność wynajmu',
+      'dochód z wynajmu',
+      'koszty wynajmu'
+    ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-wynajmu`,
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Kalkulator Opłacalności Wynajmu',
+      title: 'Kalkulator Rentowności Wynajmu - ROI, Przepływy Pieniężne',
       description:
-        'Analizuj rentowność inwestycji w nieruchomość, ROI i czas zwrotu kapitału.',
+        'Sprawdź rentowność wynajmu mieszkania. Oblicz ROI, przepływy pieniężne, okres zwrotu inwestycji.',
       url: `${baseUrl}/kalkulator-wynajmu`,
     },
   }

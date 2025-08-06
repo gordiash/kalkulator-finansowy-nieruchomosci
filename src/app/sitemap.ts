@@ -33,31 +33,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/kalkulator-wynajmu`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/kalkulator-zakupu-nieruchomosci`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/kalkulator-zdolnosci-kredytowej`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/o-nas`,
       lastModified: new Date(),
-      changeFrequency: 'yearly',
+      changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${baseUrl}/kontakt`,
       lastModified: new Date(),
-      changeFrequency: 'yearly',
+      changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
@@ -73,10 +73,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/login`,
+      url: `${baseUrl}/logowanie`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/rejestracja`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/panel`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/panel/profil`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/panel/kalkulacje`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/panel/ustawienia`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/login`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.2,
     },
   ]
 
@@ -96,6 +138,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('posts')
       .select('slug, updated_at, published')
       .eq('published', true)
+      .order('updated_at', { ascending: false })
     
     const blogRoutes: MetadataRoute.Sitemap = (posts as BlogPost[])?.map((post: BlogPost) => ({
       url: `${baseUrl}/blog/${post.slug}`,

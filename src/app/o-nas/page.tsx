@@ -5,15 +5,24 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
 
 export const metadata: Metadata = {
   ...defaultMeta,
-  title: 'O nas',
-  description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe, które pomagają podejmować lepsze decyzje.',
+  title: 'O Nas - Kalkulatory Nieruchomości | Analityka Nieruchomości',
+  description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe do analizy nieruchomości. Profesjonalne kalkulatory wyceny, zdolności kredytowej i rentowności.',
+  keywords: [
+    'o nas',
+    'zespół kalkulatory nieruchomości',
+    'misja analityka nieruchomości',
+    'narzędzia finansowe',
+    'kalkulatory nieruchomości',
+    'eksperty nieruchomości',
+    'profesjonalne kalkulatory'
+  ],
   alternates: {
     canonical: `${baseUrl}/o-nas`,
   },
   openGraph: {
     ...defaultMeta.openGraph,
-    title: 'O nas',
-    description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe, które pomagają podejmować lepsze decyzje.',
+    title: 'O Nas - Kalkulatory Nieruchomości',
+    description: 'Poznaj nasz zespół i misję – dostarczamy przejrzyste narzędzia finansowe do analizy nieruchomości.',
     url: `${baseUrl}/o-nas`,
   },
 }

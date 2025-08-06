@@ -1,10 +1,31 @@
 import { Metadata } from 'next';
 import ChangePasswordForm from '@/components/ChangePasswordForm';
 import NotificationSettings from '@/components/NotificationSettings';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
 
 export const metadata: Metadata = {
-  title: 'Ustawienia - Panel użytkownika',
-  description: 'Zarządzaj ustawieniami konta',
+  ...defaultMeta,
+  title: 'Ustawienia Konta - Panel Użytkownika | Analityka Nieruchomości',
+  description: 'Zarządzaj ustawieniami konta w panelu kalkulatorów nieruchomości. Zmień hasło, powiadomienia i preferencje bezpieczeństwa.',
+  keywords: [
+    'ustawienia konta',
+    'zmień hasło',
+    'powiadomienia',
+    'bezpieczeństwo konta',
+    'preferencje użytkownika',
+    'panel użytkownika'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/panel/ustawienia`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Ustawienia Konta - Panel Użytkownika',
+    description: 'Zarządzaj ustawieniami konta w panelu kalkulatorów nieruchomości.',
+    url: `${baseUrl}/panel/ustawienia`,
+  },
 };
 
 export default function UstawieniaPage() {

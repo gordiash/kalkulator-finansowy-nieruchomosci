@@ -6,11 +6,21 @@ import { fetchPublishedPosts } from '@/lib/supabase/blog';
 import type { BlogPostListing } from '@/lib/supabase/blog';
 
 export const metadata: Metadata = {
-  title: 'Blog - Kalkulatory Finansowe',
-  description: 'Najnowsze artykuły o nieruchomościach, kredytach i inwestycjach. Praktyczne porady i analizy rynku finansowego.',
+  title: 'Blog Nieruchomości - Porady, Analizy Rynku, Inwestycje | Analityka Nieruchomości',
+  description: 'Najnowsze artykuły o nieruchomościach, kredytach hipotecznych i inwestycjach. Praktyczne porady ekspertów, analizy rynku i trendy inwestycyjne.',
+  keywords: [
+    'blog nieruchomości',
+    'porady nieruchomości',
+    'analizy rynku nieruchomości',
+    'inwestycje nieruchomości',
+    'kredyty hipoteczne',
+    'rynek nieruchomości',
+    'trendy inwestycyjne',
+    'eksperty nieruchomości'
+  ],
   openGraph: {
-    title: 'Blog - Kalkulatory Finansowe',
-    description: 'Najnowsze artykuły o nieruchomościach, kredytach i inwestycjach.',
+    title: 'Blog Nieruchomości - Porady, Analizy Rynku, Inwestycje',
+    description: 'Najnowsze artykuły o nieruchomościach, kredytach hipotecznych i inwestycjach. Praktyczne porady ekspertów.',
     type: 'website',
   },
 };

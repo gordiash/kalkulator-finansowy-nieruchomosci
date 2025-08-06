@@ -5,17 +5,27 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Kalkulator Zdolności Kredytowej',
+    title: 'Kalkulator Zdolności Kredytowej - Sprawdź Swoją Zdolność | Analityka Nieruchomości',
     description:
-      'Oblicz swoją maksymalną zdolność kredytową i wysokość raty hipotecznej.',
+      'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej z analizą dochodów i kosztów.',
+    keywords: [
+      'kalkulator zdolności kredytowej',
+      'zdolność kredytowa',
+      'kredyt hipoteczny',
+      'rata kredytu',
+      'dochody kredyt',
+      'koszty kredytu',
+      'maksymalna kwota kredytu',
+      'kalkulator raty'
+    ],
     alternates: {
       canonical: `${baseUrl}/kalkulator-zdolnosci-kredytowej`,
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Kalkulator Zdolności Kredytowej',
+      title: 'Kalkulator Zdolności Kredytowej - Sprawdź Swoją Zdolność',
       description:
-        'Oblicz swoją maksymalną zdolność kredytową i wysokość raty hipotecznej.',
+        'Oblicz maksymalną kwotę kredytu hipotecznego i miesięczną ratę. Profesjonalny kalkulator zdolności kredytowej.',
       url: `${baseUrl}/kalkulator-zdolnosci-kredytowej`,
     },
   }

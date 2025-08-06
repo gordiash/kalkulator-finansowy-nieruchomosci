@@ -3,6 +3,33 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Rejestracja - Kalkulatory Nieruchomości | Analityka Nieruchomości',
+  description: 'Zarejestruj się w panelu kalkulatorów nieruchomości. Twórz konto, zapisuj kalkulacje i śledź historię wyników.',
+  keywords: [
+    'rejestracja kalkulatory nieruchomości',
+    'utwórz konto',
+    'zarejestruj się',
+    'panel użytkownika',
+    'zapisane kalkulacje',
+    'historia wyników'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/rejestracja`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Rejestracja - Kalkulatory Nieruchomości',
+    description: 'Zarejestruj się w panelu kalkulatorów nieruchomości. Twórz konto i zapisuj kalkulacje.',
+    url: `${baseUrl}/rejestracja`,
+  },
+};
 
 function RegisterPageContent() {
   const [formData, setFormData] = useState({

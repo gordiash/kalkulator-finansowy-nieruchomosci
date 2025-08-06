@@ -6,15 +6,24 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
 
 export const metadata: Metadata = {
   ...defaultMeta,
-  title: 'Kontakt',
-  description: 'Skontaktuj się z nami – chętnie odpowiemy na wszystkie pytania dotyczące naszych kalkulatorów i treści.',
+  title: 'Kontakt - Kalkulatory Nieruchomości | Analityka Nieruchomości',
+  description: 'Skontaktuj się z nami w sprawie kalkulatorów nieruchomości. Pytania o wycenę AI, zdolność kredytową, rentowność wynajmu. Odpowiadamy w 24h.',
+  keywords: [
+    'kontakt kalkulatory nieruchomości',
+    'pytania kalkulatory',
+    'wsparcie kalkulatory nieruchomości',
+    'kontakt wycena AI',
+    'pomoc zdolność kredytowa',
+    'kontakt rentowność wynajmu',
+    'formularz kontaktowy'
+  ],
   alternates: {
     canonical: `${baseUrl}/kontakt`,
   },
   openGraph: {
     ...defaultMeta.openGraph,
-    title: 'Kontakt',
-    description: 'Skontaktuj się z nami – chętnie odpowiemy na wszystkie pytania dotyczące naszych kalkulatorów i treści.',
+    title: 'Kontakt - Kalkulatory Nieruchomości',
+    description: 'Skontaktuj się z nami w sprawie kalkulatorów nieruchomości. Pytania o wycenę AI, zdolność kredytową, rentowność wynajmu.',
     url: `${baseUrl}/kontakt`,
   },
 }

@@ -6,6 +6,33 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
+import type { Metadata } from 'next';
+import { defaultMeta } from '@/lib/seo/defaultMeta';
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
+
+export const metadata: Metadata = {
+  ...defaultMeta,
+  title: 'Edytuj Wpis - Panel Administratora | Analityka Nieruchomości',
+  description: 'Edytuj wpisy bloga w panelu administratora kalkulatorów nieruchomości. Aktualizuj treści, SEO i zarządzaj publikacjami.',
+  keywords: [
+    'edytuj wpis',
+    'panel administratora',
+    'edycja bloga',
+    'zarządzanie treściami',
+    'SEO wpisy',
+    'aktualizacja postów'
+  ],
+  alternates: {
+    canonical: `${baseUrl}/admin/edit/[id]`,
+  },
+  openGraph: {
+    ...defaultMeta.openGraph,
+    title: 'Edytuj Wpis - Panel Administratora',
+    description: 'Edytuj wpisy bloga w panelu administratora kalkulatorów nieruchomości.',
+    url: `${baseUrl}/admin/edit/[id]`,
+  },
+};
 
 export default function EditPostPage() {
   const params = useParams();
