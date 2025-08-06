@@ -5,33 +5,6 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import type { Metadata } from 'next';
-import { defaultMeta } from '@/lib/seo/defaultMeta';
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
-
-export const metadata: Metadata = {
-  ...defaultMeta,
-  title: 'Logowanie Administratora - Panel Admin | Analityka Nieruchomości',
-  description: 'Logowanie do panelu administratora kalkulatorów nieruchomości. Dostęp do zarządzania blogiem i treściami.',
-  keywords: [
-    'logowanie administratora',
-    'panel admin',
-    'zarządzanie blogiem',
-    'administracja',
-    'dostęp admin',
-    'panel administratora'
-  ],
-  alternates: {
-    canonical: `${baseUrl}/login`,
-  },
-  openGraph: {
-    ...defaultMeta.openGraph,
-    title: 'Logowanie Administratora - Panel Admin',
-    description: 'Logowanie do panelu administratora kalkulatorów nieruchomości.',
-    url: `${baseUrl}/login`,
-  },
-};
 
 export default function LoginPage() {
   const router = useRouter();

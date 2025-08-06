@@ -6,33 +6,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
-import type { Metadata } from 'next';
-import { defaultMeta } from '@/lib/seo/defaultMeta';
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
-
-export const metadata: Metadata = {
-  ...defaultMeta,
-  title: 'Nowy Wpis - Panel Administratora | Analityka Nieruchomości',
-  description: 'Twórz nowe wpisy bloga w panelu administratora kalkulatorów nieruchomości. Edytor Markdown, SEO i zarządzanie treściami.',
-  keywords: [
-    'nowy wpis',
-    'panel administratora',
-    'edytor bloga',
-    'zarządzanie treściami',
-    'SEO wpisy',
-    'markdown editor'
-  ],
-  alternates: {
-    canonical: `${baseUrl}/admin/new`,
-  },
-  openGraph: {
-    ...defaultMeta.openGraph,
-    title: 'Nowy Wpis - Panel Administratora',
-    description: 'Twórz nowe wpisy bloga w panelu administratora kalkulatorów nieruchomości.',
-    url: `${baseUrl}/admin/new`,
-  },
-};
 
 export default function NewPostPage() {
   const [title, setTitle] = useState('');

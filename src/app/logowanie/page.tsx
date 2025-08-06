@@ -3,33 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import type { Metadata } from 'next';
-import { defaultMeta } from '@/lib/seo/defaultMeta';
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
-
-export const metadata: Metadata = {
-  ...defaultMeta,
-  title: 'Logowanie - Kalkulatory Nieruchomości | Analityka Nieruchomości',
-  description: 'Zaloguj się do panelu kalkulatorów nieruchomości. Dostęp do historii kalkulacji, zapisanych wyników i ustawień konta.',
-  keywords: [
-    'logowanie kalkulatory nieruchomości',
-    'panel użytkownika',
-    'konto kalkulatory',
-    'historia kalkulacji',
-    'zapisane wyniki',
-    'ustawienia konta'
-  ],
-  alternates: {
-    canonical: `${baseUrl}/logowanie`,
-  },
-  openGraph: {
-    ...defaultMeta.openGraph,
-    title: 'Logowanie - Kalkulatory Nieruchomości',
-    description: 'Zaloguj się do panelu kalkulatorów nieruchomości. Dostęp do historii kalkulacji.',
-    url: `${baseUrl}/logowanie`,
-  },
-};
 
 function LoginPageContent() {
   const [isLogin, setIsLogin] = useState(true);
