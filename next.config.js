@@ -31,6 +31,15 @@ const nextConfig = {
       tls: false,
     };
     
+    // Konfiguracja TLS dla HTTPS
+    if (config.devServer) {
+      config.devServer = {
+        ...config.devServer,
+        https: true,
+        http2: true,
+      };
+    }
+    
     // Optymalizacje tylko dla produkcji
     if (!dev) {
       config.optimization = {
@@ -117,6 +126,10 @@ const nextConfig = {
         source: '/(.*)',
         headers: [
           {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          {
             key: 'X-Frame-Options',
             value: 'DENY',
           },
@@ -130,11 +143,19 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
           },
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'X-Permitted-Cross-Domain-Policies',
+            value: 'none',
           },
         ],
       },
@@ -154,7 +175,7 @@ const nextConfig = {
             key: 'Access-Control-Allow-Origin',
             value: process.env.NODE_ENV === 'production' 
               ? 'https://www.kalkulatorynieruchomosci.pl' 
-              : 'http://localhost:3000',
+              : 'https://localhost:3000',
           },
           {
             key: 'Access-Control-Allow-Methods',

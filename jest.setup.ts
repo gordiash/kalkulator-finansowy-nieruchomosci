@@ -1,5 +1,5 @@
 // Ustawienia globalne dla testów
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://localhost:54321';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
 
 // Mock next-mdx-remote for tests (ESM not handled by jest)

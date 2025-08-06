@@ -15,7 +15,14 @@ export const metadata: Metadata = {
   title: "Kalkulatory Nieruchomości",
   description: "Zbiór kalkulatorów do analizy rynku nieruchomości.",
   icons: {
-    icon: [{ url: "/favicon.png", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+      { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -27,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <head>
+        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
         {/* Organization & WebSite schema */}
