@@ -8,6 +8,9 @@ import type { BlogPostListing } from '@/lib/supabase/blog';
 export const metadata: Metadata = {
   title: 'Blog Nieruchomości - Porady, Analizy Rynku, Inwestycje | Analityka Nieruchomości',
   description: 'Najnowsze artykuły o nieruchomościach, kredytach hipotecznych i inwestycjach. Praktyczne porady ekspertów, analizy rynku i trendy inwestycyjne.',
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'}/blog`,
+  },
   keywords: [
     'blog nieruchomości',
     'porady nieruchomości',

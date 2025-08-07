@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Rejestracja - Kalkulatory Nieruchomości | Analityka Nieruchomości',
   description: 'Zarejestruj się w panelu kalkulatorów nieruchomości. Twórz konto, zapisuj kalkulacje i śledź historię wyników.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   keywords: [
     'rejestracja kalkulatory nieruchomości',
     'utwórz konto',
@@ -68,9 +72,7 @@ export const metadata: Metadata = {
     'rejestr zabezpieczeń koszt',
     'kredyt hipoteczny dokumenty wymagane'
   ],
-  alternates: {
-    canonical: `${baseUrl}/rejestracja`,
-  },
+
   openGraph: {
     ...defaultMeta.openGraph,
     title: 'Rejestracja - Kalkulatory Nieruchomości',

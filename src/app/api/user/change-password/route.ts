@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { withAuth, AuthenticatedRequest, getCurrentUser } from '@/lib/authMiddleware';
-import { comparePassword, hashPassword } from '@/lib/jwt';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
-const changePassword = async (request: AuthenticatedRequest) => {
+export async function POST(request: Request) {
   try {
-    const currentUser = getCurrentUser(request);
-    if (!currentUser) {
+    const supabase = await getSupabaseServerClient();
+    
+    // Sprawdź czy użytkownik jest zalogowany
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
     }
 
@@ -27,39 +29,18 @@ const changePassword = async (request: AuthenticatedRequest) => {
       );
     }
 
-    // Pobierz aktualny hash hasła użytkownika
-    const user = await prisma.users.findUnique({
-      where: { id: BigInt(currentUser.userId) },
-      select: {
-        id: true,
-        password_hash: true,
-      },
+    // Zmień hasło przez Supabase
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
     });
 
-    if (!user) {
-      return NextResponse.json({ error: 'Użytkownik nie znaleziony' }, { status: 404 });
-    }
-
-    // Sprawdź czy aktualne hasło jest poprawne
-    const isCurrentPasswordValid = await comparePassword(currentPassword, user.password_hash);
-    if (!isCurrentPasswordValid) {
+    if (updateError) {
+      console.error('Błąd podczas zmiany hasła:', updateError);
       return NextResponse.json(
-        { error: 'Aktualne hasło jest nieprawidłowe' },
+        { error: 'Nie udało się zmienić hasła' },
         { status: 400 }
       );
     }
-
-    // Hashuj nowe hasło
-    const hashedNewPassword = await hashPassword(newPassword);
-
-    // Aktualizuj hasło w bazie danych
-    await prisma.users.update({
-      where: { id: BigInt(currentUser.userId) },
-      data: {
-        password_hash: hashedNewPassword,
-        updated_at: new Date(),
-      },
-    });
 
     return NextResponse.json({ message: 'Hasło zostało pomyślnie zmienione' });
   } catch (error) {
@@ -69,6 +50,4 @@ const changePassword = async (request: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-};
-
-export const POST = withAuth(changePassword); 
+} 

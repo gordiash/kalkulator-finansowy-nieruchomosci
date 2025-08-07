@@ -1,29 +1,33 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { withAuth, AuthenticatedRequest, getCurrentUser } from '@/lib/authMiddleware';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
-// Handler do pobierania listy kalkulacji użytkownika
-const getCalculations = async (request: AuthenticatedRequest) => {
+export async function GET(request: Request) {
   try {
-    const currentUser = getCurrentUser(request);
-    if (!currentUser) {
+    const supabase = await getSupabaseServerClient();
+    
+    // Sprawdź czy użytkownik jest zalogowany
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
     }
 
-    const calculations = await prisma.property_calculations.findMany({
-      where: { user_id: BigInt(currentUser.userId) },
-      orderBy: { created_at: 'desc' },
-    });
+    // Pobierz kalkulacje użytkownika
+    const { data: calculations, error: calculationsError } = await supabase
+      .from('calculations')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-    // Konwertuj BigInt na string dla bezpiecznej serializacji
-    const response = calculations.map(calc => ({
-      ...calc,
-      id: calc.id.toString(),
-      user_id: calc.user_id.toString(),
-    }));
+    if (calculationsError) {
+      console.error('Błąd podczas pobierania kalkulacji:', calculationsError);
+      return NextResponse.json(
+        { error: 'Nie udało się pobrać kalkulacji' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(response);
-
+    return NextResponse.json(calculations || []);
   } catch (error) {
     console.error('Błąd podczas pobierania kalkulacji:', error);
     return NextResponse.json(
@@ -31,38 +35,46 @@ const getCalculations = async (request: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-};
+}
 
-// Handler do zapisywania nowej kalkulacji
-const createCalculation = async (request: AuthenticatedRequest) => {
+export async function POST(request: Request) {
   try {
-    const currentUser = getCurrentUser(request);
-    if (!currentUser) {
+    const supabase = await getSupabaseServerClient();
+    
+    // Sprawdź czy użytkownik jest zalogowany
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { title, calculationType, input_json, result_json } = body;
+    const calculationData = await request.json();
 
-    if (!title || !calculationType || !input_json || !result_json) {
-      return NextResponse.json({ error: 'Brak wszystkich wymaganych danych' }, { status: 400 });
+    // Zapisz kalkulację
+    const { data: calculation, error: saveError } = await supabase
+      .from('calculations')
+      .insert({
+        user_id: user.id,
+        calculation_type: calculationData.type,
+        input_data: calculationData.input,
+        result_data: calculationData.result,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('Błąd podczas zapisywania kalkulacji:', saveError);
+      return NextResponse.json(
+        { error: 'Nie udało się zapisać kalkulacji' },
+        { status: 500 }
+      );
     }
 
-    const newCalculation = await prisma.property_calculations.create({
-      data: {
-        user_id: BigInt(currentUser.userId),
-        title,
-        calculation_type: calculationType,
-        input_json: JSON.stringify(input_json),
-        result_json: JSON.stringify(result_json),
-      }
-    });
-
     return NextResponse.json({ 
-        message: 'Kalkulacja zapisana pomyślnie', 
-        calculationId: newCalculation.id.toString()
-    }, { status: 201 });
-
+      message: 'Kalkulacja została pomyślnie zapisana',
+      calculation 
+    });
   } catch (error) {
     console.error('Błąd podczas zapisywania kalkulacji:', error);
     return NextResponse.json(
@@ -70,7 +82,4 @@ const createCalculation = async (request: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-};
-
-export const GET = withAuth(getCalculations);
-export const POST = withAuth(createCalculation); 
+} 

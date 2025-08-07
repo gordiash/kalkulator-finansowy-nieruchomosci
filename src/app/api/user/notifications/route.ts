@@ -1,30 +1,35 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { withAuth, AuthenticatedRequest, getCurrentUser } from '@/lib/authMiddleware';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
-// Pobieranie ustawień powiadomień
-const getNotificationSettings = async (request: AuthenticatedRequest) => {
+export async function GET(request: Request) {
   try {
-    const currentUser = getCurrentUser(request);
-    if (!currentUser) {
+    const supabase = await getSupabaseServerClient();
+    
+    // Sprawdź czy użytkownik jest zalogowany
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
     }
 
-    const user = await prisma.users.findUnique({
-      where: { id: BigInt(currentUser.userId) },
-      select: {
-        newsletter_subscription: true,
-        email_notifications: true,
-      },
-    });
+    // Pobierz ustawienia powiadomień użytkownika
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('newsletter_subscription, email_notifications')
+      .eq('id', user.id)
+      .single();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Użytkownik nie znaleziony' }, { status: 404 });
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('Błąd podczas pobierania ustawień powiadomień:', profileError);
+      return NextResponse.json(
+        { error: 'Nie udało się pobrać ustawień powiadomień' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
-      newsletter_subscription: user.newsletter_subscription ?? true,
-      email_notifications: user.email_notifications ?? true,
+      newsletter_subscription: profile?.newsletter_subscription || false,
+      email_notifications: profile?.email_notifications || false,
     });
   } catch (error) {
     console.error('Błąd podczas pobierania ustawień powiadomień:', error);
@@ -33,68 +38,44 @@ const getNotificationSettings = async (request: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-};
+}
 
-// Aktualizacja ustawień powiadomień
-const updateNotificationSettings = async (request: AuthenticatedRequest) => {
+export async function PUT(request: Request) {
   try {
-    const currentUser = getCurrentUser(request);
-    if (!currentUser) {
+    const supabase = await getSupabaseServerClient();
+    
+    // Sprawdź czy użytkownik jest zalogowany
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
     }
 
     const { newsletter_subscription, email_notifications } = await request.json();
 
-    // Walidacja ustawień powiadomień
-    const validationErrors: string[] = [];
+    // Aktualizuj ustawienia powiadomień
+    const { data: profile, error: updateError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        newsletter_subscription: newsletter_subscription || false,
+        email_notifications: email_notifications || false,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-    // 1. Walidacja newsletter_subscription
-    if (newsletter_subscription !== undefined && typeof newsletter_subscription !== 'boolean') {
-      validationErrors.push('Nieprawidłowa wartość dla subskrypcji newslettera');
-    }
-
-    // 2. Walidacja email_notifications
-    if (email_notifications !== undefined && typeof email_notifications !== 'boolean') {
-      validationErrors.push('Nieprawidłowa wartość dla powiadomień email');
-    }
-
-    // Jeśli są błędy walidacji, zwróć je wszystkie
-    if (validationErrors.length > 0) {
+    if (updateError) {
+      console.error('Błąd podczas aktualizacji ustawień powiadomień:', updateError);
       return NextResponse.json(
-        { 
-          error: 'Błędy walidacji ustawień powiadomień',
-          details: validationErrors 
-        },
-        { status: 400 }
+        { error: 'Nie udało się zaktualizować ustawień powiadomień' },
+        { status: 500 }
       );
     }
 
-    // Przygotowanie danych do aktualizacji
-    const updateData: any = {
-      updated_at: new Date(),
-    };
-
-    if (newsletter_subscription !== undefined) {
-      updateData.newsletter_subscription = newsletter_subscription;
-    }
-
-    if (email_notifications !== undefined) {
-      updateData.email_notifications = email_notifications;
-    }
-
-    // Aktualizacja danych użytkownika
-    const updatedUser = await prisma.users.update({
-      where: { id: BigInt(currentUser.userId) },
-      data: updateData,
-      select: {
-        newsletter_subscription: true,
-        email_notifications: true,
-      },
-    });
-
-    return NextResponse.json({
-      newsletter_subscription: updatedUser.newsletter_subscription ?? true,
-      email_notifications: updatedUser.email_notifications ?? true,
+    return NextResponse.json({ 
+      message: 'Ustawienia powiadomień zostały pomyślnie zaktualizowane',
+      profile 
     });
   } catch (error) {
     console.error('Błąd podczas aktualizacji ustawień powiadomień:', error);
@@ -103,7 +84,4 @@ const updateNotificationSettings = async (request: AuthenticatedRequest) => {
       { status: 500 }
     );
   }
-};
-
-export const GET = withAuth(getNotificationSettings);
-export const PUT = withAuth(updateNotificationSettings); 
+} 

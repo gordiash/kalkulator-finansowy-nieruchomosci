@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Profil Użytkownika - Panel Kalkulatory Nieruchomości | Analityka Nieruchomości',
   description: 'Zarządzaj swoimi danymi osobowymi w panelu kalkulatorów nieruchomości. Edytuj profil, zmień hasło i ustawienia konta.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   keywords: [
     'profil użytkownika',
     'dane osobowe',
@@ -16,9 +20,7 @@ export const metadata: Metadata = {
     'ustawienia konta',
     'panel kalkulatory nieruchomości'
   ],
-  alternates: {
-    canonical: `${baseUrl}/panel/profil`,
-  },
+
   openGraph: {
     ...defaultMeta.openGraph,
     title: 'Profil Użytkownika - Panel Kalkulatory Nieruchomości',

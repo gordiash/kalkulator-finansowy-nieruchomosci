@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Ustawienia Konta - Panel Użytkownika | Analityka Nieruchomości',
   description: 'Zarządzaj ustawieniami konta w panelu kalkulatorów nieruchomości. Zmień hasło, powiadomienia i preferencje bezpieczeństwa.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   keywords: [
     'ustawienia konta',
     'zmień hasło',
@@ -17,9 +21,7 @@ export const metadata: Metadata = {
     'preferencje użytkownika',
     'panel użytkownika'
   ],
-  alternates: {
-    canonical: `${baseUrl}/panel/ustawienia`,
-  },
+
   openGraph: {
     ...defaultMeta.openGraph,
     title: 'Ustawienia Konta - Panel Użytkownika',

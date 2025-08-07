@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Logowanie Administratora - Panel Admin | Analityka Nieruchomości',
   description: 'Logowanie do panelu administratora kalkulatorów nieruchomości. Dostęp do zarządzania blogiem i treściami.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   keywords: [
     'logowanie administratora',
     'panel admin',
@@ -68,9 +72,7 @@ export const metadata: Metadata = {
     'rejestr zabezpieczeń koszt',
     'kredyt hipoteczny dokumenty wymagane'
   ],
-  alternates: {
-    canonical: `${baseUrl}/login`,
-  },
+
   openGraph: {
     ...defaultMeta.openGraph,
     title: 'Logowanie Administratora - Panel Admin',

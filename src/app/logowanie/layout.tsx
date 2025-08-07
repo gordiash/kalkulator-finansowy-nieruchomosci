@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   ...defaultMeta,
   title: 'Logowanie - Kalkulatory Nieruchomości | Analityka Nieruchomości',
   description: 'Zaloguj się do panelu kalkulatorów nieruchomości. Dostęp do historii kalkulacji, zapisanych wyników i ustawień konta.',
+  robots: {
+    index: false,
+    follow: false,
+  },
   keywords: [
     'logowanie kalkulatory nieruchomości',
     'panel użytkownika',
@@ -68,9 +72,7 @@ export const metadata: Metadata = {
     'rejestr zabezpieczeń koszt',
     'kredyt hipoteczny dokumenty wymagane'
   ],
-  alternates: {
-    canonical: `${baseUrl}/logowanie`,
-  },
+
   openGraph: {
     ...defaultMeta.openGraph,
     title: 'Logowanie - Kalkulatory Nieruchomości',

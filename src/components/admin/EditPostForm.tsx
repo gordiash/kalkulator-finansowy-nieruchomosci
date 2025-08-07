@@ -23,18 +23,38 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function NewPostPage() {
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  short_content?: string;
+  tags?: string;
+  status: string;
+  image_display?: string;
+  published_at?: string;
+  seo_title?: string;
+  seo_content?: string;
+  author_id?: string;
+}
+
+interface EditPostFormProps {
+  post: Post;
+}
+
+export default function EditPostForm({ post }: EditPostFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    content: '',
-    excerpt: '',
-    tags: '',
-    status: 'draft',
-    image_display: ''
+    title: post.title,
+    slug: post.slug,
+    content: post.content,
+    short_content: post.short_content || '',
+    tags: post.tags || '',
+    status: post.status,
+    image_display: post.image_display || '',
+    seo_title: post.seo_title || post.title,
+    seo_content: post.seo_content || post.short_content || ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -63,22 +83,10 @@ export default function NewPostPage() {
 
   const handleTitleChange = (title: string) => {
     handleInputChange('title', title);
+    // Automatycznie generuj slug tylko jeśli jest pusty
     if (!formData.slug) {
       handleInputChange('slug', generateSlug(title));
     }
-  };
-
-  const handlePreview = () => {
-    if (!formData.title || !formData.content) {
-      alert('Wprowadź tytuł i treść, aby zobaczyć podgląd');
-      return;
-    }
-    
-    setShowPreview(true);
-  };
-
-  const handleBackToEditor = () => {
-    setShowPreview(false);
   };
 
   const handleSave = async () => {
@@ -89,25 +97,24 @@ export default function NewPostPage() {
 
     setIsLoading(true);
     try {
-      const postData = {
+      const updateData = {
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         content: formData.content,
-        short_content: formData.excerpt,
+        short_content: formData.short_content,
         tags: formData.tags,
         status: 'draft',
         image_display: formData.image_display,
-        published_at: new Date().toISOString(),
-        seo_title: formData.title,
-        seo_content: formData.excerpt
+        seo_title: formData.seo_title,
+        seo_content: formData.seo_content
       };
 
-      console.log('Zapisywanie wpisu:', postData);
-      console.log('Obrazek do zapisu:', formData.image_display);
+      console.log('Zapisywanie zmian:', updateData);
 
       const { data, error } = await supabase
         .from('posts')
-        .insert([postData])
+        .update(updateData)
+        .eq('id', post.id)
         .select();
 
       if (error) {
@@ -116,9 +123,8 @@ export default function NewPostPage() {
         return;
       }
 
-      console.log('Wpis zapisany:', data);
-      console.log('Zapisany obrazek:', data?.[0]?.image_display);
-      alert('Wpis został zapisany jako szkic!');
+      console.log('Zmiany zapisane:', data);
+      alert('Zmiany zostały zapisane!');
       router.push('/admin/posts');
     } catch (error) {
       console.error('Błąd podczas zapisywania:', error);
@@ -136,24 +142,25 @@ export default function NewPostPage() {
 
     setIsLoading(true);
     try {
-      const postData = {
+      const updateData = {
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         content: formData.content,
-        short_content: formData.excerpt,
+        short_content: formData.short_content,
         tags: formData.tags,
         status: 'published',
         image_display: formData.image_display,
-        published_at: new Date().toISOString(),
-        seo_title: formData.title,
-        seo_content: formData.excerpt
+        seo_title: formData.seo_title,
+        seo_content: formData.seo_content,
+        published_at: new Date().toISOString()
       };
 
-      console.log('Publikowanie wpisu:', postData);
+      console.log('Publikowanie wpisu:', updateData);
 
       const { data, error } = await supabase
         .from('posts')
-        .insert([postData])
+        .update(updateData)
+        .eq('id', post.id)
         .select();
 
       if (error) {
@@ -173,8 +180,32 @@ export default function NewPostPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (confirm('Czy na pewno chcesz usunąć ten wpis?')) {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/posts/${post.id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Błąd podczas usuwania wpisu');
+        }
+
+        alert('Wpis został usunięty!');
+        router.push('/admin/posts');
+      } catch (error) {
+        console.error('Błąd podczas usuwania:', error);
+        alert(`Błąd podczas usuwania wpisu: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <>
       <AdminHeader />
       
       <div className="container mx-auto px-4 py-8">
@@ -188,19 +219,17 @@ export default function NewPostPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nowy Wpis</h1>
-              <p className="text-gray-600 mt-1">Utwórz nowy wpis blogowy</p>
+              <h1 className="text-3xl font-bold text-gray-900">Edytuj Wpis</h1>
+              <p className="text-gray-600 mt-1">Edytuj wpis blogowy</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              onClick={showPreview ? handleBackToEditor : handlePreview}
-              disabled={isLoading || (!formData.title || !formData.content)}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {showPreview ? 'Powrót do edytora' : 'Podgląd'}
+            <Button variant="outline" disabled={isLoading} asChild>
+              <Link href={`/blog/${post.slug}`} target="_blank">
+                <Eye className="h-4 w-4 mr-2" />
+                Podgląd
+              </Link>
             </Button>
             <Button 
               variant="outline" 
@@ -208,7 +237,7 @@ export default function NewPostPage() {
               disabled={isLoading}
             >
               <Save className="h-4 w-4 mr-2" />
-              Zapisz szkic
+              Zapisz zmiany
             </Button>
             <Button 
               onClick={handlePublish}
@@ -217,6 +246,15 @@ export default function NewPostPage() {
             >
               <FileText className="h-4 w-4 mr-2" />
               Opublikuj
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Usuń
             </Button>
           </div>
         </div>
@@ -289,8 +327,8 @@ export default function NewPostPage() {
                   <textarea
                     id="excerpt"
                     placeholder="Krótki opis wpisu..."
-                    value={formData.excerpt}
-                    onChange={(e) => handleInputChange('excerpt', e.target.value)}
+                    value={formData.short_content}
+                    onChange={(e) => handleInputChange('short_content', e.target.value)}
                     className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
                 </div>
@@ -325,6 +363,44 @@ export default function NewPostPage() {
               </CardContent>
             </Card>
 
+            {/* Informacje o wpisie */}
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                  <History className="h-5 w-5 mr-2" />
+                  Informacje
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">ID:</span>
+                  <span className="font-medium">{post.id}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Utworzony:</span>
+                  <span className="font-medium">
+                    {new Date(post.created_at).toLocaleDateString('pl-PL')}
+                  </span>
+                </div>
+                {post.updated_at && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Ostatnia edycja:</span>
+                    <span className="font-medium">
+                      {new Date(post.updated_at).toLocaleDateString('pl-PL')}
+                    </span>
+                  </div>
+                )}
+                {post.published_at && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Opublikowany:</span>
+                    <span className="font-medium">
+                      {new Date(post.published_at).toLocaleDateString('pl-PL')}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Obrazek główny */}
             <Card className="bg-white shadow-lg border-0">
               <CardHeader>
@@ -334,7 +410,10 @@ export default function NewPostPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageUpload onImageUploaded={handleImageUploaded} />
+                <ImageUpload 
+                  onImageUploaded={handleImageUploaded}
+                  currentImageUrl={formData.image_display}
+                />
               </CardContent>
             </Card>
 
@@ -355,6 +434,8 @@ export default function NewPostPage() {
                     id="meta-title"
                     type="text"
                     placeholder="Tytuł dla wyszukiwarek..."
+                    value={formData.seo_title}
+                    onChange={(e) => handleInputChange('seo_title', e.target.value)}
                   />
                 </div>
 
@@ -365,6 +446,8 @@ export default function NewPostPage() {
                   <textarea
                     id="meta-description"
                     placeholder="Opis dla wyszukiwarek..."
+                    value={formData.seo_content}
+                    onChange={(e) => handleInputChange('seo_content', e.target.value)}
                     className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
                 </div>
@@ -373,92 +456,6 @@ export default function NewPostPage() {
           </div>
         </div>
       </div>
-
-      {/* Podgląd wpisu */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Podgląd wpisu</h2>
-                <Button variant="outline" onClick={handleBackToEditor}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Powrót do edytora
-                </Button>
-              </div>
-            </div>
-            
-            <div className="p-6">
-              {/* Obrazek główny */}
-              {formData.image_display && (
-                <div className="mb-8">
-                  {console.log('Wyświetlanie obrazka w podglądzie:', formData.image_display)}
-                  <img
-                    src={formData.image_display}
-                    alt={formData.title}
-                    className="w-full h-64 object-cover rounded-lg shadow-lg"
-                  />
-                </div>
-              )}
-
-              {/* Nagłówek wpisu */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                  {formData.title}
-                </h1>
-                
-                {formData.excerpt && (
-                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                    {formData.excerpt}
-                  </p>
-                )}
-
-                <div className="flex items-center space-x-6 text-sm text-gray-500 border-t border-gray-200 pt-4">
-                  <div className="flex items-center">
-                    {/* <Calendar className="h-4 w-4 mr-2" /> */}
-                    {/* {new Date().toLocaleDateString('pl-PL')} */}
-                  </div>
-                  <div className="flex items-center">
-                    {/* <User className="h-4 w-4 mr-2" /> */}
-                    {/* Administrator */}
-                  </div>
-                  {formData.tags && (
-                    <div className="flex items-center">
-                      {/* <Tag className="h-4 w-4 mr-2" /> */}
-                      {formData.tags}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Treść wpisu */}
-              <div className="prose prose-lg max-w-none">
-                <div 
-                  className="text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: formData.content }}
-                />
-              </div>
-
-              {/* Tagi */}
-              {formData.tags && (
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Tagi:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.split(',').map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                      >
-                        {tag.trim()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 } 
