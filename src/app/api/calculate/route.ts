@@ -410,6 +410,7 @@ interface RentalInput extends Record<string, unknown> {
     renovationCosts: number | null;
     otherInitialCosts: number | null;
     managementFee: number | null;
+    loanAmount?: number | null;
 }
 
 interface CreditScoreInput extends Record<string, unknown> {
@@ -485,7 +486,8 @@ function handleRentalCalculation(input: RentalInput) {
         const downPayment = parseFloat(input.downPayment?.toString() || '0');
 
         // Pozwalamy przekazać loanAmount bezpośrednio z frontu (np. gdy kwota kredytu wyliczona gdzie indziej)
-        let loanAmount = input.loanAmount !== undefined ? parseFloat(input.loanAmount.toString()) : NaN;
+        const loanAmountRaw = (input as RentalInput).loanAmount;
+        let loanAmount = loanAmountRaw != null ? parseFloat(loanAmountRaw.toString()) : NaN;
         if (isNaN(loanAmount)) {
             loanAmount = Math.max(0, purchasePriceRaw - downPayment);
         }

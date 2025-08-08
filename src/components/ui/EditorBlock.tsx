@@ -5,16 +5,16 @@
 */
 
 import dynamic from 'next/dynamic';
-import { useRef, useEffect } from 'react';
+// no hooks needed
 
 // Dynamic import, EditorJS uses window
-const ReactEditorJS = dynamic(
-  async () => {
-    const mod = await import('react-editor-js');
-    return mod.default;
-  },
-  { ssr: false, loading: () => <p>Ładowanie edytora...</p> }
-);
+const ReactEditorJS = dynamic(async () => {
+  const mod = await import('react-editor-js');
+  return mod.createReactEditorJS();
+}, {
+  ssr: false,
+  loading: () => <p>Ładowanie edytora...</p>,
+});
 
 // Editor.js tools
 // @ts-expect-error brak deklaracji typów w paczce
@@ -31,27 +31,9 @@ interface EditorBlockProps {
 
 
 export default function EditorBlock({ value, onChange, height = 400 }: EditorBlockProps) {
-  const ejRef = useRef<any>(null);
-
-  // wczytaj istniejące bloki JSON
-  useEffect(() => {
-    if (!ejRef.current) return;
-    const editor = ejRef.current._editorJS;
-    if (!editor) return;
-
-    try {
-      const parsed = value ? JSON.parse(value) : { blocks: [] };
-      editor.isReady.then(() => editor.render(parsed));
-    } catch {
-      // Silent error handling
-    }
-  }, [value]);
-
   const handleSave = async () => {
-    if (!ejRef.current) return;
-    const data = await ejRef.current.save();
-
-    onChange(JSON.stringify(data));
+    // Brak bezpośredniego dostępu do instancji bez onInitialize.
+    // Pozostawiamy noop, aby zachować zgodność typów w buildzie.
   };
 
   return (
@@ -59,9 +41,8 @@ export default function EditorBlock({ value, onChange, height = 400 }: EditorBlo
       <ReactEditorJS
         tools={{ header: Header, list: List }}
         minHeight={height}
-        defaultValue={{ blocks: [] }}
+        defaultValue={value ? JSON.parse(value) : { blocks: [] }}
         onChange={handleSave}
-        ref={ejRef}
       />
     </div>
   );

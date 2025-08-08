@@ -624,7 +624,7 @@ const CreditScoreCalculatorPageContent = () => {
                           <CardTitle className="text-lg">Struktura miesięcznych dochodów i wydatków</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ResponsiveContainer width="100%" height={400}>
+                      <ResponsiveContainer width="100%" height={400}>
                             <PieChart>
                               <Pie
                                 data={chartData}
@@ -636,9 +636,12 @@ const CreditScoreCalculatorPageContent = () => {
                                 fill="#8884d8"
                                 dataKey="value"
                               >
-                                {chartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
+                            {(() => {
+                              const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#EF4444', '#8B5CF6', '#10B981', '#F59E0B'];
+                              return chartData.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ));
+                            })()}
                               </Pie>
                               <RechartsTooltip 
                                 formatter={(value: number) => [`${value.toFixed(0)} zł`, 'Kwota']}

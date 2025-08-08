@@ -144,7 +144,8 @@ const OverpaymentComparisonChart: React.FC<{
                 },
                 ticks: {
                     callback: function(value: number | string) {
-                        return formatCurrency(value);
+                        const num = typeof value === 'number' ? value : Number(value);
+                        return formatCurrency(Number.isFinite(num) ? num : 0);
                     }
                 }
             }
@@ -212,7 +213,8 @@ const OverpaymentTimelineChart: React.FC<{
                 },
                 ticks: {
                     callback: function(value: number | string) {
-                        return formatCurrency(value);
+                        const num = typeof value === 'number' ? value : Number(value);
+                        return formatCurrency(Number.isFinite(num) ? num : 0);
                     }
                 }
             }
