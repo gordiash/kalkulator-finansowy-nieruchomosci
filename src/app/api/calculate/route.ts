@@ -391,8 +391,7 @@ function generateSchedule(
     return schedule;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface RentalInput extends Record<string, any> {
+interface RentalInput extends Record<string, unknown> {
     calculationType: string;
     purchasePrice: number;
     monthlyRent: number;
@@ -413,8 +412,7 @@ interface RentalInput extends Record<string, any> {
     managementFee: number | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface CreditScoreInput extends Record<string, any> {
+interface CreditScoreInput extends Record<string, unknown> {
     calculationType: string;
     monthlyIncome: number;
     monthlyExpenses: number;
@@ -430,8 +428,7 @@ interface CreditScoreInput extends Record<string, any> {
     dstiRatio: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface PurchaseInput extends Record<string, any> {
+interface PurchaseInput extends Record<string, unknown> {
     propertyValue: number;
     loanAmount: number;
     loanTerm: number;

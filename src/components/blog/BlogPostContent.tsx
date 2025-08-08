@@ -1,6 +1,4 @@
 'use client';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import MarkdownIt from 'markdown-it';
 import markdownItAttrs from 'markdown-it-attrs';
 
@@ -12,8 +10,9 @@ const md = new MarkdownIt({
   breaks: true,
 }).use(markdownItAttrs);
 
+type ContentBlock = { children?: Array<{ text?: string }> } | string;
 interface BlogPostContentProps {
-  content: string | any[];
+  content: string | ContentBlock[];
 }
 
 export default function BlogPostContent({ content }: BlogPostContentProps) {
@@ -24,8 +23,8 @@ export default function BlogPostContent({ content }: BlogPostContentProps) {
       .map((block) =>
         typeof block === 'string'
           ? block
-          : Array.isArray((block as any).children)
-              ? (block as any).children.map((child: any) => child.text || '').join('')
+          : Array.isArray(block.children)
+              ? block.children.map((child) => child.text || '').join('')
               : ''
       )
       .join('\n\n');

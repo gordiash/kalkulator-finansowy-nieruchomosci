@@ -18,6 +18,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
+import DeletePostButton from '@/components/admin/DeletePostButton';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
 
@@ -174,9 +175,7 @@ export default async function AdminPage() {
                             <Edit className="h-3 w-3" />
                           </Button>
                         </Link>
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <DeletePostButton postId={post.id} postTitle={post.title} />
                         <Link href={`/blog/${post.slug}`} target="_blank">
                           <Button variant="outline" size="sm">
                             <Eye className="h-3 w-3" />

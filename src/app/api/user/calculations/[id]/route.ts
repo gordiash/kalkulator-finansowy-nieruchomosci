@@ -3,10 +3,11 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient();
+    const { id } = await context.params;
     
     // Sprawdź czy użytkownik jest zalogowany
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -19,7 +20,7 @@ export async function GET(
     const { data: calculation, error: calculationError } = await supabase
       .from('calculations')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -46,10 +47,11 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient();
+    const { id } = await context.params;
     
     // Sprawdź czy użytkownik jest zalogowany
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -62,7 +64,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('calculations')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id);
 
     if (deleteError) {

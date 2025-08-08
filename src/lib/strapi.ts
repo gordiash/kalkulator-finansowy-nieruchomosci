@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
 // Konfiguracja klienta Strapi
@@ -97,7 +96,7 @@ export async function getBlogPosts(params?: {
       data.data = data.data.map((post: any) => {
         // Jeśli API zwróciło płaskie pola (brak attributes), przenosimy je do attributes
         if (!post.attributes) {
-          const newAttrs: Record<string, any> = {};
+          const newAttrs: Record<string, unknown> = {};
           for (const [k, v] of Object.entries(post)) {
             if (k !== 'id' && k !== 'attributes') {
               newAttrs[k] = v;
@@ -147,7 +146,7 @@ export async function getBlogPost(slug: string, populate: string[] = ['categorie
     const single = response.data.data[0];
     // Normalizacja jak w liście
     if (single && !single.attributes) {
-      const newAttrs: Record<string, any> = {};
+      const newAttrs: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(single)) {
         if (k !== 'id' && k !== 'attributes') {
           newAttrs[k] = v;
@@ -238,10 +237,11 @@ export async function updateBlogPost(id: number, data: any) {
 /**
  * Pobiera URL dla mediów ze Strapi
  */
-export function getStrapiMediaUrl(media: any): string {
+export function getStrapiMediaUrl(media: unknown): string {
   if (!media) return '';
   
-  const url = media.url || media.data?.attributes?.url;
+  const m = media as { url?: string; data?: { attributes?: { url?: string } } };
+  const url = m.url || m.data?.attributes?.url;
   if (!url) return '';
   
   // Jeśli URL jest relatywny, dodaj bazowy URL Strapi

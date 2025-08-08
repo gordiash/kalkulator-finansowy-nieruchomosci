@@ -117,8 +117,7 @@ const OverpaymentComparisonChart: React.FC<{
             },
             tooltip: {
                 callbacks: {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    label: function(context: any) {
+                    label: function(context: { dataset: { label?: string }; parsed: { y: number|null } }) {
                         let label = context.dataset.label || '';
                         if (label) {
                             label += ': ';
@@ -144,8 +143,7 @@ const OverpaymentComparisonChart: React.FC<{
                     text: 'Pozostałe saldo (zł)'
                 },
                 ticks: {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    callback: function(value: any) {
+                    callback: function(value: number | string) {
                         return formatCurrency(value);
                     }
                 }
@@ -194,8 +192,7 @@ const OverpaymentTimelineChart: React.FC<{
             },
             tooltip: {
                 callbacks: {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    label: function(context: any) {
+                    label: function(context: { parsed: { y: number } }) {
                         return `Nadpłata: ${formatCurrency(context.parsed.y)}`;
                     }
                 }
@@ -214,8 +211,7 @@ const OverpaymentTimelineChart: React.FC<{
                     text: 'Kwota nadpłaty (zł)'
                 },
                 ticks: {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    callback: function(value: any) {
+                    callback: function(value: number | string) {
                         return formatCurrency(value);
                     }
                 }
@@ -781,8 +777,7 @@ function RealEstateCalculatorPageContent() {
                 }
             });
             
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (doc as any).lastAutoTable.finalY + 10;
+            return (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
         };
 
         let currentY = 30;

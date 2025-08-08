@@ -136,8 +136,7 @@ const CreditScoreCalculatorPageContent = () => {
   const [error, setError] = useState<string | null>(null);
   const [creditCapacity, setCreditCapacity] = useState<number | null>(null);
   const [maxLoanAmount, setMaxLoanAmount] = useState<number | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<Array<Record<string, number>>>([]);
   
   // Rozszerzone dane z zaawansowanego algorytmu
   const [calculationDetails, setCalculationDetails] = useState<{

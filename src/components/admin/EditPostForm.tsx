@@ -16,7 +16,7 @@ import {
   ArrowLeft,
   Settings,
   FileText,
-  Image,
+  Image as ImageIcon,
   Link as LinkIcon,
   Trash2,
   History
@@ -32,6 +32,8 @@ interface Post {
   tags?: string;
   status: string;
   image_display?: string;
+  created_at?: string;
+  updated_at?: string;
   published_at?: string;
   seo_title?: string;
   seo_content?: string;
@@ -379,14 +381,14 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Utworzony:</span>
                   <span className="font-medium">
-                    {new Date(post.created_at).toLocaleDateString('pl-PL')}
+                    {post.created_at ? new Date(post.created_at).toLocaleDateString('pl-PL') : '—'}
                   </span>
                 </div>
                 {post.updated_at && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Ostatnia edycja:</span>
                     <span className="font-medium">
-                      {new Date(post.updated_at).toLocaleDateString('pl-PL')}
+                      {post.updated_at ? new Date(post.updated_at).toLocaleDateString('pl-PL') : '—'}
                     </span>
                   </div>
                 )}
@@ -394,7 +396,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Opublikowany:</span>
                     <span className="font-medium">
-                      {new Date(post.published_at).toLocaleDateString('pl-PL')}
+                      {post.published_at ? new Date(post.published_at).toLocaleDateString('pl-PL') : '—'}
                     </span>
                   </div>
                 )}
@@ -405,7 +407,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
             <Card className="bg-white shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Image className="h-5 w-5 mr-2" />
+                  <ImageIcon className="h-5 w-5 mr-2" aria-hidden="true" />
                   Obrazek główny
                 </CardTitle>
               </CardHeader>

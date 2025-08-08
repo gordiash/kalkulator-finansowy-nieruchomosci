@@ -1,6 +1,7 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  roots: ['<rootDir>/src', '<rootDir>/tests'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
@@ -33,5 +34,12 @@ export default {
     '<rootDir>/tests/**/*.test.{ts,tsx}',
     '<rootDir>/src/**/__tests__/**/*.{ts,tsx}',
     '<rootDir>/src/**/*.{test,spec}.{ts,tsx}'
-  ]
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/.venv/',
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/'
+  ],
+  modulePathIgnorePatterns: ['<rootDir>/.venv/'],
+  watchPathIgnorePatterns: ['<rootDir>/.venv/']
 }; 

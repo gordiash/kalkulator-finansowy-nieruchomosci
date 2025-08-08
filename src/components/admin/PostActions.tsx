@@ -50,26 +50,41 @@ export default function PostActions({ id, status, slug }: PostActionsProps) {
     setIsLoading(true);
     try {
       const newStatus = status === 'published' ? 'draft' : 'published';
-      // Tutaj dodaj logikę aktualizacji statusu w bazie danych
-      console.log(`Zmiana statusu wpisu ${id} na ${newStatus}`);
+      const response = await fetch(`/api/posts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Nie udało się zaktualizować statusu');
+      }
+      router.refresh();
+      setIsMenuOpen(false);
     } catch (error) {
       console.error('Błąd podczas zmiany statusu:', error);
+      alert(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (confirm('Czy na pewno chcesz usunąć ten wpis?')) {
-      setIsLoading(true);
-      try {
-        // Tutaj dodaj logikę usuwania wpisu
-        console.log(`Usuwanie wpisu ${id}`);
-      } catch (error) {
-        console.error('Błąd podczas usuwania:', error);
-      } finally {
-        setIsLoading(false);
+    if (!confirm('Czy na pewno chcesz usunąć ten wpis?')) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Nie udało się usunąć wpisu');
       }
+      router.refresh();
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('Błąd podczas usuwania:', error);
+      alert(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 

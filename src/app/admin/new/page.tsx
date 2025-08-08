@@ -16,12 +16,13 @@ import {
   ArrowLeft,
   Settings,
   FileText,
-  Image,
+  Image as ImageIcon,
   Link as LinkIcon,
   Trash2,
   History
 } from 'lucide-react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -329,7 +330,7 @@ export default function NewPostPage() {
             <Card className="bg-white shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Image className="h-5 w-5 mr-2" />
+                  <ImageIcon className="h-5 w-5 mr-2" aria-hidden="true" />
                   Obrazek główny
                 </CardTitle>
               </CardHeader>
@@ -392,12 +393,15 @@ export default function NewPostPage() {
               {/* Obrazek główny */}
               {formData.image_display && (
                 <div className="mb-8">
-                  {console.log('Wyświetlanie obrazka w podglądzie:', formData.image_display)}
-                  <img
-                    src={formData.image_display}
-                    alt={formData.title}
-                    className="w-full h-64 object-cover rounded-lg shadow-lg"
-                  />
+                  <div className="relative w-full h-64">
+                    <NextImage
+                      src={formData.image_display}
+                      alt={formData.title || 'Obrazek wpisu'}
+                      fill
+                      sizes="100vw"
+                      className="object-cover rounded-lg shadow-lg"
+                    />
+                  </div>
                 </div>
               )}
 

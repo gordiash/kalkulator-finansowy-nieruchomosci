@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface Calculation {
@@ -22,11 +22,7 @@ const CalculationsTable = ({ type }: CalculationsTableProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCalculations();
-  }, [type]);
-
-  const fetchCalculations = async () => {
+  const fetchCalculations = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
@@ -54,7 +50,13 @@ const CalculationsTable = ({ type }: CalculationsTableProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
+
+  useEffect(() => {
+    fetchCalculations();
+  }, [fetchCalculations]);
+
+  
 
   const deleteCalculation = async (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć tę kalkulację?')) {

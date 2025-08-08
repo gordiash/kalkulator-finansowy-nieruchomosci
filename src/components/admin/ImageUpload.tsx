@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Image, Upload, X, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Upload, X, Loader2 } from 'lucide-react';
+import NextImage from 'next/image';
 
 interface ImageUploadProps {
   onImageUploaded: (imageUrl: string) => void;
@@ -143,11 +144,13 @@ export default function ImageUpload({ onImageUploaded, currentImageUrl }: ImageU
       >
         {previewUrl ? (
           <div className="space-y-4">
-            <div className="relative inline-block">
-              <img
+            <div className="relative w-full h-48">
+              <NextImage
                 src={previewUrl}
                 alt="Podgląd obrazka"
-                className="max-w-full h-48 object-cover rounded-lg"
+                fill
+                sizes="100vw"
+                className="object-cover rounded-lg"
               />
               <Button
                 variant="destructive"
@@ -162,7 +165,7 @@ export default function ImageUpload({ onImageUploaded, currentImageUrl }: ImageU
           </div>
         ) : (
           <div className="space-y-4">
-            <Image className="h-12 w-12 text-gray-400 mx-auto" />
+            <ImageIcon className="h-12 w-12 text-gray-400 mx-auto" aria-hidden="true" />
             <div>
               <p className="text-sm text-gray-600 mb-2">
                 Przeciągnij obrazek lub kliknij aby wybrać
@@ -171,7 +174,7 @@ export default function ImageUpload({ onImageUploaded, currentImageUrl }: ImageU
                 JPG, PNG, GIF, WebP (max 5MB)
               </p>
               <p className="text-xs text-blue-600">
-                💡 Wymagana konfiguracja: Utwórz bucket "posts-images" w Supabase Storage
+                💡 Wymagana konfiguracja: Utwórz bucket &quot;posts-images&quot; w Supabase Storage
               </p>
             </div>
             <Button

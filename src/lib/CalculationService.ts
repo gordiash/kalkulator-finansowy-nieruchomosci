@@ -6,8 +6,7 @@ export class CalculationService {
         this.apiUrl = '/api/calculate';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async calculate(data: any): Promise<any> {
+    async calculate(data: Record<string, unknown>): Promise<any> {
         try {
             const response = await fetch(this.apiUrl, {
                 method: 'POST',

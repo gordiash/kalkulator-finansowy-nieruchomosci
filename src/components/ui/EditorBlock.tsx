@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 'use client';
+/*
+  Uwaga: Biblioteka react-editor-js i narzędzia EditorJS nie posiadają pełnych typów.
+  Używamy oszczędnie any i ts-expect-error przy importach narzędzi.
+*/
 
 import dynamic from 'next/dynamic';
 import { useRef, useEffect } from 'react';
@@ -15,9 +17,9 @@ const ReactEditorJS = dynamic(
 );
 
 // Editor.js tools
-// @ts-expect-error - brak deklaracji typów w paczce
+// @ts-expect-error brak deklaracji typów w paczce
 import Header from '@editorjs/header';
-// @ts-expect-error - brak deklaracji typów w paczce
+// @ts-expect-error brak deklaracji typów w paczce
 import List from '@editorjs/list';
 
 interface EditorBlockProps {

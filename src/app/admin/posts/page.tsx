@@ -19,6 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
 
@@ -141,10 +142,12 @@ export default async function PostsPage() {
                       {/* Obrazek wpisu */}
                       {post.image_display && (
                         <div className="w-16 h-16 relative rounded overflow-hidden flex-shrink-0">
-                          <img
+                          <NextImage
                             src={post.image_display}
-                            alt={post.title}
-                            className="w-full h-full object-cover"
+                            alt={post.title || 'Obrazek wpisu'}
+                            fill
+                            sizes="64px"
+                            className="object-cover"
                           />
                         </div>
                       )}
@@ -155,7 +158,7 @@ export default async function PostsPage() {
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
-                            {new Date(post.published_at).toLocaleDateString('pl-PL')}
+                            {post.published_at ? new Date(post.published_at).toLocaleDateString('pl-PL') : '—'}
                           </span>
                           <span className="flex items-center">
                             <Eye className="h-3 w-3 mr-1" />
@@ -174,13 +177,13 @@ export default async function PostsPage() {
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/blog/${post.slug}`} target="_blank">
+                    <Button variant="outline" size="sm" asChild aria-label="Podgląd wpisu">
+                      <Link href={`/blog/${post.slug}`} target="_blank" aria-label="Podgląd wpisu">
                         <Eye className="h-3 w-3" />
                       </Link>
                     </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/edit/${post.id}`}>
+                    <Button variant="outline" size="sm" asChild aria-label="Edytuj wpis">
+                      <Link href={`/admin/edit/${post.id}`} aria-label="Edytuj wpis">
                         <Edit className="h-3 w-3" />
                       </Link>
                     </Button>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Typy dla Strapi Blog API
 
 export interface StrapiMedia {
@@ -22,7 +21,7 @@ export interface StrapiMedia {
     url: string;
     previewUrl?: string;
     provider: string;
-    provider_metadata?: any;
+    provider_metadata?: unknown;
     createdAt: string;
     updatedAt: string;
   };

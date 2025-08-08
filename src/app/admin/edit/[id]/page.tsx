@@ -14,19 +14,14 @@ export const metadata: Metadata = {
   },
 };
 
-interface EditPostPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function EditPostPage({ params }: EditPostPageProps) {
+export default async function EditPostPage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params;
   const supabase = await getSupabaseServerClient();
   
   const { data: post, error } = await supabase
     .from('posts')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !post) {

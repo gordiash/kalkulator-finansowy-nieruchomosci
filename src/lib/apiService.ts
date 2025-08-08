@@ -20,9 +20,8 @@ export interface CalculationInput {
 }
 
 export interface CalculationResults {
-  // Tutaj zdefiniujemy typy dla wyników, na razie może być 'any'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  // Minimalny typ wyników; rozbuduj w miarę potrzeb
+  [key: string]: unknown;
 }
 
 const API_URL = '/api/calculate';
