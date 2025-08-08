@@ -1,0 +1,105 @@
+# Zasady spójności i jakości dla projektu
+
+Ten dokument ustala minimalne wymagania jakościowe i konwencje spójności dla całego repozytorium.
+Obowiązuje wszystkich kontrybutorów. Naruszenia muszą być korygowane w tym samym PR.
+
+## 1) Bramka jakości (lokalnie i w CI przed merge)
+- Lint: `npm run lint` – 0 błędów, ostrzeżenia akceptowalne tylko w uzasadnionych przypadkach.
+- Testy: `npm run test` – 0 testów czerwonych. Dla nowych funkcji wymagane testy jednostkowe/integracyjne.
+- Pokrycie (cel): utrzymuj ≥ 80% dla nowego kodu. Mierz lokalnie `npm run test:coverage`.
+- Budowa: `npm run build` musi przechodzić bez błędów (TS, ESLint, Next).
+- Lighthouse: dla stron publicznych nie schodź poniżej 90/90/90/100 (Performance/Accessibility/Best Practices/SEO). Lokalnie: `npm run lhci`.
+
+## 2) Stos technologiczny i wersje
+- Next.js 15 (App Router), React 19, TypeScript 5, TailwindCSS 4.
+- Testy: Jest 29 + Testing Library (`@testing-library/react`, `@testing-library/jest-dom`).
+- Lint: ESLint 9 + `next/core-web-vitals` + `jsx-a11y`.
+- Baza: Prisma 6 + `@prisma/client`.
+- Supabase: `@supabase/supabase-js` + `@supabase/ssr` (serwer).
+
+## 3) Struktura i nazewnictwo
+- Importy: używaj aliasu `@/` (zob. `next.config.js`, `tsconfig.json`). Unikaj zagnieżdżonych ścieżek względnych.
+- Katalogi w `src/`:
+  - `app/` – routing Next (Server Components domyślnie).
+  - `components/` – komponenty współdzielone (PascalCase, pliki `NazwaKomponentu.tsx`).
+  - `hooks/` – hooki React (prefiks `use`, np. `useCookieConsent.ts`).
+  - `lib/` – funkcje/layer infrastrukturalny (API, klienci, utils).
+  - `types/` – typy i definicje `.d.ts`.
+- Nazewnictwo:
+  - Komponenty/klasy: PascalCase, zmienne/funkcje: camelCase.
+  - Hooki: prefiks `use` i zwracają stabilne API.
+  - Testy: `*.test.ts(x)` w `tests/` lub przy pliku (konsekwentnie jeden styl w module).
+  - Pliki serwerowe/klienckie: dopisz krótką adnotację na górze komponentu klienckiego: "use client".
+
+## 4) TypeScript
+- `strict: true` (już włączone) – nie obniżamy poziomu.
+- Unikaj `any`. Jeśli konieczne, udokumentuj powód nad deklaracją i ogranicz zakres (np. przez typ unii lub generics).
+- Zakazane: `@ts-ignore` bez komentarza z uzasadnieniem i linkiem do zadania/PR.
+- Eksporty: preferuj eksporty nazwane. Eksport domyślny tylko dla stron (`page.tsx`) i prostych pojedynczych utili.
+- Dla funkcji eksportowanych publicznie określ jawny typ zwrotny.
+- Używaj `import type { ... }` dla importów wyłącznie typów.
+
+## 5) React/Next.js
+- Domyślnie Server Components. Oznacz jako Client tylko gdy wymagana jest interakcja przeglądarki, eventy, `useState`, `useEffect` itd.
+- Nawigacja i URL: `next/navigation` (nie używamy `next/router`).
+- Obrazy: zawsze `next/image` z dozwolonymi domenami (`next.config.js`).
+- Meta/SEO: używaj `generateMetadata` lub helperów w `src/dynamicMeta.ts`.
+- API routes: waliduj wejście Zod-em i zwracaj ujednolicone błędy (`{ error: { code, message } }`).
+- SSR/CSR: nie wyciekaj sekretów do klienta. Zmienne środowiskowe w kliencie tylko z prefiksem `NEXT_PUBLIC_`.
+
+## 6) Tailwind i UI
+- Stylowanie wyłącznie Tailwind + `clsx` + `tailwind-merge` dla łączenia klas.
+- Kolejność klas: od layout → spacing → typography → color → state.
+- Kolory: używaj palety z `tailwind.config.ts` (warianty accessibility poprawione). Nie wprowadzaj nowych hex-ów bez aktualizacji konfiguracji.
+- Responsywność: projektuj mobile-first; breakpointy Tailwind.
+- A11y: komponenty muszą przechodzić `jsx-a11y` (alt-text, label-for, role, klawisz TAB, focus states).
+
+## 7) Jakość kodu i wzorce
+- Kontrola błędów: wychwytuj i mapuj błędy na czytelne komunikaty; nie rzucaj surowych błędów zewnętrznych w UI.
+- Logowanie: `console.*` tylko w dev; w prod usuń albo zaopatrz w guard (`NODE_ENV`).
+- Asynchroniczność: zawsze `try/catch` przy I/O; timeout-y dla requestów.
+- Importy: sortuj grupami (node → zewnętrzne → `@/` → względne). Brak importów cyklicznych.
+- Funkcje maks. 50–80 linii; rozbijaj na mniejsze, gdy rosną złożonością.
+
+## 8) Bezpieczeństwo
+- Nie przechowuj tokenów w `localStorage`/`sessionStorage`. Preferuj httpOnly cookies (SSR) i `@supabase/ssr`.
+- Waliduj każdy payload (Zod) w API i formularzach.
+- Nagłówki bezpieczeństwa są wymuszone w `next.config.js` – nie osłabiaj bez przeglądu.
+- CORS: trzymaj spójność ze źródłami z `next.config.js`.
+- Dane wrażliwe tylko po stronie serwera; nie eksportuj sekretów do klienta.
+
+## 9) Baza danych i Prisma
+- Zmiany schematu przez migracje: `npx prisma migrate dev` (dev) / `deploy` (prod). Nie edytuj wygenerowanego klienta.
+- Przy długich zapytaniach: dodaj indeksy w migracjach i adnotacje w PR.
+- Dostęp do DB wyłącznie w warstwie `src/lib/` lub w akcjach serwerowych; nie w komponentach klienckich.
+
+## 10) Supabase
+- Używaj `@supabase/ssr` po stronie serwera. Klient przeglądarkowy tylko do niekrytycznych danych publicznych.
+- Szanuj RLS; operacje wymagające `service_role` tylko na serwerze.
+- Uploady plików wyłącznie do skonfigurowanych bucketów; waliduj typy/MIME i rozmiar.
+
+## 11) Testy
+- Jednostkowe: logika w `src/lib/`, walidatory, transformacje.
+- Integracyjne/E2E (jeśli dotyczy): główne flow użytkownika; makietuj I/O.
+- Testing Library: asercje z `@testing-library/jest-dom`; selektory przez role/label, nie `.class`.
+- Nazewnictwo: `co.testuje_co_ma_się_stać` (np. `valuation.unit.test.ts`).
+
+## 12) Commit/PR
+- Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `perf:`.
+- PR opisuje: cel, zakres, decyzje architektoniczne, screeny (jeśli UI), ryzyka, jak testować.
+- Checklista PR (wymagana):
+  - [ ] `npm run lint`, `npm run test`, `npm run build` przeszły lokalnie
+  - [ ] Testy dodane/zaktualizowane
+  - [ ] Brak sekretów/kluczy w kodzie i historiach commitów
+  - [ ] A11y sprawdzone (TAB, kontrast, alt-tekst)
+  - [ ] Lighthouse ≥ 90/90/90/100 (kluczowe strony)
+
+## 13) Dokumentacja
+- Uaktualnij `README.md` oraz `docs/` przy każdej zmianie API, konfiguracji, modelu danych lub procesów (np. RLS, storage).
+- Nowe skrypty `npm run` – dopisz do `README.md` z krótkim opisem.
+
+## 14) Wyjątki
+- Każde odstępstwo od zasad musi być: (1) minimalne, (2) udokumentowane w kodzie/PR, (3) zatwierdzone w review.
+
+## 15) Definicja „gotowe do merge”
+- Spełnione punkty 1–14, brak blokujących uwag w code review, zielony build.

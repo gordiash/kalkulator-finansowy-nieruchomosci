@@ -3,7 +3,8 @@ export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^.+\\\.(css|less|scss)$': '<rootDir>/tests/__mocks__/styleMock.js'
   },
   globals: {
     'ts-jest': {
