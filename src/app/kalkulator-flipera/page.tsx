@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import FliperCalculator from '../../components/FliperCalculator'
+import FliperCalculatorWithSave from '@/components/FliperCalculatorWithSave'
+import Disclaimer from '@/components/ui/Disclaimer'
 
 export const metadata: Metadata = {
   title: 'Kalkulator Flipera Nieruchomości - ROI, Zysk Netto, Koszty Remontu | Analityka Nieruchomości',
@@ -71,14 +72,63 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-6">Kalkulator Flipera Nieruchomości</h1>
-      <p className="text-gray-600 mb-8 max-w-4xl">
-        Profesjonalny kalkulator flipera nieruchomości pomoże Ci obliczyć pełny koszt inwestycji, zysk netto i ROI dla flipa nieruchomości. 
-        Uwzględniamy wszystkie koszty: zakup, remont, utrzymanie, finansowanie i sprzedaż. 
-        Sprawdź opłacalność swojej inwestycji w nieruchomości z dokładną analizą kosztów i zysków.
-      </p>
-      <FliperCalculator />
+    <div className="container mx-auto px-4 pt-24 sm:pt-28 pb-8">
+      <header className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Kalkulator flipera nieruchomości</h1>
+        <p className="mt-3 text-sm md:text-base text-slate-600 max-w-4xl">
+          Policz pełny koszt inwestycji, zysk netto i ROI dla flipa. Kalkulator uwzględnia koszty: zakup, remont, miesięczne utrzymanie, finansowanie oraz sprzedaż. 
+          Wykresy automatycznie prezentują strukturę kosztów i opłacalność, a walidacja na polach pomaga utrzymać poprawność danych.
+        </p>
+      </header>
+
+      <section className="mb-8">
+        <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="text-blue-600 text-xl" aria-hidden>🧮</div>
+              <div>
+                <p className="font-semibold text-slate-900">Jak korzystać</p>
+                <ul className="mt-1 text-sm text-slate-600 list-disc pl-4 space-y-0.5">
+                  <li>Uzupełnij sekcje: zakup, remont, utrzymanie, finansowanie, sprzedaż.</li>
+                  <li>Przy polach z przełącznikiem wybierz jednostkę <span className="font-medium">kwota/%</span>.</li>
+                  <li>Błędy walidacji oznaczamy kolorem czerwonym i opisem pod polem.</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="text-emerald-600 text-xl" aria-hidden>📊</div>
+              <div>
+                <p className="font-semibold text-slate-900">Wyniki i wykresy</p>
+                <ul className="mt-1 text-sm text-slate-600 list-disc pl-4 space-y-0.5">
+                  <li>Wykres kołowy pokazuje strukturę kosztów; etykiety ukrywamy poniżej 3%.</li>
+                  <li>Wykres słupkowy skaluje się do wartości ujemnych; zysk poniżej zera jest czerwony.</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="text-indigo-600 text-xl" aria-hidden>💾</div>
+              <div>
+                <p className="font-semibold text-slate-900">Zapisywanie kalkulacji</p>
+                <ul className="mt-1 text-sm text-slate-600 list-disc pl-4 space-y-0.5">
+                  <li>Zaloguj się, aby zapisać wynik w zakładce <span className="font-medium">Panel → Kalkulacje</span>.</li>
+                  <li>W szczegółach zapisu zobaczysz także wykresy i rozbite koszty.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <FliperCalculatorWithSave />
+
+      <Disclaimer className="mt-8" />
+
+      <section aria-label="Noty prawne" className="mt-10">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+          Wyniki mają charakter informacyjny i nie stanowią doradztwa inwestycyjnego ani oferty w rozumieniu K.C. 
+          Rzeczywiste koszty mogą różnić się w zależności od rynku, wykonawców i warunków finansowania.
+        </div>
+      </section>
     </div>
   )
 }

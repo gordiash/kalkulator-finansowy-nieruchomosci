@@ -13,6 +13,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 import { HelpCircle, AlertTriangle } from "lucide-react";
 import { sanitizeInput, validateNumericInput } from "@/lib/validation"; 
 import SaveCalculationButton from "@/components/SaveCalculationButton";
+import Disclaimer from "@/components/ui/Disclaimer";
 
 // Komponent pomocniczy dla pól z tooltipami - POZA głównym komponentem
 const InputWithTooltip = ({ 
@@ -767,10 +768,7 @@ const CreditScoreCalculatorPageContent = () => {
                     </div>
                   )}
 
-                  <p className="text-sm text-gray-500 mt-6 text-center">
-                    Powyższe obliczenia są jedynie symulacją i nie stanowią oferty w rozumieniu przepisów prawa. 
-                    Rzeczywista zdolność kredytowa zależy od wielu czynników i jest oceniana indywidualnie przez bank.
-                  </p>
+                  <Disclaimer className="mt-6" />
                 </div>
               )}
             </CardContent>

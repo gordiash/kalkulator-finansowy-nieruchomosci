@@ -7,8 +7,8 @@ export default function PanelPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Przekieruj na profil jako domyślną stronę panelu
-    router.replace('/panel/profil');
+    // Domyślne przekierowanie: zapisane kalkulacje
+    router.replace('/panel/kalkulacje');
   }, [router]);
 
   return (

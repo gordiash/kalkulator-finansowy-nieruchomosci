@@ -21,6 +21,7 @@ import { AmortizationChart } from '@/components/charts/AmortizationChart';
 import { InstallmentStructureChart } from '@/components/charts/InstallmentStructureChart';
 import { OverpaymentImpactChart } from '@/components/charts/OverpaymentImpactChart';
 import SaveCalculationButton from '@/components/SaveCalculationButton';
+import Disclaimer from '@/components/ui/Disclaimer';
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -1321,6 +1322,7 @@ function RealEstateCalculatorPageContent() {
           )}
         </CardContent>
       </Card>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4"><Disclaimer /></div>
     </div>
     </div>
   );

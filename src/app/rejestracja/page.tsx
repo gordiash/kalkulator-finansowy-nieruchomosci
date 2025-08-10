@@ -129,8 +129,8 @@ function RegisterPageContent() {
 
       await handleRegister(formData.email, formData.password, formData.name);
 
-      // Przekieruj do panelu po rejestracji
-      router.push('/panel');
+      // Przekieruj do zapisanych kalkulacji
+      router.push('/panel/kalkulacje');
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Wystąpił błąd' });

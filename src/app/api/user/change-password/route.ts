@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { hashPassword, verifyPassword } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const supabase = await getSupabaseServerClient();
-    
-    // Sprawdź czy użytkownik jest zalogowany
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
-    }
+    const auth = req.headers.get('authorization');
+    const token = auth && auth.toLowerCase().startsWith('bearer ')
+      ? auth.slice(7)
+      : (req.cookies.get('session')?.value ?? null);
+    if (!token) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
+    const session = await prisma.sessions.findFirst({ where: { token, expires_at: { gt: new Date() } } });
+    if (!session) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
 
-    const { currentPassword, newPassword } = await request.json();
+    const { currentPassword, newPassword } = await req.json();
 
     // Walidacja danych wejściowych
     if (!currentPassword || !newPassword) {
@@ -29,18 +29,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Zmień hasło przez Supabase
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword
-    });
-
-    if (updateError) {
-      console.error('Błąd podczas zmiany hasła:', updateError);
-      return NextResponse.json(
-        { error: 'Nie udało się zmienić hasła' },
-        { status: 400 }
-      );
-    }
+    const user = await prisma.users.findUnique({ where: { id: BigInt(session.user_id) } });
+    if (!user) return NextResponse.json({ error: 'Użytkownik nie istnieje' }, { status: 404 });
+    const ok = await verifyPassword(currentPassword, user.password_hash);
+    if (!ok) return NextResponse.json({ error: 'Nieprawidłowe aktualne hasło' }, { status: 401 });
+    const password_hash = await hashPassword(newPassword);
+    await prisma.users.update({ where: { id: BigInt(user.id) }, data: { password_hash } });
 
     return NextResponse.json({ message: 'Hasło zostało pomyślnie zmienione' });
   } catch (error) {

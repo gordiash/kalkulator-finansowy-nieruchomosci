@@ -65,4 +65,18 @@ export const FIELD_DEFINITIONS: { [key: string]: { label: string; format?: (valu
   courtFees: { label: 'Opłaty sądowe', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 4 },
   agencyCommissionAmount: { label: 'Prowizja agencji', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 5 },
   schedule: { label: 'Harmonogram spłat', order: 6 },
+  
+  // Wyniki flipera (agregaty)
+  koszt_zakupu_brutto: { label: 'Koszty zakupu', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 1 },
+  koszt_remontu_calkowity: { label: 'Koszty remontu', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 2 },
+  koszty_utrzymania: { label: 'Koszty utrzymania', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 3 },
+  koszty_finansowania: { label: 'Koszty finansowania', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 4 },
+  koszty_calkowite: { label: 'Koszty całkowite', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 5 },
+  koszty_sprzedazy: { label: 'Koszty sprzedaży', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 6 },
+  zysk_brutto: { label: 'Zysk brutto (przed podatkiem)', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 7 },
+  podatek: { label: 'Podatek', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 8 },
+  zysk_netto: { label: 'Zysk netto', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 9 },
+  ROI: { label: 'ROI', format: (v) => `${Number(v).toFixed(2)}%`, order: 10 },
+  czas_trwania_flipa: { label: 'Czas trwania flipa (mies.)', order: 11 },
+  sredni_miesieczny_zysk_netto: { label: 'Śr. mies. zysk netto', format: (v) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v), order: 12 },
 }; 

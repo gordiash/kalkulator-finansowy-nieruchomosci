@@ -1,41 +1,38 @@
-import { NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+function getToken(req: NextRequest): string | null {
+  const auth = req.headers.get('authorization');
+  if (auth && auth.toLowerCase().startsWith('bearer ')) return auth.slice(7);
+  return req.cookies.get('session')?.value ?? null;
+}
 
 export async function GET(
-  request: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await getSupabaseServerClient();
     const { id } = await context.params;
-    
-    // Sprawdź czy użytkownik jest zalogowany
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
-    }
+    const token = getToken(req);
+    if (!token) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
+    const session = await prisma.sessions.findFirst({ where: { token, expires_at: { gt: new Date() } } });
+    if (!session) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
 
-    // Pobierz kalkulację użytkownika
-    const { data: calculation, error: calculationError } = await supabase
-      .from('calculations')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (calculationError) {
-      if (calculationError.code === 'PGRST116') {
-        return NextResponse.json({ error: 'Kalkulacja nie znaleziona' }, { status: 404 });
-      }
-      console.error('Błąd podczas pobierania kalkulacji:', calculationError);
-      return NextResponse.json(
-        { error: 'Nie udało się pobrać kalkulacji' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(calculation);
+    const calc = await prisma.property_calculations.findFirst({
+      where: { id: BigInt(id), user_id: BigInt(session.user_id) },
+    });
+    if (!calc) return NextResponse.json({ error: 'Kalkulacja nie znaleziona' }, { status: 404 });
+    const mapped = {
+      id: String(calc.id),
+      user_id: String(calc.user_id),
+      title: calc.title,
+      calculation_type: calc.calculation_type,
+      input_json: calc.input_json,
+      result_json: calc.result_json,
+      created_at: calc.created_at,
+      updated_at: calc.updated_at,
+    };
+    return NextResponse.json(mapped);
   } catch (error) {
     console.error('Błąd podczas pobierania kalkulacji:', error);
     return NextResponse.json(
@@ -46,38 +43,18 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await getSupabaseServerClient();
     const { id } = await context.params;
-    
-    // Sprawdź czy użytkownik jest zalogowany
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
-    }
+    const token = getToken(req);
+    if (!token) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
+    const session = await prisma.sessions.findFirst({ where: { token, expires_at: { gt: new Date() } } });
+    if (!session) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
 
-    // Usuń kalkulację użytkownika
-    const { error: deleteError } = await supabase
-      .from('calculations')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (deleteError) {
-      console.error('Błąd podczas usuwania kalkulacji:', deleteError);
-      return NextResponse.json(
-        { error: 'Nie udało się usunąć kalkulacji' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ 
-      message: 'Kalkulacja została pomyślnie usunięta' 
-    });
+    await prisma.property_calculations.delete({ where: { id: BigInt(id) } });
+    return NextResponse.json({ message: 'Kalkulacja została pomyślnie usunięta' });
   } catch (error) {
     console.error('Błąd podczas usuwania kalkulacji:', error);
     return NextResponse.json(

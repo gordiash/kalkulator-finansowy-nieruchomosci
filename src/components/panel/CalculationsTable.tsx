@@ -44,7 +44,7 @@ const CalculationsTable = ({ type }: CalculationsTableProps) => {
       }
 
       const data = await response.json();
-      setCalculations(data.calculations || []);
+      setCalculations(Array.isArray(data) ? data : (data.calculations || []));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Wystąpił błąd');
     } finally {

@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react'
-import { calculateFliper, type FliperInput, type FliperResult } from '@/lib/flipper'
+import React, { useEffect, useState } from 'react'
+import { calculateFliper, type FliperInput, type FliperResult } from '@/lib/fliper'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -126,7 +126,12 @@ function AmountPercentInput({ id, label, value, onChange, unit, onUnitChange, to
 
 function toNum(v: string): number { return Number.isFinite(parseFloat(v)) ? parseFloat(v) : 0 }
 
-export default function FliperCalculator() {
+export type FliperExternalChange = {
+  onInputChange?: (form: Record<string, string>) => void
+  onResultChange?: (result: FliperResult | null) => void
+}
+
+export default function FliperCalculator(props: FliperExternalChange = {}) {
   type FieldConfig = { decimals: number; min: number; max: number; maxIntegerDigits: number }
   const defaultAmountConfig: FieldConfig = { decimals: 2, min: 0, max: 1_000_000_000, maxIntegerDigits: 12 }
   const percentConfig: FieldConfig = { decimals: 2, min: 0, max: 100, maxIntegerDigits: 3 }
@@ -294,7 +299,11 @@ export default function FliperCalculator() {
     const unit = (name in units ? (units as Record<string, 'amount' | 'percent'>)[name] : undefined)
     const cfg = unit === 'percent' ? percentConfig : getConfig(name)
     const sanitized = sanitizeNumericInput(raw, cfg)
-    setForm((prev) => ({ ...prev, [name]: sanitized }))
+    setForm((prev) => {
+      const next = { ...prev, [name]: sanitized }
+      props.onInputChange?.(next)
+      return next
+    })
     const err = validateField(name, sanitized)
     setErrors((prev) => ({ ...prev, [name]: err }))
   }
@@ -340,10 +349,18 @@ export default function FliperCalculator() {
         oplata_notarialna_przy_sprzedazy: toNum(form.oplata_notarialna_przy_sprzedazy), inne_koszty_sprzedazy: toNum(form.inne_koszty_sprzedazy),
         stawka_podatku_od_zysku: toNum(form.stawka_podatku_od_zysku), inne_podatki: toNum(form.inne_podatki),
       }
-      setResult(calculateFliper(payload))
+      const r = calculateFliper(payload)
+      setResult(r)
+      props.onResultChange?.(r)
       setIsCalculating(false)
     }, 500)
   }
+
+  // Przekaż wartości domyślne formularza do rodzica po montażu
+  useEffect(() => {
+    props.onInputChange?.(form)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="space-y-8">

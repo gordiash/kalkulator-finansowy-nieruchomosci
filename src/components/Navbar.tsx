@@ -183,7 +183,7 @@ const Navbar = () => {
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <Link 
-                  href="/panel" 
+                  href="/panel/kalkulacje" 
                   className="text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium px-4 py-2 rounded-xl hover:bg-purple-100 hover:shadow-md hover:scale-105 flex items-center space-x-2"
                   prefetch={true}
                 >
@@ -338,7 +338,7 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <>
                   <Link 
-                    href="/panel" 
+                    href="/panel/kalkulacje" 
                     className="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105 flex items-center space-x-3"
                     onClick={() => setIsMenuOpen(false)}
                     prefetch={true}

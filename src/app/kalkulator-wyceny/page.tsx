@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import ValuationCalculator from '../../components/ValuationCalculator'
+import Disclaimer from '@/components/ui/Disclaimer'
 import { generateDynamicMetadata } from '../../dynamicMeta'
 
 export const revalidate = 0
@@ -151,6 +152,7 @@ export default async function ValuationPage({ searchParams }: PageProps) {
           </div>
         </div>
       </section>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-10"><Disclaimer /></div>
     </div>
   )
 } 

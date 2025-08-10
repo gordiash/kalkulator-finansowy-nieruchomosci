@@ -36,6 +36,7 @@ import {
 import { AlertTriangle } from "lucide-react";
 import { validateNumericInput, sanitizeInput } from "@/lib/validation";
 import SaveCalculationButton from "@/components/SaveCalculationButton";
+import Disclaimer from "@/components/ui/Disclaimer";
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -873,6 +874,7 @@ const RentalProfitabilityCalculatorPageContent = () => {
                   </CardContent>
                 </Card>
               )}
+              {results && <Disclaimer className="mt-4" />}
             </div>
           </CardContent>
         </Card>

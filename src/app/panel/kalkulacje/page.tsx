@@ -15,6 +15,7 @@ const getCalculationTypeLabel = (type: string) => {
     case 'valuation': return 'Wycena nieruchomości';
     case 'rentability': return 'Opłacalność wynajmu';
     case 'purchase': return 'Kalkulacja zakupu nieruchomości';
+    case 'flipper': return 'Kalkulator flipera';
     // Dodaj inne typy w przyszłości
     default: return 'Inna kalkulacja';
   }
@@ -118,9 +119,16 @@ export default function KalkulacjePage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Moje kalkulacje</h1>
-        <p className="text-gray-600 mt-2">Przeglądaj i zarządzaj swoimi zapisanymi kalkulacjami.</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Moje kalkulacje</h1>
+          <p className="text-gray-600 mt-2">Przeglądaj i zarządzaj swoimi zapisanymi kalkulacjami.</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/kalkulator-flipera" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Nowy flip</Link>
+          <Link href="/kalkulator-zakupu-nieruchomosci" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Nowy zakup</Link>
+          <Link href="/kalkulator-wynajmu" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Nowy wynajem</Link>
+        </div>
       </div>
 
       {isLoading && (

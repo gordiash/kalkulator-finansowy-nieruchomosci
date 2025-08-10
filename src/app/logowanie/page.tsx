@@ -66,11 +66,24 @@ function LoginPageContent() {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Błąd logowania');
+      let message = '';
+      try {
+        const err = await response.json();
+        message = err?.error?.message || err?.message || 'Błąd logowania';
+      } catch {
+        const text = await response.text().catch(() => '');
+        message = text || `${response.status} ${response.statusText}`;
+      }
+      throw new Error(message);
     }
 
-    const { token } = await response.json();
+    let token: string | undefined;
+    try {
+      const data = await response.json();
+      token = data?.token;
+    } catch {
+      throw new Error('Niepoprawna odpowiedź serwera (brak JSON). Spróbuj ponownie.');
+    }
     localStorage.setItem('auth_token', token);
     
     // Powiadom inne komponenty o zmianie autoryzacji
@@ -98,11 +111,24 @@ function LoginPageContent() {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Błąd rejestracji');
+      let message = '';
+      try {
+        const err = await response.json();
+        message = err?.error?.message || err?.message || 'Błąd rejestracji';
+      } catch {
+        const text = await response.text().catch(() => '');
+        message = text || `${response.status} ${response.statusText}`;
+      }
+      throw new Error(message);
     }
 
-    const { token } = await response.json();
+    let token: string | undefined;
+    try {
+      const data = await response.json();
+      token = data?.token;
+    } catch {
+      throw new Error('Niepoprawna odpowiedź serwera (brak JSON). Spróbuj ponownie.');
+    }
     localStorage.setItem('auth_token', token);
     
     // Powiadom inne komponenty o zmianie autoryzacji
@@ -178,8 +204,8 @@ function LoginPageContent() {
         await handleRegister(formData.email, formData.password, formData.name);
       }
 
-      // Przekieruj do panelu po zalogowaniu
-      router.push('/panel');
+      // Przekieruj do zapisanych kalkulacji
+      router.push('/panel/kalkulacje');
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Wystąpił błąd' });
