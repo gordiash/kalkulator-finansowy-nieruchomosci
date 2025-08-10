@@ -20,12 +20,8 @@ const nextConfig = {
     // Dodaj alias dla @ - używaj path.resolve dla lepszej kompatybilności
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-      '@/components': path.resolve(__dirname, 'src/components'),
-      '@/lib': path.resolve(__dirname, 'src/lib'),
-      '@/utils': path.resolve(__dirname, 'src/utils'),
-      '@/types': path.resolve(__dirname, 'src/types'),
-      '@/styles': path.resolve(__dirname, 'src/styles'),
+      '@': path.resolve(__dirname, './')
+      
     };
     
     // Dodaj fallback dla modułów
