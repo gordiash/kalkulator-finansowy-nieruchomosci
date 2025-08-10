@@ -49,55 +49,48 @@ export default function ImageUpload({ onImageUploaded, currentImageUrl }: ImageU
     setUploadProgress(0);
 
     try {
-      // Sprawdź czy użytkownik jest zalogowany
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        console.log('Użytkownik nie jest zalogowany:', authError);
-        // Tymczasowo kontynuuj bez autoryzacji dla testów
-      }
+      // 1) Próba uploadu bezpośrednio z klienta (rola anon)
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `public/${filename}`;
 
-      // Generuj unikalną nazwę pliku
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `private/${fileName}`; // Upload do folderu 'private'
-
-      console.log('Próba uploadu pliku:', { fileName, filePath, user: user?.email });
-
-      // Upload do Supabase Storage
-      const { data, error } = await supabase.storage
+      const direct = await supabase.storage
         .from('posts-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: true });
 
-      if (error) {
-        console.error('Błąd uploadu:', error);
-        if (error.message.includes('bucket') || error.message.includes('not found')) {
-          throw new Error('Bucket "posts-images" nie istnieje. Utwórz go w panelu Supabase Storage.');
-        }
-        if (error.message.includes('policy') || error.message.includes('permission')) {
-          throw new Error('Brak uprawnień do uploadu. Zmień politykę INSERT w Supabase Storage na "true" dla roli "anon" lub dodaj politykę dla anonimowych użytkowników.');
-        }
-        throw error;
-      }
-
-      console.log('Upload udany:', data);
-
-      // Pobierz publiczny URL
-      const { data: urlData } = supabase.storage
-        .from('posts-images')
-        .getPublicUrl(filePath);
-
-      if (urlData.publicUrl) {
-        onImageUploaded(urlData.publicUrl);
+      if (!direct.error) {
+        const { data: pub } = supabase.storage.from('posts-images').getPublicUrl(path);
+        const url = pub?.publicUrl || '';
+        if (!url) throw new Error('Upload OK, ale brak publicznego URL. Ustaw bucket jako Public lub dodaj SELECT policy.');
+        onImageUploaded(url);
+        setPreviewUrl(URL.createObjectURL(file));
         setUploadProgress(100);
+        return;
       }
 
+      // Jeśli błąd uprawnień – fallback na endpoint serwerowy
+      if (/policy|permission|not allowed|unauthorized|Forbidden/i.test(direct.error.message)) {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch('/api/admin/upload-image', { method: 'POST', body: form });
+        if (!res.ok) {
+          const err = await res.json().catch(async () => ({ error: await res.text() }));
+          throw new Error(err.error || 'Upload nie powiódł się (server fallback)');
+        }
+        const json = await res.json();
+        const url = json.url as string;
+        if (!url) throw new Error('Brak URL w odpowiedzi serwera');
+        onImageUploaded(url);
+        setPreviewUrl(URL.createObjectURL(file));
+        setUploadProgress(100);
+        return;
+      }
+
+      // Inny błąd
+      throw direct.error;
     } catch (error) {
       console.error('Błąd podczas uploadu obrazka:', error);
-      alert(`Błąd podczas uploadu obrazka: ${error instanceof Error ? error.message : 'Nieznany błąd'}\n\nAby rozwiązać problem:\n1. Sprawdź polityki RLS dla bucketa posts-images\n2. Upewnij się, że folder 'private' istnieje\n3. Sprawdź uprawnienia dla roli 'authenticated'`);
+      alert(`Błąd podczas uploadu obrazka: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
       setPreviewUrl(null);
     } finally {
       setIsUploading(false);

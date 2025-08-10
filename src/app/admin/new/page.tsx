@@ -49,7 +49,8 @@ export default function NewPostPage() {
     console.log('Obrazek został uploadowany:', imageUrl);
     setFormData(prev => ({
       ...prev,
-      image_display: imageUrl
+      image_display: imageUrl,
+      content: `${prev.content ? prev.content + '\n\n' : ''}![${prev.title || 'obrazek'}](${imageUrl})\n`
     }));
   };
 

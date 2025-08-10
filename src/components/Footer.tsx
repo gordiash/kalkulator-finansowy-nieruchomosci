@@ -45,6 +45,11 @@ const Footer = () => {
                   Zdolność Kredytowa
                 </Link>
               </li>
+              <li>
+                <Link href="/kalkulator-flipera" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
+                  Kalkulator Flipera
+                </Link>
+              </li>
             </ul>
           </div>
 

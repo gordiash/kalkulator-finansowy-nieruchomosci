@@ -66,12 +66,27 @@ export default function EditPostForm({ post }: EditPostFormProps) {
     }));
   };
 
-  const handleImageUploaded = (imageUrl: string) => {
+  const handleImageUploaded = async (imageUrl: string) => {
     console.log('Obrazek został uploadowany:', imageUrl);
+    // Zaktualizuj lokalny stan i dopnij obraz do treści jako Markdown
     setFormData(prev => ({
       ...prev,
-      image_display: imageUrl
+      image_display: imageUrl,
+      content: `${prev.content ? prev.content + '\n\n' : ''}![${prev.title || 'obrazek'}](${imageUrl})\n`
     }));
+
+    // Natychmiastowy zapis do bazy (aktualny wpis)
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ image_display: imageUrl })
+        .eq('id', post.id);
+      if (error) {
+        console.error('Błąd aktualizacji image_display:', error);
+      }
+    } catch (e) {
+      console.error('Wyjątek przy zapisie image_display:', e);
+    }
   };
 
   const generateSlug = (title: string) => {
