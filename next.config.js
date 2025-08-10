@@ -17,10 +17,15 @@ const nextConfig = {
   },
 
   webpack: (config, { dev, isServer }) => {
-    // Konfiguracja aliasów kompatybilna z Next.js 15 i moduleResolution "bundler"
+    // Uproszczona konfiguracja aliasów dla Next.js 15
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/types': path.resolve(__dirname, 'src/types'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/styles': path.resolve(__dirname, 'src/styles'),
     };
     
     // Dodaj fallback dla modułów
