@@ -21,6 +21,11 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/types': path.resolve(__dirname, 'src/types'),
+      '@/styles': path.resolve(__dirname, 'src/styles'),
     };
     
     // Dodaj fallback dla modułów
@@ -30,6 +35,9 @@ const nextConfig = {
       net: false,
       tls: false,
     };
+
+    // Dodaj rozszerzenia dla lepszego rozpoznawania modułów
+    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.json', ...config.resolve.extensions];
     
     // Konfiguracja TLS dla HTTPS
     if (config.devServer) {
@@ -226,5 +234,4 @@ const nextConfig = {
   },  
 };
 
-
-module.exports = nextConfig; 
+module.exports = nextConfig;

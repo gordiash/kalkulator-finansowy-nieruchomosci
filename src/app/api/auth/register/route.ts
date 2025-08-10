@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import pool from '@/lib/db'
+import { hashPassword, generateRandomToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { hashPassword, generateRandomToken } from '../../../../lib/auth'
 
 const registerSchema = z.object({
   email: z.string().email(),
