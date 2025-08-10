@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: Props) {
   }
   */
   
-  return <>{children}</>;
+  return <div className="admin-content">{children}</div>;
 }
 
 export const dynamic = 'force-dynamic'; 

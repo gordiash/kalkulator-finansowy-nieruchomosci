@@ -1,0 +1,11 @@
+// Re-export wszystkich funkcji z lib - backup plan dla Vercel
+export * from './accessibility'
+export * from './analytics'
+export * from './apiService'
+export * from './CalculationService'
+export * from './db'
+export * from './strapi'
+export * from './utils'
+export * from './validation'
+export * from './seo/dynamicMeta'
+export * from './seo/defaultMeta' 

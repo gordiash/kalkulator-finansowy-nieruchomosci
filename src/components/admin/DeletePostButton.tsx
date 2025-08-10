@@ -23,11 +23,20 @@ export default function DeletePostButton({ postId, postTitle }: DeletePostButton
     try {
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Błąd podczas usuwania wpisu');
+        let errorMessage = 'Błąd podczas usuwania wpisu';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
       // Odśwież stronę po usunięciu

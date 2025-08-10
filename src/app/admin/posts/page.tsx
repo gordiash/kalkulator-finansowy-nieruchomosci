@@ -47,7 +47,7 @@ export default async function PostsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 admin-content">
       <AdminHeader />
       
       <div className="container mx-auto px-4 py-8">

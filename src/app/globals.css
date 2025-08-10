@@ -414,3 +414,231 @@ body {
 .markdown-content p *:not(strong):not(b):not(em):not(i) {
   font-weight: 400 !important;
 }
+
+/* Style dla tabel w panelu admina */
+.admin-content table,
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.admin-content .table-wrapper,
+.markdown-content .table-wrapper {
+  overflow-x: auto;
+  margin: 2rem 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5e7eb;
+}
+
+.admin-content th,
+.admin-content td,
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid #e5e7eb;
+  padding: 1rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.admin-content th,
+.markdown-content th {
+  background-color: #f8fafc;
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.admin-content td,
+.markdown-content td {
+  color: #374151;
+  background-color: #ffffff;
+}
+
+.admin-content tbody tr:nth-child(even) td,
+.markdown-content tbody tr:nth-child(even) td {
+  background-color: #f9fafb;
+}
+
+.admin-content tbody tr:hover td,
+.markdown-content tbody tr:hover td {
+  background-color: #eff6ff;
+}
+
+/* Wyrównanie numerów w tabelach */
+.admin-content td:nth-child(n+2),
+.admin-content th:nth-child(n+2),
+.markdown-content td:nth-child(n+2),
+.markdown-content th:nth-child(n+2) {
+  text-align: center;
+}
+
+.admin-content td:last-child,
+.admin-content th:last-child,
+.markdown-content td:last-child,
+.markdown-content th:last-child {
+  text-align: right;
+}
+
+/* Style dla komórek z danymi finansowymi */
+.admin-content td:contains("zł"),
+.admin-content td:contains("%"),
+.admin-content td:contains("m²"),
+.admin-content td:matches("\\d+[,.]\\d+"),
+.admin-content td:matches("-?\\d+[,.]\\d*%"),
+.markdown-content td:contains("zł"),
+.markdown-content td:contains("%"),
+.markdown-content td:contains("m²"),
+.markdown-content td:matches("\\d+[,.]\\d+"),
+.markdown-content td:matches("-?\\d+[,.]\\d*%") {
+  text-align: right;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 600;
+}
+
+/* Specjalne formatowanie dla wartości procentowych */
+.admin-content td:contains("%"),
+.markdown-content td:contains("%") {
+  color: #047857;
+}
+
+.admin-content td:contains("-"),
+.markdown-content td:contains("-") {
+  color: #B91C1C;
+}
+
+/* Style dla pierwszej kolumny (nazwy) */
+.admin-content td:first-child,
+.markdown-content td:first-child {
+  font-weight: 600;
+  background-color: #f8fafc;
+  border-right: 2px solid #e5e7eb;
+}
+
+/* Responsywność tabel */
+@media (max-width: 768px) {
+  .admin-content table,
+  .markdown-content table {
+    font-size: 0.75rem;
+    display: block;
+    overflow-x: auto;
+    min-width: 600px;
+  }
+  
+  .admin-content th,
+  .admin-content td,
+  .markdown-content th,
+  .markdown-content td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+/* Ujednolicenie wyglądu @uiw/react-md-editor w panelu admina */
+.admin-content [data-color-mode] .w-md-editor {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  --color-fg-default: #111827; /* text */
+  --color-canvas-default: #ffffff; /* bg */
+  --color-border-default: #e5e7eb; /* borders */
+}
+.admin-content .w-md-editor-toolbar,
+.markdown-content .w-md-editor-toolbar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+.admin-content .w-md-editor-toolbar li button {
+  color: #374151 !important;
+}
+.admin-content .w-md-editor-toolbar li button:hover {
+  background: #eef2ff !important;
+  color: #111827 !important;
+}
+.admin-content .w-md-editor-content,
+.admin-content .w-md-editor-text-input {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-family: inherit !important;
+  line-height: 1.6 !important;
+}
+.admin-content .w-md-editor-text-input {
+  padding: 14px !important;
+}
+.admin-content .wmde-markdown {
+  font-size: 0.95rem !important;
+  color: #111827 !important;
+}
+.admin-content .w-md-editor-preview,
+.admin-content .wmde-markdown {
+  background: #ffffff !important;
+}
+
+/* Wzmocnione style dla edytora Markdown (UIW) */
+.admin-content [data-color-mode] { color-scheme: light; }
+.admin-content .w-md-editor { background:#fff !important; border:1px solid #e5e7eb !important; }
+.admin-content .w-md-editor-content { background:#fff !important; min-height:560px !important; }
+.admin-content .w-md-editor-text-input { background:#fff !important; color:#111827 !important; caret-color:#111827 !important; font-family: inherit !important; font-size: 0.95rem !important; line-height:1.6 !important; }
+.admin-content .w-md-editor-text-input:focus { outline: none !important; }
+.admin-content .w-md-editor-toolbar { background:#f8fafc !important; border-bottom:1px solid #e5e7eb !important; }
+.admin-content .w-md-editor-toolbar li button { color:#374151 !important; }
+.admin-content .w-md-editor-toolbar li button:hover { background:#eef2ff !important; color:#111827 !important; }
+.admin-content .wmde-markdown { background:#fff !important; color:#111827 !important; font-size:0.95rem !important; }
+.admin-content .wmde-markdown pre { background:#0f172a !important; color:#e5e7eb !important; border-radius:8px !important; padding:12px !important; }
+.admin-content .wmde-markdown code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important; }
+/* Tabele podglądu (GFM) */
+.admin-content .wmde-markdown table { width:100% !important; border-collapse:collapse !important; margin:1rem 0 !important; border:1px solid #e5e7eb !important; border-radius:8px !important; overflow:hidden !important; }
+.admin-content .wmde-markdown th, .admin-content .wmde-markdown td { border:1px solid #e5e7eb !important; padding:10px 12px !important; text-align:left !important; }
+.admin-content .wmde-markdown th { background:#f8fafc !important; font-weight:700 !important; }
+
+/* UIW Editor – poprawa czytelności toolbaru i edytora */
+.admin-content .w-md-editor {
+  --color-fg-default: #111827; /* tekst ikon i UI */
+  --color-canvas-default: #ffffff; /* tło */
+  --color-border-default: #e5e7eb; /* krawędzie */
+  --color-accent-fg: #2563eb; /* akcent/hover */
+  --color-neutral-muted: rgba(175,184,193,0.2);
+}
+.admin-content .w-md-editor,
+.admin-content .w-md-editor * { color-scheme: light; }
+.admin-content .w-md-editor-toolbar svg { color: #374151 !important; }
+.admin-content .w-md-editor-toolbar li button { height: 32px !important; width: 32px !important; }
+.admin-content .w-md-editor-text,
+.admin-content .w-md-editor-text-input { color: #111827 !important; background:#fff !important; }
+.admin-content .w-md-editor-text-pre { color:#111827 !important; }
+
+/* Naprawa widoczności wklejonego tekstu */
+.admin-content .w-md-editor-text,
+.admin-content .w-md-editor-text-input,
+.admin-content .w-md-editor-text-pre {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important; /* Safari/iOS */
+}
+.admin-content .w-md-editor-text-input::selection {
+  background: #bfdbfe !important;
+  color: #111827 !important;
+}
+
+/* Hard reset dla koloru w edytorze (gdy motywy nakładają transparent) */
+.admin-content .w-md-editor * { color: inherit; }
+.admin-content .w-md-editor .w-md-editor-text-input { color: #111827 !important; }
+
+/* Przewijanie w UIW editor */
+.admin-content .w-md-editor,
+.admin-content .w-md-editor-content { overflow: auto !important; }
+.admin-content .w-md-editor-content > .w-md-editor-text,
+.admin-content .w-md-editor-content > .w-md-editor-preview { max-height: 70vh !important; overflow: auto !important; }
+
+/* Pełne przewijanie edytora do końca */
+.admin-content .w-md-editor { height: auto !important; min-height: 80vh !important; overflow: visible !important; }
+.admin-content .w-md-editor-content { height: auto !important; overflow: visible !important; }
+.admin-content .w-md-editor-text, .admin-content .w-md-editor-preview { max-height: none !important; overflow: visible !important; }

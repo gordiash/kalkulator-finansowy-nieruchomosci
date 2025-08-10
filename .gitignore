@@ -12,11 +12,12 @@
 
 # testing
 /coverage
-/tests/
+
 
 # next.js
 /.next/
 /out/
+!src/lib/
 
 # production
 /build
@@ -41,6 +42,7 @@ yarn-error.log*
 # vercel
 .vercel
 
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -60,8 +62,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/

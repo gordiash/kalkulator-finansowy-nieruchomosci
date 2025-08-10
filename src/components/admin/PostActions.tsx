@@ -53,11 +53,19 @@ export default function PostActions({ id, status, slug }: PostActionsProps) {
       const response = await fetch(`/api/posts/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ status: newStatus }),
       });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Nie udało się zaktualizować statusu');
+        let errorMessage = 'Nie udało się zaktualizować statusu';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
       router.refresh();
       setIsMenuOpen(false);
@@ -73,10 +81,17 @@ export default function PostActions({ id, status, slug }: PostActionsProps) {
     if (!confirm('Czy na pewno chcesz usunąć ten wpis?')) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/posts/${id}`, { method: 'DELETE', cache: 'no-store' });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Nie udało się usunąć wpisu');
+        let errorMessage = 'Nie udało się usunąć wpisu';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
       router.refresh();
       setIsMenuOpen(false);

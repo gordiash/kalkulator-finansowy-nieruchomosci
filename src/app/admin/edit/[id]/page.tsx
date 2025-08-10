@@ -29,7 +29,7 @@ export default async function EditPostPage(props: { params: Promise<{ id: string
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 admin-content">
       <EditPostForm post={post} />
     </div>
   );
