@@ -84,7 +84,9 @@ function LoginPageContent() {
     } catch {
       throw new Error('Niepoprawna odpowiedź serwera (brak JSON). Spróbuj ponownie.');
     }
-    localStorage.setItem('auth_token', token);
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    }
     
     // Powiadom inne komponenty o zmianie autoryzacji
     window.dispatchEvent(new Event('auth-change'));
@@ -129,7 +131,9 @@ function LoginPageContent() {
     } catch {
       throw new Error('Niepoprawna odpowiedź serwera (brak JSON). Spróbuj ponownie.');
     }
-    localStorage.setItem('auth_token', token);
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    }
     
     // Powiadom inne komponenty o zmianie autoryzacji
     window.dispatchEvent(new Event('auth-change'));
