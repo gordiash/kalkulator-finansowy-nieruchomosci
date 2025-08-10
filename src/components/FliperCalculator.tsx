@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { calculateFliper, type FliperInput, type FliperResult } from '@/lib/fliper'
+import { calculateFliper, type FliperInput, type FliperResult } from '../lib/fliper'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
