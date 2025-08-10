@@ -20,7 +20,7 @@ const nextConfig = {
     // Dodaj alias dla @ - używaj path.resolve dla lepszej kompatybilności
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, './')
+      '@': path.resolve(__dirname, './src')
       
     };
     
