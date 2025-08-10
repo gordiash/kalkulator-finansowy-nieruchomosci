@@ -17,11 +17,10 @@ const nextConfig = {
   },
 
   webpack: (config, { dev, isServer }) => {
-    // Dodaj alias dla @ - używaj path.resolve dla lepszej kompatybilności
+    // Konfiguracja aliasów kompatybilna z Next.js 15 i moduleResolution "bundler"
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, './src')
-      
+      '@': path.resolve(__dirname, 'src'),
     };
     
     // Dodaj fallback dla modułów
