@@ -130,6 +130,20 @@ const Navbar = () => {
                       </div>
                     </Link>
                     <Link 
+                      href="/kalkulator-flipera" 
+                      className="flex items-center space-x-3 px-3 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-all duration-300 hover:shadow-sm hover:scale-105"
+                      onClick={() => setIsDropdownOpen(false)}
+                      prefetch={true}
+                    >
+                      <div className="w-6 h-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-md flex items-center justify-center">
+                        <span className="text-white text-xs">🔄</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Kalkulator Flipera</span>
+                        <p className="text-xs text-gray-500">Analiza opłacalności flipa</p>
+                      </div>
+                    </Link>
+                    <Link 
                       href="/kalkulator-zdolnosci-kredytowej" 
                       className="flex items-center space-x-3 px-3 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-all duration-300 hover:shadow-sm hover:scale-105"
                       onClick={() => setIsDropdownOpen(false)}
@@ -271,6 +285,20 @@ const Navbar = () => {
                 <div>
                   <span className="text-sm sm:text-base">Opłacalność Wynajmu</span>
                   <p className="text-xs text-gray-500">Analiza rentowności wynajmu</p>
+                </div>
+              </Link>
+              <Link 
+                href="/kalkulator-flipera" 
+                className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-300 font-medium hover:shadow-md hover:scale-105"
+                onClick={() => setIsMenuOpen(false)}
+                prefetch={true}
+              >
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm">🔄</span>
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base">Kalkulator Flipera</span>
+                  <p className="text-xs text-gray-500">Analiza opłacalności flipa</p>
                 </div>
               </Link>
               <Link 

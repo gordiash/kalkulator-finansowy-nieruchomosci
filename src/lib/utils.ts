@@ -15,6 +15,22 @@ export const formatCurrency = (value: number | null | undefined): string => {
     }).format(value);
 };
 
+export const formatCurrencyShort = (value: number | null | undefined): string => {
+    if (value === null || value === undefined) return 'N/A';
+    const abs = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    if (abs >= 1_000_000_000) {
+        return `${sign}${(abs / 1_000_000_000).toFixed(2)} mld zł`;
+    }
+    if (abs >= 1_000_000) {
+        return `${sign}${(abs / 1_000_000).toFixed(2)} mln zł`;
+    }
+    if (abs >= 1_000) {
+        return `${sign}${(abs / 1_000).toFixed(1)} tys. zł`;
+    }
+    return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+};
+
 export const normalizeText = (text: string): string => {
     if (typeof text !== 'string') {
         text = String(text);

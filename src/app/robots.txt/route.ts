@@ -9,6 +9,7 @@ Sitemap: ${baseUrl}/sitemap.xml
 # Główne strony - pozwól na indeksowanie
 Allow: /blog
 Allow: /kalkulator-wyceny
+Allow: /kalkulator-flipera
 Allow: /kalkulator-wynajmu
 Allow: /kalkulator-zakupu-nieruchomosci
 Allow: /kalkulator-zdolnosci-kredytowej
