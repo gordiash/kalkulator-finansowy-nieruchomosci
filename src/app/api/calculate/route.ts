@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // ===== WSPÓLNE STAŁE I KONFIGURACJA =====
-const INTEREST_RATE_STRESS_BUFFER = 2.5; // Bufor 2.5 p.p. do stress testu stóp procentowych
-const MAX_LOAN_TERM_YEARS = 35; // Maksymalny okres kredytowania
+const INTEREST_RATE_STRESS_BUFFER = 2.5; // Maksymalny bufor (p.p.) do stress testu stóp
+const MAX_LOAN_TERM_YEARS = 30; // Twardy limit okresu
 const LIVING_COST_INCOME_FACTOR = 0.10; // 10% dochodu dodawane do bazowych kosztów życia
+const MARKET_FLOOR_RATE = 8.0; // Konserwatywna podłoga stopy do testu (p.a.)
 
 
 // ===== FUNKCJE POMOCNICZE =====
@@ -146,17 +147,16 @@ function generateProjectionRental(purchasePrice: number, monthlyRent: number, lo
  * Oblicza dynamiczne koszty utrzymania na podstawie liczby osób i dochodu
  */
 function calculateLivingCosts(people: number, totalNetIncome: number): number {
-    // Bazowe koszty życia w zależności od liczby osób
+    // Bazowe koszty życia (konserwatywne) – można wyskalować później
     let baseCost = 0;
-    if (people === 1) baseCost = 1200;
-    else if (people === 2) baseCost = 2000;
-    else if (people === 3) baseCost = 2800;
-    else if (people === 4) baseCost = 3500;
-    else baseCost = 3500 + (people - 4) * 600; // każda kolejna osoba +600 zł
+    if (people <= 0) people = 1;
+    if (people === 1) baseCost = 1900;
+    else if (people === 2) baseCost = 3400;
+    else if (people === 3) baseCost = 4300;
+    else if (people === 4) baseCost = 5200;
+    else baseCost = 5200 + (people - 4) * 900;
 
-    // Dodanie 10% dochodu jako dodatkowe koszty utrzymania dla wyższych dochodów
-    const additionalCosts = totalNetIncome * LIVING_COST_INCOME_FACTOR;
-    
+    const additionalCosts = totalNetIncome * LIVING_COST_INCOME_FACTOR; // dochodowy komponent
     return baseCost + additionalCosts;
 }
 
@@ -427,6 +427,14 @@ interface CreditScoreInput extends Record<string, unknown> {
     creditCardLimits: number;
     accountOverdrafts: number;
     dstiRatio: number;
+    // Nowe pola
+    age?: number;
+    bigCity?: boolean;
+    propertyValue?: number;
+    downPayment?: number;
+    revolvingRate?: number; // 0.03/0.04/0.05
+    incomeHistoryMonths?: number;
+    irregularIncome?: boolean;
 }
 
 interface PurchaseInput extends Record<string, unknown> {
@@ -615,21 +623,36 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         const creditCardLimits = parseFloat(input.creditCardLimits.toString()) || 0;
         const accountOverdrafts = parseFloat(input.accountOverdrafts.toString()) || 0;
         const dstiRatio = parseFloat(input.dstiRatio.toString()) || 50;
+        const age = input.age ? parseInt(input.age.toString()) : 30;
+        const bigCity = Boolean(input.bigCity);
+        const propertyValue = input.propertyValue ? parseFloat(input.propertyValue.toString()) : 0;
+        const downPayment = input.downPayment ? parseFloat(input.downPayment.toString()) : 0;
+        const revolvingRate = input.revolvingRate ? parseFloat(input.revolvingRate.toString()) : 0.03;
+        const incomeHistoryMonths = input.incomeHistoryMonths ? parseInt(input.incomeHistoryMonths.toString()) : 24;
+        const irregularIncome = Boolean(input.irregularIncome);
         
         // Obliczenia podstawowe
         const totalNetIncome = monthlyIncome + secondBorrowerIncome;
         const employmentWeight = getEmploymentWeight(employmentType);
-        const adjustedIncome = totalNetIncome * employmentWeight;
+        // Wagi stabilności dochodu
+        let stabilityAdj = 1.0;
+        if (employmentType === 'b2b' || employmentType === 'contract') {
+          if (incomeHistoryMonths < 12) stabilityAdj -= 0.1;
+          else if (incomeHistoryMonths < 24) stabilityAdj -= 0.05;
+          if (irregularIncome) stabilityAdj -= 0.05;
+        }
+        const adjustedIncome = totalNetIncome * employmentWeight * stabilityAdj;
         
         // Koszty utrzymania
-        const costOfLiving = calculateLivingCosts(householdSize, totalNetIncome);
+        let costOfLiving = calculateLivingCosts(householdSize, totalNetIncome);
+        if (bigCity) costOfLiving *= 1.12; // +12% dla dużego miasta
         
         // Zobowiązania kredytowe:
         // • 3% limitów kart kredytowych
         // • 3% debetu w rachunku
         // • miesięczne raty innych kredytów
         // Do całkowitych zobowiązań doliczamy także stałe miesięczne opłaty (monthlyExpenses)
-        const creditObligationsCore = (creditCardLimits * 0.03) + (accountOverdrafts * 0.03) + otherLoans;
+        const creditObligationsCore = (creditCardLimits * revolvingRate) + (accountOverdrafts * revolvingRate) + otherLoans;
         const totalCommitments = monthlyExpenses + creditObligationsCore;
         
         // Dostępne środki na kredyt
@@ -653,7 +676,8 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         });
         
         // Obliczenie maksymalnej kwoty kredytu
-        const stressTestRate = interestRate + INTEREST_RATE_STRESS_BUFFER;
+        // Zgodnie z komunikacją w UI i testami: stały bufor +2.5 p.p. (nie więcej, nie mniej)
+        const stressTestRate = Math.max(interestRate + INTEREST_RATE_STRESS_BUFFER, MARKET_FLOOR_RATE);
         let maxLoanAmount = 0;
         let creditCapacity = 0;
         
@@ -663,13 +687,43 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         }
         
         // Sprawdzenie ograniczeń maksymalnego okresu kredytowania
-        const effectiveLoanTerm = Math.min(loanTerm, MAX_LOAN_TERM_YEARS);
+        const effectiveLoanTerm = Math.min(loanTerm, MAX_LOAN_TERM_YEARS, Math.max(1, 75 - age));
+        const ltv = propertyValue > 0 ? ((maxMonthlyPayment > 0 ? calculateMaxLoanAmount(maxMonthlyPayment, stressTestRate, effectiveLoanTerm, installmentType) : 0) / propertyValue) : 0;
         if (effectiveLoanTerm < loanTerm) {
             maxLoanAmount = calculateMaxLoanAmount(maxMonthlyPayment, stressTestRate, effectiveLoanTerm, installmentType);
         }
         
         // Obliczenie ile zostanie po spłacie kredytu
         const remainingAfterLoan = adjustedIncome - costOfLiving - totalCommitments - maxMonthlyPayment;
+
+        // Limity: DSTI, DTI, LTV
+        // DSTI: już odzwierciedlone przez maxMonthlyPayment → konwersja na kwotę kredytu
+        const limitByDsti = maxMonthlyPayment > 0 ? calculateMaxLoanAmount(maxMonthlyPayment, stressTestRate, effectiveLoanTerm, installmentType) : 0;
+        // Wariant bez stress testu (bazowa stopa bez bufora)
+        const limitByDstiNoStress = maxMonthlyPayment > 0 ? calculateMaxLoanAmount(maxMonthlyPayment, interestRate, effectiveLoanTerm, installmentType) : 0;
+
+        // DTI – łączny dług do rocznego dochodu
+        const annualQualified = adjustedIncome * 12;
+        const dtiFactor = (employmentType === 'employment') ? 6.0 : 5.0;
+        const limitByDti = (annualQualified * dtiFactor);
+
+        // LTV – twardy limit 90%; powyżej 80% dodaj +0.3 p.p. do stressRate (symulacja marży)
+        const maxLtv = 0.9;
+        let limitByLtv = Number.POSITIVE_INFINITY;
+        if (propertyValue > 0) {
+          limitByLtv = propertyValue * maxLtv;
+        }
+
+        // Ostateczna maksymalna kwota
+        maxLoanAmount = Math.max(0, Math.min(limitByDsti, limitByDti, limitByLtv));
+        const maxLoanAmountNoStress = Math.max(0, Math.min(limitByDstiNoStress, limitByDti, limitByLtv));
+
+        // Wąskie gardło
+        let bottleneck: 'DSTI' | 'DTI' | 'LTV' | 'TERM' | 'NONE' = 'NONE';
+        const minVal = Math.min(limitByDsti || Infinity, limitByDti || Infinity, limitByLtv || Infinity);
+        if (minVal === limitByDsti) bottleneck = 'DSTI';
+        else if (minVal === limitByDti) bottleneck = 'DTI';
+        else if (minVal === limitByLtv) bottleneck = 'LTV';
         
         // Przygotowanie danych do wykresu
         const chartData = prepareCreditScoreChartData(
@@ -685,16 +739,33 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
         const dstiUsedPercent = totalNetIncome > 0 ? ((maxMonthlyPayment + totalCommitments) / totalNetIncome) * 100 : 0;
 
         const response = {
-            creditCapacity: Math.max(0, Math.round(creditCapacity)),
+            creditCapacity: Math.max(0, Math.round(maxMonthlyPayment)),
             maxLoanAmount: Math.max(0, Math.round(maxLoanAmount)),
+            maxLoanAmountNoStress: Math.max(0, Math.round(maxLoanAmountNoStress)),
             chartData: chartData,
             details: {
                 totalIncome: totalNetIncome,
-                costOfLiving: costOfLiving,
+                costOfLiving: Math.round(costOfLiving),
                 totalCommitments: totalCommitments,
                 stressedInterestRate: stressTestRate,
-                effectiveDstiLimit: dstiRatio, // rzeczywisty użyty limit DSTI (%), można rozszerzyć o dynamikę
-                dstiUsed: dstiUsedPercent
+                baseInterestRate: interestRate,
+                effectiveDstiLimit: dstiRatio,
+                dstiUsed: dstiUsedPercent,
+                effectiveTerm: effectiveLoanTerm,
+                ltv: propertyValue > 0 ? ((maxLoanAmount) / propertyValue) * 100 : null,
+                limits: {
+                  byDsti: Math.round(limitByDsti),
+                  byDti: Math.round(limitByDti),
+                  byLtv: isFinite(limitByLtv) ? Math.round(limitByLtv) : null,
+                },
+                limitsNoStress: {
+                  byDsti: Math.round(limitByDstiNoStress),
+                  byDti: Math.round(limitByDti),
+                  byLtv: isFinite(limitByLtv) ? Math.round(limitByLtv) : null,
+                },
+                bottleneck,
+                revolvingRate: revolvingRate,
+                qualifiedIncome: Math.round(adjustedIncome)
             }
         };
         

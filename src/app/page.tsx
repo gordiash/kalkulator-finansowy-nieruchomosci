@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { FiHome, FiTrendingUp, FiBarChart2, FiDollarSign } from 'react-icons/fi';
 import { HelpCircle } from 'lucide-react';
 import { fetchLatestPosts, type BlogPostListing } from '@/lib/supabase/blog';
-import BlogSlider from '@/components/blog/BlogSlider';
+import dynamic from 'next/dynamic';
+const BlogSlider = dynamic(() => import('@/components/blog/BlogSlider'), {
+  loading: () => null,
+});
 import type { Metadata } from 'next'
 import { defaultMeta } from '@/lib/seo/defaultMeta'
 
@@ -17,7 +20,7 @@ const Card = ({ icon, title, description, href }: { icon: React.ReactNode, title
           {icon}
         </div>
       </div>
-      <h5 className="mb-3 text-2xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors duration-300">{title}</h5>
+      <h3 className="mb-3 text-2xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors duration-300">{title}</h3>
       <p className="font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300 leading-relaxed">{description}</p>
       
       {/* Decorative gradient orb */}
@@ -222,11 +225,7 @@ export default async function HomePage() {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
-      <section className="relative text-center py-24 md:py-32 overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-indigo-600/5"></div>
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
+      <section className="relative text-center py-24 md:py-32 overflow-hidden before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-600/5 before:via-transparent before:to-indigo-600/5 after:content-[''] after:absolute after:right-1/4 after:bottom-0 after:w-96 after:h-96 after:bg-indigo-400/10 after:rounded-full after:blur-3xl">
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="inline-flex items-center px-4 py-2 mb-8 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full text-blue-700 font-medium text-sm border border-blue-200/50">
@@ -240,7 +239,7 @@ export default async function HomePage() {
             <span className="text-gradient bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text">Analityki Nieruchomości</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mt-6 max-w-4xl mx-auto font-light leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-600 mt-6 max-w-4xl mx-auto font-light leading-relaxed" style={{contain: 'content'}}>
             Wszystkie narzędzia, których potrzebujesz, aby podjąć 
             <span className="font-semibold text-blue-700"> świadomą decyzję</span>. 
             Przejrzyste kalkulacje, kompleksowe analizy.
@@ -373,9 +372,9 @@ export default async function HomePage() {
                   {/* Wynik preview */}
                   <div className="mt-4 bg-green-100 border border-green-200 rounded-2xl p-4">
                     <div className="text-center">
-                      <div className="text-sm text-green-700 font-medium mb-1">Przewidywana cena</div>
+                      <div className="text-sm text-green-800 font-semibold mb-1">Przewidywana cena</div>
                       <div className="text-2xl font-bold text-green-800">420 000 - 480 000 zł</div>
-                      <div className="text-xs text-green-600 mt-1">Średnia: ~450 000 zł</div>
+                      <div className="text-xs text-green-800 mt-1">Średnia: ~450 000 zł</div>
                     </div>
                   </div>
                 </div>

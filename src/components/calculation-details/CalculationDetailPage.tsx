@@ -149,89 +149,140 @@ export default function CalculationDetailPage() {
             )}
             {/* Wykresy dla flipera */}
             {calculation.calculation_type === 'flipper' && (
-              <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="mt-8 grid grid-cols-1 gap-8">
                 <div className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white">
                   <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 font-semibold">Struktura kosztów</div>
-                  <div className="h-[380px] p-4">
-                    <ResponsiveContainer width="100%" height={340}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: 'Zakup', value: calculation.result_json.koszt_zakupu_brutto || 0 },
-                            { name: 'Remont', value: calculation.result_json.koszt_remontu_calkowity || 0 },
-                            { name: 'Utrzymanie', value: calculation.result_json.koszty_utrzymania || 0 },
-                            { name: 'Finansowanie', value: calculation.result_json.koszty_finansowania || 0 },
-                            { name: 'Sprzedaż', value: calculation.result_json.koszty_sprzedazy || 0 },
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          labelLine
-                          outerRadius={120}
-                          dataKey="value"
-                        >
-                          {(() => {
-                            const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
-                            return [0,1,2,3,4].map((i) => (
-                              <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                            ))
-                          })()}
-                          <LabelList
-                            position="outside"
-                            offset={10}
-                            className="fill-slate-800"
-                            content={(props) => {
-                              const { index = 0, x = 0, y = 0, value } = props as unknown as { index?: number; x?: number; y?: number; value?: number }
-                              const d = [
-                                { name: 'Zakup', value: calculation.result_json.koszt_zakupu_brutto || 0 },
-                                { name: 'Remont', value: calculation.result_json.koszt_remontu_calkowity || 0 },
-                                { name: 'Utrzymanie', value: calculation.result_json.koszty_utrzymania || 0 },
-                                { name: 'Finansowanie', value: calculation.result_json.koszty_finansowania || 0 },
-                                { name: 'Sprzedaż', value: calculation.result_json.koszty_sprzedazy || 0 },
-                              ]
-                              const total = d.reduce((s, it) => s + (it.value || 0), 0)
-                              const percent = total > 0 ? (d[index].value / total) * 100 : 0
-                              if (percent < 3) return null
-                              return (
-                                <text x={x} y={y} textAnchor="start" className="fill-slate-800" fontSize={12}>
-                                  {`${d[index].name}: ${percent.toFixed(0)}%`}
+                  <div className="p-4">
+                    {(() => {
+                      const pieData = [
+                        { name: 'Zakup', value: calculation.result_json.koszt_zakupu_brutto || 0 },
+                        { name: 'Remont', value: calculation.result_json.koszt_remontu_calkowity || 0 },
+                        { name: 'Utrzymanie', value: calculation.result_json.koszty_utrzymania || 0 },
+                        { name: 'Finansowanie', value: calculation.result_json.koszty_finansowania || 0 },
+                        { name: 'Sprzedaż', value: calculation.result_json.koszty_sprzedazy || 0 },
+                      ]
+                      const total = pieData.reduce((s, x) => s + (x.value || 0), 0)
+                      const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+                      return (
+                        <>
+                          <div className="h-[340px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie data={pieData} cx="50%" cy="50%" labelLine={false} outerRadius={120} dataKey="value">
+                                  {COLORS.map((c, i) => (
+                                    <Cell key={`cell-${i}`} fill={c} />
+                                  ))}
+                                </Pie>
+                                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#0f172a">
+                                  <tspan x="50%" dy="-0.6em" className="text-[12px]">Suma kosztów</tspan>
+                                  <tspan x="50%" dy="1.4em" className="font-semibold">{formatCurrency(total)}</tspan>
                                 </text>
+                                <RechartsTooltip formatter={(v: number) => [`${formatCurrency(v as number)}`, 'Kwota']} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                            {pieData.map((item, i) => {
+                              const percent = total > 0 ? (item.value / total) * 100 : 0
+                              return (
+                                <div key={item.name} className="flex items-center gap-2">
+                                  <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: COLORS[i] }} />
+                                  <span className="text-slate-700">{item.name}: <span className="font-medium">{formatCurrencyShort(item.value)}</span> ({percent.toFixed(0)}%)</span>
+                                </div>
                               )
-                            }}
-                          />
-                        </Pie>
-                        <RechartsTooltip formatter={(v: number) => [`${formatCurrency(v as number)}`, 'Kwota']} />
-                        <RechartsLegend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                            })}
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
 
                 <div className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white">
                   <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 font-semibold">Koszty vs przychód i zysk</div>
-                  <div className="h-[380px] p-4">
-                    <ResponsiveContainer width="100%" height={340}>
+                  <div className="p-4">
+                    <ResponsiveContainer width="100%" height={360}>
                       <BarChart data={(() => {
-                        const totalCosts = (calculation.result_json.koszty_calkowite || 0) + (calculation.result_json.koszty_sprzedazy || 0)
+                        const zakup = calculation.result_json.koszt_zakupu_brutto || 0
+                        const remont = calculation.result_json.koszt_remontu_calkowity || 0
+                        const utrzymanie = calculation.result_json.koszty_utrzymania || 0
+                        const finansowanie = calculation.result_json.koszty_finansowania || 0
+                        const sprzedaz = calculation.result_json.koszty_sprzedazy || 0
+                        const totalCosts = zakup + remont + utrzymanie + finansowanie + sprzedaz
                         const przychod = totalCosts + (calculation.result_json.zysk_brutto || 0)
                         return [
-                          { name: 'Koszty', value: totalCosts },
-                          { name: 'Przychód (sprzedaż)', value: przychod },
-                          { name: 'Zysk netto', value: calculation.result_json.zysk_netto || 0 },
+                          { name: 'Koszty', zakup, remont, utrzymanie, finansowanie, sprzedaz, przychod: 0, zysk: 0 },
+                          { name: 'Przychód (sprzedaż)', zakup: 0, remont: 0, utrzymanie: 0, finansowanie: 0, sprzedaz: 0, przychod, zysk: 0 },
+                          { name: 'Zysk netto', zakup: 0, remont: 0, utrzymanie: 0, finansowanie: 0, sprzedaz: 0, przychod: 0, zysk: calculation.result_json.zysk_netto || 0 },
                         ]
-                      })()} margin={{ top: 10, right: 20, left: 8, bottom: 0 }}>
+                      })()} margin={{ top: 10, right: 20, left: 8, bottom: 28 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                         <XAxis dataKey="name" tick={{ fill: '#0f172a', fontSize: 12 }} axisLine={{ stroke: '#94A3B8' }} tickLine={{ stroke: '#94A3B8' }} />
                         <YAxis domain={[(dataMin: number) => (dataMin < 0 ? dataMin * 1.25 : 0), (dataMax: number) => (dataMax > 0 ? dataMax * 1.1 : 0)]} tick={{ fill: '#0f172a', fontSize: 12 }} axisLine={{ stroke: '#94A3B8' }} tickLine={{ stroke: '#94A3B8' }} tickFormatter={(v) => formatCurrencyShort(v)} width={90} />
                         <ReferenceLine y={0} stroke="#94A3B8" />
                         <RechartsTooltip formatter={(v: number) => [`${formatCurrency(v as number)}`, 'Kwota']} />
-                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                          <Cell fill="#2563EB" />
-                          <Cell fill="#10B981" />
-                          <Cell fill={((calculation.result_json.zysk_netto || 0) >= 0) ? '#22C55E' : '#EF4444'} />
+                        {/* Stacked koszty + etykieta sumy */}
+                        <Bar dataKey="zakup" stackId="koszty" fill="#2563EB" />
+                        <Bar dataKey="remont" stackId="koszty" fill="#10B981" />
+                        <Bar dataKey="utrzymanie" stackId="koszty" fill="#F59E0B" />
+                        <Bar dataKey="finansowanie" stackId="koszty" fill="#EF4444" />
+                        <Bar dataKey="sprzedaz" stackId="koszty" fill="#8B5CF6">
+                          <LabelList content={(props) => {
+                            const { x = 0, y = 0, width = 0, payload } = props as unknown as { x: number; y: number; width: number; payload: Record<string, number | string> }
+                            if (typeof payload?.name !== 'string' || payload.name !== 'Koszty') return null
+                            const sum = (payload.zakup as number) + (payload.remont as number) + (payload.utrzymanie as number) + (payload.finansowanie as number) + (payload.sprzedaz as number)
+                            const cx = x + width / 2
+                            return (
+                              <text x={cx} y={y - 8} textAnchor="middle" fill="#0f172a" fontSize={12}>
+                                {formatCurrencyShort(sum)}
+                              </text>
+                            )
+                          }} />
+                        </Bar>
+                        {/* Przychód */}
+                        <Bar dataKey="przychod" fill="#0EA5E9" radius={[6, 6, 0, 0]}>
                           <LabelList position="top" offset={8} formatter={(v: unknown) => formatCurrencyShort(v as number)} fill="#0f172a" />
+                        </Bar>
+                        {/* Zysk netto */}
+                        <Bar dataKey="zysk" fill={(calculation.result_json.zysk_netto || 0) >= 0 ? '#22C55E' : '#EF4444'} radius={[6, 6, 0, 0]}>
+                          <LabelList content={(props) => {
+                            const { x = 0, y = 0, width = 0, height = 0, value } = props as unknown as { x: number; y: number; width: number; height: number; value: number }
+                            const val = typeof value === 'number' ? value : parseFloat(String(value))
+                            const cx = x + width / 2
+                            const cy = val >= 0 ? y - 8 : y + height + 14
+                            return (
+                              <text x={cx} y={cy} textAnchor="middle" fill="#0f172a" fontSize={12}>
+                                {formatCurrencyShort(val)}
+                              </text>
+                            )
+                          }} />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
+                    {/* Legenda wartości kosztów */}
+                    {(() => {
+                      const rows = [
+                        { key: 'zakup', label: 'Zakup', color: '#2563EB', value: calculation.result_json.koszt_zakupu_brutto || 0 },
+                        { key: 'remont', label: 'Remont', color: '#10B981', value: calculation.result_json.koszt_remontu_calkowity || 0 },
+                        { key: 'utrzymanie', label: 'Utrzymanie', color: '#F59E0B', value: calculation.result_json.koszty_utrzymania || 0 },
+                        { key: 'finansowanie', label: 'Finansowanie', color: '#EF4444', value: calculation.result_json.koszty_finansowania || 0 },
+                        { key: 'sprzedaz', label: 'Sprzedaż', color: '#8B5CF6', value: calculation.result_json.koszty_sprzedazy || 0 },
+                      ]
+                      const total = rows.reduce((s, r) => s + r.value, 0)
+                      return (
+                        <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                          {rows.map((r) => {
+                            const percent = total > 0 ? (r.value / total) * 100 : 0
+                            return (
+                              <div key={r.key} className="flex items-center gap-2">
+                                <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: r.color }} />
+                                <span className="text-slate-700">{r.label}: <span className="font-medium">{formatCurrencyShort(r.value)}</span> ({percent.toFixed(0)}%)</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>

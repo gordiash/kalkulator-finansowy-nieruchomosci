@@ -111,12 +111,16 @@ const NewsletterFooterForm: React.FC = () => {
             type="submit"
             disabled={status === 'loading' || status === 'success' || !email}
             className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 h-10 sm:h-11"
+            aria-label={status === 'success' ? 'Subskrybujesz newsletter' : 'Zapisz się do newslettera'}
+            title={status === 'success' ? 'Subskrybujesz newsletter' : 'Zapisz się do newslettera'}
+            aria-busy={status === 'loading'}
           >
             {status === 'loading' ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Mail className="w-4 h-4" />
             )}
+            <span className="sr-only">{status === 'success' ? 'Subskrybujesz newsletter' : 'Zapisz się'}</span>
           </button>
         </div>
       </form>
@@ -125,10 +129,10 @@ const NewsletterFooterForm: React.FC = () => {
       {message && (
         <div className={`flex items-center gap-2 text-xs ${
           status === 'success' 
-            ? 'text-green-600' 
+            ? 'text-green-700' 
             : status === 'error' 
               ? 'text-red-700' 
-              : 'text-gray-600'
+              : 'text-gray-700'
         }`}>
           {status === 'success' && <CheckCircle className="w-3 h-3" />}
           {status === 'error' && <AlertCircle className="w-3 h-3" />}
@@ -137,7 +141,7 @@ const NewsletterFooterForm: React.FC = () => {
       )}
       
       {status === 'idle' && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-700">
           Bez spamu. Możesz zrezygnować w każdej chwili.
         </p>
       )}

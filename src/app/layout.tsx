@@ -9,7 +9,12 @@ import CookieConsent from "@/components/CookieConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import NewsletterPopup from "@/components/NewsletterPopup";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   title: "Kalkulatory Nieruchomości",
@@ -34,7 +39,8 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <head>
-        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
         {/* Organization & WebSite schema */}

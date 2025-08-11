@@ -1053,59 +1053,64 @@ export default function FliperCalculator(props: FliperExternalChange = {}) {
           </Card>
 
           {/* Wykresy */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8">
             {/* Wykres kołowy: Struktura kosztów */}
             <Card className="border-2 border-gray-200">
               <CardHeader className="bg-gray-50 border-b border-gray-200">
                 <CardTitle>Struktura kosztów</CardTitle>
               </CardHeader>
-              <CardContent className="h-[420px] p-6">
-                <ResponsiveContainer width="100%" height={360}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Zakup', value: result.koszt_zakupu_brutto },
-                        { name: 'Remont', value: result.koszt_remontu_calkowity },
-                        { name: 'Utrzymanie', value: result.koszty_utrzymania },
-                        { name: 'Finansowanie', value: result.koszty_finansowania },
-                        { name: 'Sprzedaż', value: result.koszty_sprzedazy },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine
-                      outerRadius={140}
-                      dataKey="value"
-                    >
-                      <LabelList
-                        position="outside"
-                        offset={10}
-                        className="fill-slate-800"
-                        formatter={(value: unknown, idx?: number) => {
-                          const d = [
-                            { name: 'Zakup', value: result.koszt_zakupu_brutto },
-                            { name: 'Remont', value: result.koszt_remontu_calkowity },
-                            { name: 'Utrzymanie', value: result.koszty_utrzymania },
-                            { name: 'Finansowanie', value: result.koszty_finansowania },
-                            { name: 'Sprzedaż', value: result.koszty_sprzedazy },
-                          ]
-                          const total = d.reduce((s, x) => s + x.value, 0)
-                          const index = typeof idx === 'number' ? idx : 0
-                          const percent = total > 0 ? (d[index].value / total) * 100 : 0
-                          if (percent < 3) return ''
-                          return `${d[index].name}: ${percent.toFixed(0)}%`
-                        }}
-                      />
-                      {(() => {
-                        const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
-                        return [0,1,2,3,4].map((i) => (
-                          <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                        ))
-                      })()}
-                    </Pie>
-                    <RechartsTooltip formatter={(v: number) => [`${formatCurrency(v as number)}`, 'Kwota']} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <CardContent className="p-6">
+                {(() => {
+                  const pieData = [
+                    { name: 'Zakup', value: result.koszt_zakupu_brutto },
+                    { name: 'Remont', value: result.koszt_remontu_calkowity },
+                    { name: 'Utrzymanie', value: result.koszty_utrzymania },
+                    { name: 'Finansowanie', value: result.koszty_finansowania },
+                    { name: 'Sprzedaż', value: result.koszty_sprzedazy },
+                  ]
+                  const total = pieData.reduce((s, x) => s + x.value, 0)
+                  const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+                  return (
+                    <>
+                      <div className="h-[360px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={140}
+                              dataKey="value"
+                            >
+                              {COLORS.map((c, i) => (
+                                <Cell key={`cell-${i}`} fill={c} />
+                              ))}
+                            </Pie>
+                            {/* Suma w środku koła */}
+                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#0f172a">
+                              <tspan x="50%" dy="-0.6em" className="text-[12px]">Suma kosztów</tspan>
+                              <tspan x="50%" dy="1.4em" className="font-semibold">{formatCurrency(total)}</tspan>
+                            </text>
+                            <RechartsTooltip formatter={(v: number) => [`${formatCurrency(v as number)}`, 'Kwota']} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      {/* Legenda z kwotami i % */}
+                      <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                        {pieData.map((item, i) => {
+                          const percent = total > 0 ? (item.value / total) * 100 : 0
+                          return (
+                            <div key={item.name} className="flex items-center gap-2">
+                              <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: COLORS[i] }} />
+                              <span className="text-slate-700">{item.name}: <span className="font-medium">{formatCurrencyShort(item.value)}</span> ({percent.toFixed(0)}%)</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
 
@@ -1114,16 +1119,8 @@ export default function FliperCalculator(props: FliperExternalChange = {}) {
               <CardHeader className="bg-gray-50 border-b border-gray-200">
                 <CardTitle>Koszty vs przychód i zysk</CardTitle>
               </CardHeader>
-              <CardContent className="h-[420px] p-6">
-                <div className="mb-2 flex flex-wrap items-center gap-4 text-sm">
-                  {(['zakup', 'remont', 'utrzymanie', 'finansowanie', 'sprzedaz'] as const).map((k) => (
-                    <div key={k} className="flex items-center gap-2">
-                      <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: COST_COLORS[k] }} />
-                      <span className="text-slate-700">{COST_LABELS[k]}</span>
-                    </div>
-                  ))}
-                </div>
-                <ResponsiveContainer width="100%" height={360}>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={380}>
                   <BarChart data={(() => {
                     const zakup = result.koszt_zakupu_brutto
                     const remont = result.koszt_remontu_calkowity
@@ -1143,12 +1140,34 @@ export default function FliperCalculator(props: FliperExternalChange = {}) {
                     <YAxis domain={[(dataMin: number) => (dataMin < 0 ? dataMin * 1.25 : 0), (dataMax: number) => (dataMax > 0 ? dataMax * 1.1 : 0)]} tick={{ fill: '#0f172a', fontSize: 12 }} axisLine={{ stroke: '#94A3B8' }} tickLine={{ stroke: '#94A3B8' }} tickFormatter={(v) => formatCurrencyShort(v)} width={90} />
                     <ReferenceLine y={0} stroke="#94A3B8" />
                     <RechartsTooltip content={(props: unknown) => <CustomTooltip {...(props as TooltipProps)} />} />
-                    {/* Stacked koszty */}
+                    {/* Legenda nad wykresem */}
+                    {(() => {
+                      const zakup = result.koszt_zakupu_brutto
+                      const remont = result.koszt_remontu_calkowity
+                      const utrzymanie = result.koszty_utrzymania
+                      const finansowanie = result.koszty_finansowania
+                      const sprzedaz = result.koszty_sprzedazy
+                      const total = zakup + remont + utrzymanie + finansowanie + sprzedaz
+                      return null
+                    })()}
+                    {/* Stacked koszty + suma etykieta */}
                     <Bar dataKey="zakup" stackId="koszty" fill="#2563EB" />
                     <Bar dataKey="remont" stackId="koszty" fill="#10B981" />
                     <Bar dataKey="utrzymanie" stackId="koszty" fill="#F59E0B" />
                     <Bar dataKey="finansowanie" stackId="koszty" fill="#EF4444" />
-                    <Bar dataKey="sprzedaz" stackId="koszty" fill="#8B5CF6" />
+                    <Bar dataKey="sprzedaz" stackId="koszty" fill="#8B5CF6">
+                      <LabelList content={(props) => {
+                        const { x = 0, y = 0, width = 0, value, payload } = props as unknown as { x: number; y: number; width: number; height: number; value: number; payload: Record<string, number | string> }
+                        if (typeof payload?.name !== 'string' || payload.name !== 'Koszty') return null
+                        const sum = (payload.zakup as number) + (payload.remont as number) + (payload.utrzymanie as number) + (payload.finansowanie as number) + (payload.sprzedaz as number)
+                        const cx = x + width / 2
+                        return (
+                          <text x={cx} y={y - 8} textAnchor="middle" fill="#0f172a" fontSize={12}>
+                            {formatCurrencyShort(sum)}
+                          </text>
+                        )
+                      }} />
+                    </Bar>
                     {/* Przychód */}
                     <Bar dataKey="przychod" fill="#0EA5E9" radius={[6, 6, 0, 0]}>
                       <LabelList position="top" offset={8} formatter={(v: unknown) => formatCurrencyShort(v as number)} fill="#0f172a" />
@@ -1169,6 +1188,30 @@ export default function FliperCalculator(props: FliperExternalChange = {}) {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                {/* Legenda wartości kosztów */}
+                {(() => {
+                  const rows = [
+                    { key: 'zakup', label: COST_LABELS.zakup, color: COST_COLORS.zakup, value: result.koszt_zakupu_brutto },
+                    { key: 'remont', label: COST_LABELS.remont, color: COST_COLORS.remont, value: result.koszt_remontu_calkowity },
+                    { key: 'utrzymanie', label: COST_LABELS.utrzymanie, color: COST_COLORS.utrzymanie, value: result.koszty_utrzymania },
+                    { key: 'finansowanie', label: COST_LABELS.finansowanie, color: COST_COLORS.finansowanie, value: result.koszty_finansowania },
+                    { key: 'sprzedaz', label: COST_LABELS.sprzedaz, color: COST_COLORS.sprzedaz, value: result.koszty_sprzedazy },
+                  ]
+                  const total = rows.reduce((s, r) => s + r.value, 0)
+                  return (
+                    <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                      {rows.map((r) => {
+                        const percent = total > 0 ? (r.value / total) * 100 : 0
+                        return (
+                          <div key={r.key} className="flex items-center gap-2">
+                            <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: r.color }} />
+                            <span className="text-slate-700">{r.label}: <span className="font-medium">{formatCurrencyShort(r.value)}</span> ({percent.toFixed(0)}%)</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </CardContent>
             </Card>
           </div>

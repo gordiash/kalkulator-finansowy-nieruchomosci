@@ -13,12 +13,15 @@ export function CreditScoreResultSection({ data }: CreditScoreResultSectionProps
     return `${value.toFixed(2)}%`;
   };
 
+  const hasNoStress = data && data.maxLoanAmountNoStress !== undefined && data.maxLoanAmountNoStress !== null;
+  const columnsClass = hasNoStress ? 'md:grid-cols-3' : 'md:grid-cols-2';
+
   return (
     <div className="space-y-8">
       {/* Główne wyniki */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">🎯 Twoja szacunkowa zdolność kredytowa</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`grid grid-cols-1 ${columnsClass} gap-6`}>
           <div className="p-6 bg-green-50 rounded-xl border border-green-200">
             <h3 className="text-lg font-semibold text-green-900 mb-2">Maksymalna miesięczna rata</h3>
             <p className="text-3xl font-bold text-green-700">
@@ -31,6 +34,15 @@ export function CreditScoreResultSection({ data }: CreditScoreResultSectionProps
               {data.maxLoanAmount ? formatCurrency(data.maxLoanAmount) : 'Brak danych'}
             </p>
           </div>
+
+          {hasNoStress && (
+            <div className="p-6 bg-indigo-50 rounded-xl border border-indigo-200">
+              <h3 className="text-lg font-semibold text-indigo-900 mb-2">Maksymalna kwota bez stress testu</h3>
+              <p className="text-3xl font-bold text-indigo-700">
+                {formatCurrency(Number(data.maxLoanAmountNoStress))}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

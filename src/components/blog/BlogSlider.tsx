@@ -261,13 +261,20 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                    currentIndex === index
-                      ? 'bg-blue-600 w-8'
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
+                  className={
+                    'relative inline-flex items-center justify-center p-3 sm:p-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+                  }
                   aria-label={`Przejdź do slajdu ${index + 1}`}
-                />
+                  aria-current={currentIndex === index ? 'true' : 'false'}
+                >
+                  <span
+                    className={`h-2 rounded-full transition-all duration-200 ${
+                      currentIndex === index
+                        ? 'bg-blue-600 w-8'
+                        : 'bg-gray-300 hover:bg-gray-400 w-2'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}

@@ -116,24 +116,32 @@ const CreditScoreCalculatorPageContent = () => {
   const [monthlyExpenses, setMonthlyExpenses] = useState("");
   const [otherLoans, setOtherLoans] = useState("");
   const [householdSize, setHouseholdSize] = useState("1");
+  const [age, setAge] = useState("30");
+  const [bigCity, setBigCity] = useState("no");
   
   // Parametry kredytu
   const [loanAmount, setLoanAmount] = useState(initialLoanAmount);
   const [loanTerm, setLoanTerm] = useState("30");
   const [interestRate, setInterestRate] = useState("7.5");
   const [installmentType, setInstallmentType] = useState("equal");
+  const [propertyValue, setPropertyValue] = useState("");
+  const [downPayment, setDownPayment] = useState("");
 
   // Pola z Etapu 2
   const [secondBorrowerIncome, setSecondBorrowerIncome] = useState("");
   const [employmentType, setEmploymentType] = useState("employment");
   const [creditCardLimits, setCreditCardLimits] = useState("");
   const [accountOverdrafts, setAccountOverdrafts] = useState("");
+  const [revolvingRate, setRevolvingRate] = useState("0.03");
+  const [incomeHistoryMonths, setIncomeHistoryMonths] = useState("24");
+  const [irregularIncome, setIrregularIncome] = useState("no");
 
   // Pole z Etapu 3
   const [dstiRatio, setDstiRatio] = useState("50");
 
   // Stany dla backendu
   const [isLoading, setIsLoading] = useState(false);
+  const [maxLoanAmountNoStress, setMaxLoanAmountNoStress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creditCapacity, setCreditCapacity] = useState<number | null>(null);
   const [maxLoanAmount, setMaxLoanAmount] = useState<number | null>(null);
@@ -194,6 +202,12 @@ const CreditScoreCalculatorPageContent = () => {
       errors.accountOverdrafts = 'Limity debetowe nie mogą być ujemne';
     }
 
+    // Walidacja wieku
+    const ageNum = parseInt(age || '0');
+    if (!age || ageNum < 18 || ageNum > 70) {
+      errors.age = 'Wiek musi być w zakresie 18–70 lat';
+    }
+
     // Walidacja liczby osób w gospodarstwie
     if (!householdSize || parseInt(householdSize) < 1) {
       errors.householdSize = 'Liczba osób w gospodarstwie musi być większa od 0';
@@ -202,10 +216,12 @@ const CreditScoreCalculatorPageContent = () => {
     }
 
     // Walidacja okresu kredytowania
-    if (!loanTerm || parseInt(loanTerm) < 1) {
+    const termNum = parseInt(loanTerm || '0');
+    const maxTermByAge = Math.max(1, 75 - (parseInt(age || '0') || 0));
+    if (!loanTerm || termNum < 1) {
       errors.loanTerm = 'Okres kredytowania musi być większy od 0';
-    } else if (parseInt(loanTerm) > 30) {
-      errors.loanTerm = 'Okres kredytowania nie może przekraczać 30 lat';
+    } else if (termNum > 30 || termNum > maxTermByAge) {
+      errors.loanTerm = `Okres nie może przekraczać ${Math.min(30, maxTermByAge)} lat`;
     }
 
     // Walidacja oprocentowania
@@ -220,6 +236,19 @@ const CreditScoreCalculatorPageContent = () => {
       errors.dstiRatio = 'Wskaźnik DSTI musi być większy od 10%';
     } else if (parseFloat(dstiRatio) > 60) {
       errors.dstiRatio = 'Wskaźnik DSTI nie może przekraczać 60%';
+    }
+
+    // Walidacja nieruchomości / LTV
+    if (propertyValue) {
+      const pv = parseFloat(propertyValue);
+      const dp = parseFloat(downPayment || '0');
+      if (pv <= 0) errors.propertyValue = 'Wartość nieruchomości musi być > 0';
+      if (dp < 0 || dp > pv) errors.downPayment = 'Wkład własny musi być w zakresie 0–wartość nieruchomości';
+    }
+
+    if ((employmentType === 'b2b' || employmentType === 'contract')) {
+      const hist = parseInt(incomeHistoryMonths || '0');
+      if (hist < 6) errors.incomeHistoryMonths = 'Historia dochodu min. 6 miesięcy';
     }
 
     // Dodatkowa walidacja biznesowa
@@ -243,7 +272,7 @@ const CreditScoreCalculatorPageContent = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthlyIncome, secondBorrowerIncome, monthlyExpenses, otherLoans, 
       creditCardLimits, accountOverdrafts, householdSize, loanTerm, 
-      interestRate, dstiRatio]);
+      interestRate, dstiRatio, age, propertyValue, downPayment, incomeHistoryMonths]);
 
   // Funkcje pomocnicze do obsługi input-ów z sanityzacją
   const handleNumericInput = (setValue: (value: string) => void, allowDecimals = false) => {
@@ -281,7 +310,14 @@ const CreditScoreCalculatorPageContent = () => {
         employmentType,
         creditCardLimits: parseFloat(creditCardLimits) || 0,
         accountOverdrafts: parseFloat(accountOverdrafts) || 0,
-        dstiRatio: parseFloat(dstiRatio)
+        dstiRatio: parseFloat(dstiRatio),
+        age: parseInt(age),
+        bigCity: bigCity === 'yes',
+        propertyValue: parseFloat(propertyValue) || 0,
+        downPayment: parseFloat(downPayment) || 0,
+        revolvingRate: parseFloat(revolvingRate) || 0.03,
+        incomeHistoryMonths: parseInt(incomeHistoryMonths) || 24,
+        irregularIncome: irregularIncome === 'yes'
       };
 
       const response = await fetch('/api/calculate', {
@@ -304,8 +340,10 @@ const CreditScoreCalculatorPageContent = () => {
 
       setCreditCapacity(data.creditCapacity);
       setMaxLoanAmount(data.maxLoanAmount);
+      setMaxLoanAmountNoStress(data.maxLoanAmountNoStress ?? null);
       setChartData(data.chartData || []);
       setCalculationDetails(data.details);
+      // Zachowaj dodatkowe pola w details (bez stress testu)
 
       // Śledzenie wyników
       trackCalculatorResult('credit-score', { input: requestData, output: data });
@@ -344,11 +382,13 @@ const CreditScoreCalculatorPageContent = () => {
                <SaveCalculationButton
                 calculationData={{
                   monthlyIncome, monthlyExpenses, otherLoans, householdSize,
-                  loanAmount, loanTerm, interestRate, installmentType,
-                  secondBorrowerIncome, employmentType, creditCardLimits,
-                  accountOverdrafts, dstiRatio
+                   loanAmount, loanTerm, interestRate, installmentType,
+                   secondBorrowerIncome, employmentType, creditCardLimits,
+                   accountOverdrafts, dstiRatio,
+                   age, bigCity, propertyValue, downPayment, revolvingRate,
+                   incomeHistoryMonths, irregularIncome
                 }}
-                resultData={{ creditCapacity, maxLoanAmount, calculationDetails, chartData }}
+                 resultData={{ creditCapacity, maxLoanAmount, maxLoanAmountNoStress, calculationDetails, chartData }}
                 calculationType="credit-score"
                 className="mb-6 sm:mb-8"
               />
@@ -395,6 +435,28 @@ const CreditScoreCalculatorPageContent = () => {
                         <SelectItem value="employment">Umowa o pracę</SelectItem>
                         <SelectItem value="b2b">B2B / Działalność gospodarcza</SelectItem>
                         <SelectItem value="contract">Umowa zlecenie/o dzieło</SelectItem>
+                      </SelectWithTooltip>
+
+                      <InputWithTooltip
+                        id="incomeHistoryMonths"
+                        label="Historia dochodu (miesiące)"
+                        tooltip="Liczba miesięcy potwierdzonego dochodu. Dla B2B/zlecenia wymagane min. 6 m-cy, zalecane 12–24."
+                        value={incomeHistoryMonths}
+                        onChange={handleNumericInput(setIncomeHistoryMonths, false)}
+                        placeholder="np. 24"
+                        error={validationErrors.incomeHistoryMonths}
+                      />
+
+                      <SelectWithTooltip
+                        id="irregularIncome"
+                        label="Dochód nieregularny"
+                        tooltip="Jeśli dochód ma duże wahania (premie/prowizje), banki stosują dodatkowe bufory."
+                        value={irregularIncome}
+                        onValueChange={setIrregularIncome}
+                        placeholder="Wybierz"
+                      >
+                        <SelectItem value="no">Nie</SelectItem>
+                        <SelectItem value="yes">Tak</SelectItem>
                       </SelectWithTooltip>
                     </CardContent>
                   </Card>
@@ -458,6 +520,28 @@ const CreditScoreCalculatorPageContent = () => {
                         error={validationErrors.householdSize}
                       />
 
+                      <InputWithTooltip
+                        id="age"
+                        label="Wiek głównego kredytobiorcy (lata)"
+                        tooltip="Wiek wpływa na maksymalny okres spłaty (typowo kredyt musi się zakończyć przed 75 r.ż.)."
+                        value={age}
+                        onChange={handleNumericInput(setAge, false)}
+                        placeholder="np. 30"
+                        error={validationErrors.age}
+                      />
+
+                      <SelectWithTooltip
+                        id="bigCity"
+                        label="Lokalizacja – duże miasto"
+                        tooltip="W dużych miastach koszty życia są wyższe – przyjmujemy +12%."
+                        value={bigCity}
+                        onValueChange={setBigCity}
+                        placeholder="Wybierz"
+                      >
+                        <SelectItem value="no">Nie</SelectItem>
+                        <SelectItem value="yes">Tak</SelectItem>
+                      </SelectWithTooltip>
+
                       <SelectWithTooltip
                         id="dstiRatio"
                         label="Wskaźnik DSTI (%)"
@@ -500,6 +584,26 @@ const CreditScoreCalculatorPageContent = () => {
                       )}
                       
                       <InputWithTooltip
+                        id="propertyValue"
+                        label="Wartość nieruchomości (zł)"
+                        tooltip="Przyjęta cena zakupu – potrzebna do obliczenia LTV."
+                        value={propertyValue}
+                        onChange={handleNumericInput(setPropertyValue, false)}
+                        placeholder="np. 650000"
+                        error={validationErrors.propertyValue}
+                      />
+
+                      <InputWithTooltip
+                        id="downPayment"
+                        label="Wkład własny (zł)"
+                        tooltip="Twoje środki własne na zakup. Wyznacza LTV (im wyższy wkład, tym niższe ryzyko)."
+                        value={downPayment}
+                        onChange={handleNumericInput(setDownPayment, false)}
+                        placeholder="np. 130000"
+                        error={validationErrors.downPayment}
+                      />
+
+                      <InputWithTooltip
                         id="loanTerm"
                         label="Okres kredytowania (lata)"
                         tooltip="Okres na jaki chcesz zaciągnąć kredyt. UWAGA: Do obliczeń jest używany maksymalnie 30-letni okres niezależnie od wprowadzonej wartości, zgodnie z praktyką banków ograniczających ryzyko."
@@ -530,6 +634,19 @@ const CreditScoreCalculatorPageContent = () => {
                       >
                         <SelectItem value="equal">Raty równe (annuitetowe)</SelectItem>
                         <SelectItem value="decreasing">Raty malejące</SelectItem>
+                      </SelectWithTooltip>
+
+                      <SelectWithTooltip
+                        id="revolvingRate"
+                        label="Polityka kart/debetów (miesięczne obciążenie)"
+                        tooltip="Część banków przyjmuje 3–5% przyznanych limitów jako potencjalne miesięczne obciążenie."
+                        value={revolvingRate}
+                        onValueChange={setRevolvingRate}
+                        placeholder="Wybierz %"
+                      >
+                        <SelectItem value="0.03">3%</SelectItem>
+                        <SelectItem value="0.04">4%</SelectItem>
+                        <SelectItem value="0.05">5%</SelectItem>
                       </SelectWithTooltip>
                     </CardContent>
                   </Card>
@@ -586,6 +703,7 @@ const CreditScoreCalculatorPageContent = () => {
                         <CardContent className="p-6">
                           <h4 className="text-lg font-semibold mb-2">Maksymalna miesięczna rata:</h4>
                           <p className="text-2xl font-bold text-green-700">{creditCapacity.toFixed(2)} zł</p>
+                          <p className="text-sm text-gray-600 mt-1">Bez stress testu: {creditCapacity.toFixed(2)} zł</p>
                         </CardContent>
                       </Card>
                       
@@ -593,6 +711,9 @@ const CreditScoreCalculatorPageContent = () => {
                         <CardContent className="p-6">
                           <h4 className="text-lg font-semibold mb-2">Maksymalna kwota kredytu:</h4>
                           <p className="text-2xl font-bold text-green-700">{maxLoanAmount?.toFixed(0)} zł</p>
+                          {calculationDetails?.baseInterestRate && calculationDetails?.stressedInterestRate && (
+                            <p className="text-sm text-gray-600 mt-1">(Stress test: {calculationDetails.stressedInterestRate.toFixed(2)}% | Baza: {calculationDetails.baseInterestRate.toFixed(2)}%)</p>
+                          )}
                           
                           {loanAmount && parseFloat(loanAmount) > 0 && (
                             <div className="mt-3 p-3 rounded-lg border">
@@ -616,6 +737,22 @@ const CreditScoreCalculatorPageContent = () => {
                           )}
                         </CardContent>
                       </Card>
+
+                      {/* Wariant bez stress testu */}
+                      {calculationDetails?.limitsNoStress?.byDsti != null && (
+                        <Card>
+                          <CardContent className="p-6">
+                            <h4 className="text-lg font-semibold mb-2">Maksymalna kwota bez stress testu:</h4>
+                            <p className="text-2xl font-bold text-blue-700">{Math.round(
+                              Math.max(0, Math.min(
+                                calculationDetails.limitsNoStress.byDsti || 0,
+                                calculationDetails.limitsNoStress.byDti || Infinity,
+                                calculationDetails.limitsNoStress.byLtv ?? Infinity
+                              ))
+                            ).toLocaleString('pl-PL')} zł</p>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
 
                     {/* Wykres kołowy */}
@@ -702,9 +839,7 @@ const CreditScoreCalculatorPageContent = () => {
                               <p className="text-2xl font-bold text-purple-700">
                                 {calculationDetails.stressedInterestRate?.toFixed(1)}%
                               </p>
-                              <p className="text-sm text-purple-600 mt-1">
-                                Twoje {interestRate}% + bufor 2.5 p.p.
-                              </p>
+                              <p className="text-sm text-purple-600 mt-1">Twoje oprocentowanie + bufor stresowy (dynamiczny)</p>
                             </div>
 
                             <div className="bg-green-100 p-4 rounded-lg border border-green-200">

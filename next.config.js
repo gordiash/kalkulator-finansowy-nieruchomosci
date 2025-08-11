@@ -6,7 +6,12 @@ const nextConfig = {
   experimental: {
     // optimizeCss: true, // Wyłączone - powoduje błąd z 'critters'
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    // Buduj wyłącznie dla nowoczesnych przeglądarek – bez ES5 i polyfilli legacy
+    legacyBrowsers: false,
   },
+
+  // Mapy źródeł dla produkcji (ułatwia debugowanie i spełnia wymagania Lighthouse)
+  productionBrowserSourceMaps: true,
 
   // Konfiguracja dla Vercel
   typescript: {
@@ -129,6 +134,26 @@ const nextConfig = {
   
   // Security Headers
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production'
+    // Content Security Policy przeniesiona do nagłówka HTTP
+    const csp = [
+      "default-src 'self'",
+      // Next.js i analityka (GA/Tag Manager) – dopasuj do używanych integracji
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://vitals.vercel-insights.com",
+      "frame-src https://www.youtube.com https://player.vimeo.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      // W prod wymuś upgrade HTTP→HTTPS (nie używaj w dev, aby nie psuć localhost)
+      isProd ? 'upgrade-insecure-requests' : ''
+    ]
+      .filter(Boolean)
+      .join('; ')
+
     return [
       {
         source: '/(.*)',
@@ -136,6 +161,10 @@ const nextConfig = {
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: csp,
           },
           {
             key: 'X-Frame-Options',

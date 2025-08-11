@@ -13,8 +13,7 @@ import markdownItAnchor from 'markdown-it-anchor';
 import markdownItContainer from 'markdown-it-container';
 // @ts-ignore
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github.css';
-import '../blog-styles.css';
+// Lazy CSS importowane tylko dla bloga poprzez next/dynamic w layout – tutaj usunięte, aby nie wchodziło do common CSS
 import { defaultMeta } from '@/lib/seo/defaultMeta'
 import Image from 'next/image'
 import Link from 'next/link'
