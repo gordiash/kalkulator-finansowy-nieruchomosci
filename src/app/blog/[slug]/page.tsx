@@ -133,6 +133,12 @@ export async function generateMetadata(
           url: `${baseUrl}/blog/${post.slug}`,
           images: post.image_display ? [{ url: post.image_display }] : undefined,
         },
+        twitter: {
+          card: 'summary_large_image',
+          title: post.title,
+          description: post.seo_content ?? post.short_content ?? '',
+          images: post.image_display ? [post.image_display] : [`${baseUrl}/icon-512.png`],
+        },
       };
     }
   } catch (error) {

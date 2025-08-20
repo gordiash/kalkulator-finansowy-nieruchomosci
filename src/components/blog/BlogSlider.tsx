@@ -120,22 +120,22 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
   }
 
   return (
-    <section className="relative py-20 md:py-32 bg-gradient-to-b from-gray-50/50 to-blue-50/30 overflow-hidden">
+    <section className="relative py-20 md:py-32 bg-slate-800/20 overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center px-4 py-2 mb-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full text-blue-700 font-medium text-sm border border-blue-200/50">
-            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+          <div className="inline-flex items-center px-4 py-2 mb-6 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-slate-300 font-medium text-sm">
+            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
             Najświeższe treści
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Najnowsze wpisy na 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"> blogu</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400"> blogu</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
             Poznaj najświeższe analizy rynku nieruchomości, trendy i porady ekspertów 
             od profesjonalistów z branży
           </p>
@@ -161,29 +161,29 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
                 >
                   <Link 
                     href={`/blog/${post.slug}`}
-                    className="group relative block bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/20 before:to-indigo-50/20 before:opacity-0 before:transition-opacity before:duration-500 hover:before:opacity-100 h-full"
+                    className="group relative block bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-400/10 before:to-indigo-400/10 before:opacity-0 before:transition-opacity before:duration-500 hover:before:opacity-100 h-full"
                   >
-                                        {/* Obrazek */}
-                     {post.image_display ? (
-                       <div className="aspect-video overflow-hidden relative">
-                         {isKnownDomain(post.image_display) ? (
-                           <Image
-                             src={post.image_display}
-                             alt={post.title}
-                             fill
-                             className="object-cover group-hover:scale-105 transition-transform duration-300"
-                           />
-                         ) : (
-                           <Image
-                             src={post.image_display}
-                             alt={post.title}
-                             fill
-                             unoptimized
-                             className="object-cover group-hover:scale-105 transition-transform duration-300"
-                           />
-                         )}
-                       </div>
-                     ) : (
+                    {/* Obrazek */}
+                    {post.image_display ? (
+                      <div className="aspect-video overflow-hidden relative">
+                        {isKnownDomain(post.image_display) ? (
+                          <Image
+                            src={post.image_display}
+                            alt={post.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <Image
+                            src={post.image_display}
+                            alt={post.title}
+                            fill
+                            unoptimized
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        )}
+                      </div>
+                    ) : (
                       <div className="aspect-video bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                         <div className="text-white text-4xl font-bold">📈</div>
                       </div>
@@ -197,7 +197,7 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
                           {post.tags.split(',').slice(0, 2).map((tag, index) => (
                             <span
                               key={index}
-                              className="px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 text-xs rounded-full font-medium border border-blue-200/50"
+                              className="px-3 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-full font-medium border border-slate-600/50"
                             >
                               {tag.trim()}
                             </span>
@@ -206,23 +206,23 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
                       )}
 
                       {/* Tytuł */}
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 leading-snug">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors duration-300 line-clamp-2 leading-snug">
                         {truncateText(post.title, itemsPerView === 1 ? 60 : 80)}
                       </h3>
 
                       {/* Opis */}
                       {post.short_content && (
-                        <p className="text-gray-600 text-sm mb-4 sm:mb-6 line-clamp-3 leading-relaxed flex-1">
+                        <p className="text-slate-300 text-sm mb-4 sm:mb-6 line-clamp-3 leading-relaxed flex-1">
                           {truncateText(post.short_content, itemsPerView === 1 ? 100 : 120)}
                         </p>
                       )}
 
                       {/* Data i Read More */}
                       <div className="flex items-center justify-between mt-auto">
-                        <div className="text-xs text-gray-500 font-medium">
+                        <div className="text-xs text-slate-400 font-medium">
                           {formatDate(post.published_at)}
                         </div>
-                        <div className="text-blue-600 text-sm font-semibold group-hover:text-blue-700 transition-colors duration-300">
+                        <div className="text-blue-400 text-sm font-semibold group-hover:text-blue-300 transition-colors duration-300">
                           Czytaj więcej →
                         </div>
                       </div>
@@ -238,18 +238,18 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
             <>
               <button
                 onClick={prevSlide}
-                className="absolute left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 sm:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 group hover:scale-110"
+                className="absolute left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-full p-2 sm:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 group hover:scale-110"
                 aria-label="Poprzedni post"
               >
-                <FiChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 group-hover:text-white transition-colors duration-300" />
+                <FiChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-slate-300 group-hover:text-white transition-colors duration-300" />
               </button>
               
               <button
                 onClick={nextSlide}
-                className="absolute right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 sm:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 group hover:scale-110"
+                className="absolute right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-full p-2 sm:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 group hover:scale-110"
                 aria-label="Następny post"
               >
-                <FiChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 group-hover:text-white transition-colors duration-300" />
+                <FiChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-slate-300 group-hover:text-white transition-colors duration-300" />
               </button>
             </>
           )}
@@ -270,8 +270,8 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
                   <span
                     className={`h-2 rounded-full transition-all duration-200 ${
                       currentIndex === index
-                        ? 'bg-blue-600 w-8'
-                        : 'bg-gray-300 hover:bg-gray-400 w-2'
+                        ? 'bg-blue-500 w-8'
+                        : 'bg-slate-600 hover:bg-slate-500 w-2'
                     }`}
                   />
                 </button>
@@ -289,8 +289,6 @@ export default function BlogSlider({ posts }: BlogSliderProps) {
             <span>Zobacz wszystkie artykuły</span>
             <FiChevronRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
-          
-          
         </div>
       </div>
     </section>

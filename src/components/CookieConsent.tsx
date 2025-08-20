@@ -46,14 +46,11 @@ const CookieConsent = () => {
           s.src = `https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J`;
           s.async = true;
           s.onload = function(){
-            // init
-            // @ts-ignore
-            window.dataLayer = window.dataLayer || [];
-            // @ts-ignore
-            function gtag(){window.dataLayer.push(arguments);} 
-            // @ts-ignore
+            // inicjalizacja dataLayer i gtag bez @ts-ignore i bez 'arguments'
+            const w = window as unknown as { dataLayer?: unknown[] };
+            w.dataLayer = w.dataLayer || [];
+            const gtag = (...args: any[]) => { (w.dataLayer as unknown[]).push(args); };
             gtag('js', new Date());
-            // @ts-ignore
             gtag('config', 'G-9ZQNTH7W8J');
           };
           document.head.appendChild(s);

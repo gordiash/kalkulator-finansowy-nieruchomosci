@@ -266,3 +266,30 @@ enum nieruchomosci_building_type {
   dom
   inny
 }
+
+/// Serie wskaźników makroekonomicznych (np. stopy NBP, CPI, ceny m²)
+model MarketSeries {
+  id           String        @id @default(cuid())
+  key          String        @unique
+  name         String
+  unit         String
+  frequency    String        // daily | monthly | quarterly
+  source       String        // nbp | gus | custom
+  created_at   DateTime      @default(now()) @db.DateTime(0)
+  updated_at   DateTime      @default(now()) @db.DateTime(0)
+  observations Observation[]
+}
+
+/// Wartości w czasie dla danej serii
+model Observation {
+  id         String       @id @default(cuid())
+  seriesId   String
+  date       DateTime     @db.Date
+  value      Decimal      @db.Decimal(14, 6)
+  created_at DateTime     @default(now()) @db.DateTime(0)
+
+  series     MarketSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  @@unique([seriesId, date])
+  @@index([seriesId, date])
+}

@@ -784,7 +784,6 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
 function handlePurchaseCalculation(input: PurchaseInput) {
     try {
         // Inicjalizacja wyników
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const results: any = {
             pccTax: null,
             notaryFee: null,

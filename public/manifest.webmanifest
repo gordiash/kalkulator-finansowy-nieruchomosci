@@ -2,9 +2,17 @@
   "name": "Analityka Nieruchomości",
   "short_name": "AN",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
+  "categories": ["finance", "productivity", "business", "real estate"],
+  "shortcuts": [
+    { "name": "Wycena mieszkania", "url": "/kalkulator-wyceny" },
+    { "name": "Zdolność kredytowa", "url": "/kalkulator-zdolnosci-kredytowej" },
+    { "name": "Wynajem – rentowność", "url": "/kalkulator-wynajmu" }
+  ],
   "icons": [
     {
       "src": "/favicon.ico",

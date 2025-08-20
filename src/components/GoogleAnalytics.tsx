@@ -18,7 +18,7 @@ function hasAnalyticsConsent(): boolean {
 export default function GoogleAnalytics() {
   return (
     <>
-      <Script id="ga-loader" strategy="idle">
+      <Script id="ga-loader" strategy="afterInteractive">
         {`
           (function(){
             try {

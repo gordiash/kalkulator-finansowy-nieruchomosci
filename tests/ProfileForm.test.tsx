@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProfileForm from '@/components/panel/ProfileForm';
+import ProfileForm from '@/components/ProfileForm';
 
 // Mock fetch
 global.fetch = jest.fn();

@@ -8,45 +8,46 @@ import NewsletterFooterForm from './NewsletterFooterForm';
 const Footer = () => {
   const [isCookieSettingsOpen, setIsCookieSettingsOpen] = useState(false);
   return (
-    <footer className="bg-gray-100 mt-12 py-8 sm:py-12">
+    <footer className="bg-slate-900 mt-12 py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Główna zawartość stopki */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* O projekcie */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Kalkulatory Nieruchomości</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              Profesjonalne narzędzia do analizy finansowej inwestycji w nieruchomości. 
-              Sprawdź opłacalność zakupu, wynajmu i przeanalizuj swoją zdolność kredytową.
+            <h3 className="text-lg font-semibold text-white mb-3">Kalkulatory Nieruchomości</h3>
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Profesjonalne narzędzia do analizy inwestycji w nieruchomości z AI. 
+              Sprawdź opłacalność zakupu, wynajmu i przeanalizuj swoją zdolność kredytową 
+              z dokładnością 0.79% MAPE.
             </p>
           </div>
 
           {/* Kalkulatory */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Kalkulatory</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">Kalkulatory</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/kalkulator-wyceny" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">
-                  Wycena Mieszkania
+                <Link href="/kalkulator-wyceny" className="text-slate-300 hover:text-blue-400 transition-colors text-sm">
+                  Wycena AI
                 </Link>
               </li>
               <li>
-                <Link href="/kalkulator-zakupu-nieruchomosci" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">
+                <Link href="/kalkulator-zakupu-nieruchomosci" className="text-slate-300 hover:text-blue-400 transition-colors text-sm">
                   Zakup Nieruchomości
                 </Link>
               </li>
               <li>
-                <Link href="/kalkulator-wynajmu" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">
-                  Opłacalność Wynajmu
+                <Link href="/kalkulator-wynajmu" className="text-slate-300 hover:text-blue-400 transition-colors text-sm">
+                  Rentowność Wynajmu
                 </Link>
               </li>
               <li>
-                <Link href="/kalkulator-zdolnosci-kredytowej" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">
+                <Link href="/kalkulator-zdolnosci-kredytowej" className="text-slate-300 hover:text-blue-400 transition-colors text-sm">
                   Zdolność Kredytowa
                 </Link>
               </li>
               <li>
-                <Link href="/kalkulator-flipera" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">
+                <Link href="/kalkulator-flipera" className="text-slate-300 hover:text-blue-400 transition-colors text-sm">
                   Kalkulator Flipera
                 </Link>
               </li>
@@ -55,18 +56,18 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Newsletter</h3>
-            <p className="text-gray-700 text-sm mb-3">
-              Otrzymuj najnowsze analizy rynku i porady ekspertów
+            <h3 className="text-lg font-semibold text-white mb-3">Newsletter</h3>
+            <p className="text-slate-300 text-sm mb-3">
+              Otrzymuj najnowsze analizy rynku nieruchomości i porady ekspertów
             </p>
             <NewsletterFooterForm />
           </div>
 
           {/* Wsparcie */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Wsparcie</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">Wsparcie</h3>
             <div className="space-y-3">
-              <p className="text-gray-700 text-sm">
+              <p className="text-slate-300 text-sm">
                 Podoba Ci się projekt? Możesz go wesprzeć!
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -74,7 +75,7 @@ const Footer = () => {
                   href="https://suppi.pl/kalkulatorynieruchomosci" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                   className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm"
+                   className="inline-block bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm"
                 >
                   ☕ Wesprzyj projekt
                 </a>
@@ -96,27 +97,27 @@ const Footer = () => {
         </div>
 
         {/* Dolna część stopki */}
-        <div className="border-t border-gray-200 pt-4 sm:pt-6">
+        <div className="border-t border-slate-700 pt-4 sm:pt-6">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-            <p className="text-gray-700 text-sm text-center sm:text-left">
+            <p className="text-slate-300 text-sm text-center sm:text-left">
               &copy; 2025 Kalkulatory Nieruchomości. Wszelkie prawa zastrzeżone.
             </p>
             <div className="flex flex-wrap justify-center sm:justify-end gap-4 sm:gap-6 text-sm">
-              <Link href="/regulamin" className="text-gray-700 hover:text-blue-700 transition-colors">
+              <Link href="/regulamin" className="text-slate-300 hover:text-blue-400 transition-colors">
                 Regulamin
               </Link>
-              <Link href="/polityka-prywatnosci" className="text-gray-700 hover:text-blue-700 transition-colors">
+              <Link href="/polityka-prywatnosci" className="text-slate-300 hover:text-blue-400 transition-colors">
                 Polityka Prywatności
               </Link>
-              <Link href="/o-nas" className="text-gray-700 hover:text-blue-700 transition-colors">
+              <Link href="/o-nas" className="text-slate-300 hover:text-blue-400 transition-colors">
                 O&nbsp;nas
               </Link>
-              <Link href="/kontakt" className="text-gray-700 hover:text-blue-700 transition-colors">
+              <Link href="/kontakt" className="text-slate-300 hover:text-blue-400 transition-colors">
                 Kontakt
               </Link>
               <button 
                 onClick={() => setIsCookieSettingsOpen(true)}
-                className="text-gray-700 hover:text-blue-700 transition-colors"
+                className="text-slate-300 hover:text-blue-400 transition-colors"
               >
                 Ustawienia Cookies
               </button>

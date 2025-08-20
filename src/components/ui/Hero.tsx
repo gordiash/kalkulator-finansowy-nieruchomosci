@@ -1,200 +1,172 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { FiDollarSign, FiTrendingUp, FiActivity, FiShield } from 'react-icons/fi';
+import { FiDollarSign, FiBarChart2, FiTrendingUp, FiCheckCircle } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
-const AnimatedCounter = ({ end, duration = 2000, suffix = '' }: { end: number; duration?: number; suffix?: string }) => {
-  const [count, setCount] = useState(0);
+export default function Hero() {
+  const features = [
+    {
+      icon: <FiCheckCircle className="text-green-400" size={20} />,
+      text: "Wycena AI z dokładnością 0.79% MAPE"
+    },
+    {
+      icon: <FiCheckCircle className="text-green-400" size={20} />,
+      text: "7000+ ofert w bazie treningowej"
+    },
+    {
+      icon: <FiCheckCircle className="text-green-400" size={20} />,
+      text: "35+ cech uwzględnianych w modelu"
+    }
+  ];
 
-  useEffect(() => {
-    let startTime: number;
-    let animationFrame: number;
-
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
-      
-      setCount(Math.floor(progress * end));
-      
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration]);
-
-  return <span className="tabular-nums">{count.toLocaleString('pl-PL')}{suffix}</span>;
-};
-
-const Hero = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
+  const stats = [
+    { number: "15,000+", label: "Zadowolonych użytkowników" },
+    { number: "0.79%", label: "Błąd MAPE - najniższy w Polsce" },
+    { number: "30s", label: "Czas wyceny mieszkania" }
+  ];
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50 via-white to-accent-50">
-      {/* Background decorations */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-400/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-success-400/5 rounded-full blur-2xl animate-pulse-slow"></div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-24">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
       </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30"></div>
-
+      
+      {/* Floating Elements */}
+      <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
-          {/* Left column - Content */}
-          <div className={`space-y-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 bg-glassmorphism backdrop-blur-sm border border-primary-200/30 rounded-full text-primary-700 font-medium text-sm shadow-lg">
-              <span className="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
-              Najdokładniejsze wyceny w Polsce
-            </div>
+        <div className="text-center max-w-6xl mx-auto">
+          {/* Trust Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center px-6 py-3 mb-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-slate-300 font-medium text-sm"
+          >
+            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+            Zaufane przez ponad 15k+ inwestorów
+          </motion.div>
 
-            {/* Main heading */}
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-                <span className="text-gray-900">Centrum</span>
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-600">
-                  Analityki
-                </span>
-                <br />
-                <span className="text-gray-900">Nieruchomości</span>
-              </h1>
-              
-              <p className="text-xl lg:text-2xl text-gray-600 font-light leading-relaxed max-w-2xl">
-                Profesjonalne narzędzia analityczne z AI. 
-                <span className="font-semibold text-primary-700"> Podejmij świadomą decyzję</span> 
-                dzięki najdokładniejszym wycenom w Polsce.
-              </p>
-            </div>
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-tight mb-6"
+          >
+            Profesjonalne
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+              kalkulatory nieruchomości
+            </span>
+          </motion.h1>
 
-            {/* Stats */}
-            <div className="flex flex-wrap gap-8 py-6">
-              <div className="text-center">
-                <div className="text-3xl font-black text-primary-600">
-                  <AnimatedCounter end={99} suffix="%" />
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Dokładność AI</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-success-600">
-                  <AnimatedCounter end={15000} suffix="+" />
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Wycen</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-accent-600">
-                  <AnimatedCounter end={0.13} suffix="%" />
-                </div>
-                <div className="text-sm text-gray-600 font-medium">MAPE Error</div>
-              </div>
-            </div>
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed mb-8"
+          >
+            Oszacuj wartość mieszkania z AI, oblicz ratę kredytu, sprawdź rentowność wynajmu. 
+            Pierwsza w Polsce platforma z modelem EstymatorAI o dokładności 0.79% MAPE.
+          </motion.p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
-                href="/kalkulator-wyceny"
-                className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-center"
+          {/* Features List */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-wrap justify-center gap-4 mb-12"
+          >
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800/30 backdrop-blur-sm border border-slate-700/30 rounded-full text-slate-300 text-sm"
               >
-                <FiDollarSign className="mr-2 group-hover:scale-110 transition-transform" size={20} />
-                Wycena z AI
-                <div className="ml-2 opacity-75 group-hover:opacity-100 transition-opacity">→</div>
-              </Link>
-              
-              <Link 
-                href="/blog"
-                className="group inline-flex items-center justify-center px-8 py-4 bg-white/70 backdrop-blur-sm border border-gray-200/50 text-gray-900 font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-center"
+                {feature.icon}
+                <span>{feature.text}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+          >
+            <Link 
+              href="/kalkulator-wyceny"
+              className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-full shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+            >
+              <FiDollarSign className="mr-2" size={20} />
+              Wyceń mieszkanie za darmo
+              <motion.div
+                className="ml-2"
+                animate={{ x: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <FiTrendingUp className="mr-2 group-hover:scale-110 transition-transform" size={20} />
-                Dowiedz się więcej
-              </Link>
-            </div>
-          </div>
+                →
+              </motion.div>
+            </Link>
+            
+            <Link 
+              href="/kalkulator-zakupu-nieruchomosci"
+              className="group inline-flex items-center px-8 py-4 bg-slate-800/50 hover:bg-slate-700/50 text-white font-semibold rounded-full border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 backdrop-blur-sm"
+            >
+              <FiBarChart2 className="mr-2" size={20} />
+              Kalkulator zakupu
+            </Link>
+          </motion.div>
 
-          {/* Right column - Interactive mockup */}
-          <div className={`relative ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-8 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              {/* Mock calculator interface */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 bg-error-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-warning-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-success-500 rounded-full"></div>
-                  <div className="ml-auto text-sm font-medium text-gray-600">Kalkulator Wyceny</div>
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.0 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+          >
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                className="text-center p-6 bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-slate-700/30 hover:border-slate-600/50 transition-all duration-300"
+              >
+                <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {stat.number}
                 </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Lokalizacja</label>
-                    <div className="h-12 bg-gray-100 rounded-xl flex items-center px-4 text-gray-600">
-                      📍 Olsztyn, Centrum
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Powierzchnia</label>
-                      <div className="h-12 bg-gray-100 rounded-xl flex items-center px-4 text-gray-600">
-                        64 m²
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Rok budowy</label>
-                      <div className="h-12 bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center px-4 text-gray-600 dark:text-gray-400">
-                        2010
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-success-50 to-primary-50 dark:from-success-900/20 dark:to-primary-900/20 rounded-xl p-4 border border-success-200/50 dark:border-success-700/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Szacowana wartość</span>
-                      <div className="flex items-center gap-2">
-                        <FiShield className="text-success-600" size={16} />
-                        <span className="text-xs text-success-600 font-medium">99.87% pewności</span>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 dark:text-white mt-1">
-                      <AnimatedCounter end={485000} suffix=" zł" />
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      <AnimatedCounter end={7578} suffix=" zł/m²" />
-                    </div>
-                  </div>
-
-                  <button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2">
-                    <FiActivity size={18} />
-                    Oblicz wycenę
-                  </button>
+                <div className="text-slate-300 text-sm">
+                  {stat.label}
                 </div>
               </div>
-
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-600/20 to-accent-600/20 rounded-3xl blur-xl -z-10 opacity-75"></div>
-            </div>
-
-            {/* Floating elements */}
-            <div className="absolute -top-6 -right-6 w-12 h-12 bg-success-500 rounded-xl shadow-lg flex items-center justify-center text-white font-bold animate-bounce-slow">
-              ✓
-            </div>
-            <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-primary-500 rounded-2xl shadow-lg flex items-center justify-center text-white animate-float">
-              <FiTrendingUp size={24} />
-            </div>
-          </div>
+            ))}
+          </motion.div>
         </div>
       </div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 1.5 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+      >
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="w-6 h-10 border-2 border-slate-400 rounded-full flex justify-center"
+        >
+          <motion.div
+            animate={{ y: [0, 12, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-1 h-3 bg-slate-400 rounded-full mt-2"
+          />
+        </motion.div>
+      </motion.div>
     </section>
   );
-};
-
-export default Hero; 
+} 

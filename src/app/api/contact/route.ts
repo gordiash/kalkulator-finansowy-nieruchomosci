@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN
+const AIRTABLE_TOKEN = process.env.AIRTABLE_ACCESS_TOKEN || process.env.AIRTABLE_TOKEN
 const AIRTABLE_CONTACT_TABLE_NAME = process.env.AIRTABLE_CONTACT_TABLE_NAME || 'Contact'
 
 export async function POST(request: NextRequest) {

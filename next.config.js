@@ -1,207 +1,53 @@
-const path = require('path');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optymalizacje kompilacji
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+  
+  // Optymalizacja obrazów
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
+  },
+
+  // Optymalizacja kompilacji
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // Source maps w produkcji
+  productionBrowserSourceMaps: true,
+
+  // Cache i optymalizacje
   experimental: {
-    // optimizeCss: true, // Wyłączone - powoduje błąd z 'critters'
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
-    // Buduj wyłącznie dla nowoczesnych przeglądarek – bez ES5 i polyfilli legacy
+    optimizeCss: true,
+    optimizePackageImports: [
+      'recharts',
+      '@heroicons/react',
+      'lucide-react',
+      'date-fns',
+      'lodash'
+    ],
+    webpackBuildWorker: true,
+    turbotrace: {
+      logLevel: 'error',
+      logDetail: true,
+    },
+    // Optymalizacja bfcache
+    browsersListForSwc: true,
     legacyBrowsers: false,
   },
 
-  // Mapy źródeł dla produkcji (ułatwia debugowanie i spełnia wymagania Lighthouse)
-  productionBrowserSourceMaps: true,
-
-  // Konfiguracja dla Vercel
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-
-  webpack: (config, { dev, isServer }) => {
-    // Uproszczona konfiguracja aliasów dla Next.js 15
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-      '@/lib': path.resolve(__dirname, 'src/lib'),
-      '@/components': path.resolve(__dirname, 'src/components'),
-      '@/types': path.resolve(__dirname, 'src/types'),
-      '@/utils': path.resolve(__dirname, 'src/utils'),
-      '@/styles': path.resolve(__dirname, 'src/styles'),
-    };
-    
-    // Dodaj fallback dla modułów
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
-
-    // Dodaj rozszerzenia dla lepszego rozpoznawania modułów
-    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.json', ...config.resolve.extensions];
-    
-    // Konfiguracja TLS dla HTTPS
-    if (config.devServer) {
-      config.devServer = {
-        ...config.devServer,
-        https: true,
-        http2: true,
-      };
-    }
-    
-    // Optymalizacje tylko dla produkcji
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-          },
-        },
-      };
-    }
-
-    return config;
-  },
-
-  // Kompresja i cache
-  compress: true,
-  poweredByHeader: false,
-  
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'lhihjbltatugcnbcpzzt.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'static.vecteezy.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.pexels.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.pexels.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'pixabay.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.pixabay.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-  // Konfiguracja dla Next.js 15+
-  serverExternalPackages: ['@supabase/ssr'],
-  
-  // Security Headers
+  // Headers dla lepszego cache'owania
   async headers() {
-    const isProd = process.env.NODE_ENV === 'production'
-    // Content Security Policy przeniesiona do nagłówka HTTP
-    const csp = [
-      "default-src 'self'",
-      // Next.js i analityka (GA/Tag Manager) – dopasuj do używanych integracji
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://vitals.vercel-insights.com",
-      "frame-src https://www.youtube.com https://player.vimeo.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      // W prod wymuś upgrade HTTP→HTTPS (nie używaj w dev, aby nie psuć localhost)
-      isProd ? 'upgrade-insecure-requests' : ''
-    ]
-      .filter(Boolean)
-      .join('; ')
-
     return [
       {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: csp,
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
-          },
-          {
-            key: 'X-Permitted-Cross-Domain-Policies',
-            value: 'none',
-          },
-        ],
-      },
-      {
-        source: '/admin/:path*',
+        source: '/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -209,58 +55,69 @@ const nextConfig = {
         source: '/api/:path*',
         headers: [
           {
-            key: 'Access-Control-Allow-Origin',
-            value: process.env.NODE_ENV === 'production' 
-              ? 'https://www.kalkulatorynieruchomosci.pl' 
-              : 'https://localhost:3000',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-Requested-With, X-Timestamp',
-          },
-          {
-            key: 'Access-Control-Max-Age',
-            value: '86400',
+            key: 'Cache-Control',
+            value: 'public, max-age=60, stale-while-revalidate=300',
           },
         ],
       },
     ];
   },
-  
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/blog/:slug/',
-        destination: '/blog/:slug',
-        permanent: true,
-      },
-      // Przekierowania dla starych URL-i kalkulatorów
-      {
-        source: '/kalkulator-wartosci-najmu',
-        destination: '/kalkulator-wynajmu',
-        permanent: true,
-      },
-      {
-        source: '/kalkulator-roi',
-        destination: '/kalkulator-wynajmu',
-        permanent: true,
-      },
-      {
-        source: '/kalkulator-inwestycji',
-        destination: '/kalkulator-wynajmu',
-        permanent: true,
-      },
-    ];
-  },  
-};
 
-module.exports = nextConfig;
+  webpack: (config, { dev, isServer }) => {
+    // Optymalizacja dla produkcji
+    if (!dev && !isServer) {
+      // Optymalizacja splitChunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 90000,
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Grupuj komponenty Recharts
+            recharts: {
+              test: /[\\/]node_modules[\\/](recharts|react-smooth|d3-.*|internmap)[\\/]/,
+              name: 'recharts',
+              chunks: 'all',
+              priority: 10,
+            },
+            // Grupuj zależności React
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              name: 'react',
+              chunks: 'all',
+              priority: 20,
+            },
+            // Grupuj inne duże biblioteki
+            commons: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: -10,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+          },
+        },
+        // Optymalizacja modułów
+        moduleIds: 'deterministic',
+        chunkIds: 'deterministic',
+        mangleExports: true,
+        minimize: true,
+      };
+
+      // Dodatkowe optymalizacje webpack
+      config.performance = {
+        hints: 'warning',
+        maxEntrypointSize: 512000,
+        maxAssetSize: 512000,
+      };
+    }
+
+    return config;
+  },
+}
+
+module.exports = nextConfig

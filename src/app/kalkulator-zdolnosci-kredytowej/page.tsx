@@ -153,8 +153,14 @@ const CreditScoreCalculatorPageContent = () => {
     costOfLiving?: number;
     totalCommitments?: number;
     stressedInterestRate?: number;
+    baseInterestRate?: number;
     effectiveDstiLimit?: number;
     dstiUsed?: number;
+    limitsNoStress?: {
+      byDsti?: number;
+      byDti?: number;
+      byLtv?: number;
+    };
   } | null>(null);
 
   // System walidacji

@@ -129,10 +129,10 @@ const NewsletterFooterForm: React.FC = () => {
       {message && (
         <div className={`flex items-center gap-2 text-xs ${
           status === 'success' 
-            ? 'text-green-700' 
+            ? 'text-green-400' 
             : status === 'error' 
-              ? 'text-red-700' 
-              : 'text-gray-700'
+              ? 'text-red-400' 
+              : 'text-slate-400'
         }`}>
           {status === 'success' && <CheckCircle className="w-3 h-3" />}
           {status === 'error' && <AlertCircle className="w-3 h-3" />}
@@ -141,7 +141,7 @@ const NewsletterFooterForm: React.FC = () => {
       )}
       
       {status === 'idle' && (
-        <p className="text-xs text-gray-700">
+        <p className="text-xs text-slate-400">
           Bez spamu. Możesz zrezygnować w każdej chwili.
         </p>
       )}

@@ -496,7 +496,6 @@ function RealEstateCalculatorPageContent() {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFormData(prev => ({ ...prev, [name]: value as any }));
   };
 
@@ -651,7 +650,6 @@ function RealEstateCalculatorPageContent() {
     });
 
     // Sekcja kosztów
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let yPos = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
     doc.text(normalizeText("Koszty początkowe"), 15, yPos);

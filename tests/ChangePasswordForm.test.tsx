@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ChangePasswordForm from '@/components/panel/ChangePasswordForm';
+import ChangePasswordForm from '@/components/ChangePasswordForm';
 
 // Mock fetch
 global.fetch = jest.fn();
