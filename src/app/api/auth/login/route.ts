@@ -61,8 +61,19 @@ export async function POST(req: NextRequest) {
     })
     return response
   } catch (err) {
+    console.error('Login error:', err)
+    const message = (err as Error)?.message || ''
+    if (message.includes('account is locked')) {
+      return NextResponse.json(
+        { error: { code: 'DB_ACCOUNT_LOCKED', message: 'Konto bazy danych jest zablokowane' } },
+        { status: 503 },
+      )
+    }
+    const isProd = process.env.NODE_ENV === 'production'
     return NextResponse.json(
-      { error: { code: 'SERVER_ERROR', message: 'Wystąpił błąd podczas logowania' } },
+      isProd
+        ? { error: { code: 'SERVER_ERROR', message: 'Wystąpił błąd podczas logowania' } }
+        : { error: { code: 'SERVER_ERROR', message: 'Wystąpił błąd podczas logowania', details: message } },
       { status: 500 },
     )
   }

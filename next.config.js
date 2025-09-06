@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
@@ -9,6 +8,18 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lhihjbltatugcnbcpzzt.supabase.co',
+        pathname: '/storage/v1/object/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.vecteezy.com',
+        pathname: '/**',
+      },
+    ],
   },
 
   // Optymalizacja kompilacji
@@ -30,13 +41,6 @@ const nextConfig = {
       'lodash'
     ],
     webpackBuildWorker: true,
-    turbotrace: {
-      logLevel: 'error',
-      logDetail: true,
-    },
-    // Optymalizacja bfcache
-    browsersListForSwc: true,
-    legacyBrowsers: false,
   },
 
   // Headers dla lepszego cache'owania

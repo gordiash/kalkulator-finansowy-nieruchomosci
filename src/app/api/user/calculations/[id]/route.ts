@@ -7,6 +7,10 @@ function getToken(req: NextRequest): string | null {
   return req.cookies.get('session')?.value ?? null;
 }
 
+function toBigInt(value: unknown): bigint {
+  return typeof value === 'bigint' ? value : BigInt(String(value));
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -19,7 +23,7 @@ export async function GET(
     if (!session) return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
 
     const calc = await prisma.property_calculations.findFirst({
-      where: { id: BigInt(id), user_id: BigInt(session.user_id) },
+      where: { id: toBigInt(id), user_id: toBigInt(session.user_id) },
     });
     if (!calc) return NextResponse.json({ error: 'Kalkulacja nie znaleziona' }, { status: 404 });
     const mapped = {

@@ -140,7 +140,7 @@ async function BlogContent({ searchParams }: BlogPageProps) {
                       </div>
                     )}
                     <a href={`/blog/${post.slug}`}> 
-                      <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-2">{post.title}</h2>
                     </a>
                     {post.short_content && <p className="text-gray-700 mb-2 line-clamp-3">{post.short_content}</p>}
                     {post.tags && (

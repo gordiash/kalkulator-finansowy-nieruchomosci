@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Input } from './input'
 
 interface AutocompleteProps {
+  id?: string
   name: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -17,6 +18,7 @@ interface AutocompleteProps {
 }
 
 export function Autocomplete({
+  id,
   name,
   value,
   onChange,
@@ -33,8 +35,8 @@ export function Autocomplete({
   const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
-  const comboboxId = `combobox-${name}`
-  const listboxId = `listbox-${name}`
+  const inputId = id || name
+  const listboxId = `listbox-${inputId}`
 
   // Filtruj opcje na podstawie wprowadzonego tekstu
   useEffect(() => {
@@ -51,6 +53,8 @@ export function Autocomplete({
 
   const handleInputFocus = () => {
     setIsOpen(true)
+    // Upewnij się, że placeholder nie nakłada się na wpisywany tekst
+    // poprzez wyczyszczenie stylów autofill
   }
 
   const handleInputBlur = () => {
@@ -136,7 +140,7 @@ export function Autocomplete({
     <div className={`relative ${className}`}>
       <Input
         ref={inputRef}
-        id={comboboxId}
+        id={inputId}
         name={name}
         value={value}
         onChange={onChange}
@@ -146,7 +150,7 @@ export function Autocomplete({
         placeholder={placeholder}
         required={required}
         autoComplete="off"
-        className="w-full"
+        className="w-full text-gray-900"
         role="combobox"
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}

@@ -95,7 +95,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
   
   // Form state
   const [form, setForm] = useState({
-    city: initialData?.city || 'Olsztyn',
+    city: initialData?.city || '',
     district: initialData?.district || '',
     street: initialData?.street || '',
     area: initialData?.area || '',
@@ -512,6 +512,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     >
                       <div className="relative">
                         <Autocomplete
+                          id="city"
                           name="city"
                           value={form.city}
                           onChange={handleChange}
@@ -537,6 +538,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                     >
                       <div className="relative">
                         <Autocomplete
+                          id="district"
                           name="district"
                           value={form.district}
                           onChange={handleChange}
@@ -623,6 +625,7 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                           ))}
                         </div>
                         <Input
+                          id="rooms"
                           name="rooms"
                           value={form.rooms}
                           onChange={handleChange}
