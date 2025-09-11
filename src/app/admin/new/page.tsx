@@ -70,6 +70,25 @@ export default function NewPostPage() {
     }
   };
 
+  const ensureValidSlug = async (proposed: string) => {
+    let slug = proposed && proposed.length >= 3 ? proposed : generateSlug(formData.title);
+    if (!slug || slug.length < 3) {
+      const base = (slug || 'post').slice(0, 20) || 'post';
+      slug = `${base}-${Date.now().toString().slice(-4)}`;
+    }
+    // Sprawdź unikalność
+    try {
+      const res = await fetch(`/api/posts?unique=true&slug=${encodeURIComponent(slug)}`, { credentials: 'include', cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.unique === false) {
+          slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+        }
+      }
+    } catch {}
+    return slug;
+  };
+
   const handlePreview = () => {
     if (!formData.title || !formData.content) {
       alert('Wprowadź tytuł i treść, aby zobaczyć podgląd');
@@ -83,43 +102,59 @@ export default function NewPostPage() {
     setShowPreview(false);
   };
 
+  const validateForm = (): string | null => {
+    const title = formData.title.trim();
+    if (title.length < 3) return 'Tytuł musi mieć co najmniej 3 znaki';
+    if (!formData.content || formData.content.trim().length === 0) return 'Treść jest wymagana';
+    if (formData.excerpt && formData.excerpt.length > 500) return 'Krótki opis nie może przekraczać 500 znaków';
+    if (formData.tags && formData.tags.length > 255) return 'Tagi nie mogą przekraczać 255 znaków';
+    return null;
+  };
+
   const handleSave = async () => {
-    if (!formData.title || !formData.content) {
-      alert('Wprowadź tytuł i treść wpisu');
-      return;
-    }
+    const error = validateForm();
+    if (error) { alert(error); return; }
 
     setIsLoading(true);
     try {
+      const safeSlug = await ensureValidSlug(formData.slug || generateSlug(formData.title));
       const postData = {
         title: formData.title,
-        slug: formData.slug || generateSlug(formData.title),
+        slug: safeSlug,
         content: formData.content,
         short_content: formData.excerpt,
         tags: formData.tags,
         status: 'draft',
         image_display: formData.image_display,
-        published_at: new Date().toISOString(),
         seo_title: formData.title,
         seo_content: formData.excerpt
       };
 
-      console.log('Zapisywanie wpisu:', postData);
-      console.log('Obrazek do zapisu:', formData.image_display);
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        credentials: 'include',
+        body: JSON.stringify(postData),
+      });
 
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([postData])
-        .select();
-
-      if (error) {
-        console.error('Błąd podczas zapisywania:', error);
-        alert(`Błąd podczas zapisywania: ${error.message}`);
-        return;
+      if (!response.ok) {
+        let errorMessage = 'Błąd podczas zapisywania';
+        try {
+          const errorData = await response.json();
+          if (errorData?.details?.fieldErrors) {
+            const errs = Object.values(errorData.details.fieldErrors).flat();
+            if (errs.length) errorMessage = errs[0];
+          } else if (errorData?.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
-      console.log('Wpis zapisany:', data);
-      console.log('Zapisany obrazek:', data?.[0]?.image_display);
       alert('Wpis został zapisany jako szkic!');
       router.push('/admin/posts');
     } catch (error) {
@@ -131,40 +166,49 @@ export default function NewPostPage() {
   };
 
   const handlePublish = async () => {
-    if (!formData.title || !formData.content) {
-      alert('Wprowadź tytuł i treść wpisu');
-      return;
-    }
+    const error = validateForm();
+    if (error) { alert(error); return; }
 
     setIsLoading(true);
     try {
+      const safeSlug = await ensureValidSlug(formData.slug || generateSlug(formData.title));
       const postData = {
         title: formData.title,
-        slug: formData.slug || generateSlug(formData.title),
+        slug: safeSlug,
         content: formData.content,
         short_content: formData.excerpt,
         tags: formData.tags,
         status: 'published',
         image_display: formData.image_display,
-        published_at: new Date().toISOString(),
         seo_title: formData.title,
         seo_content: formData.excerpt
       };
 
-      console.log('Publikowanie wpisu:', postData);
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        credentials: 'include',
+        body: JSON.stringify(postData),
+      });
 
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([postData])
-        .select();
-
-      if (error) {
-        console.error('Błąd podczas publikowania:', error);
-        alert(`Błąd podczas publikowania: ${error.message}`);
-        return;
+      if (!response.ok) {
+        let errorMessage = 'Błąd podczas publikowania';
+        try {
+          const errorData = await response.json();
+          if (errorData?.details?.fieldErrors) {
+            const errs = Object.values(errorData.details.fieldErrors).flat();
+            if (errs.length) errorMessage = errs[0];
+          } else if (errorData?.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
-      console.log('Wpis opublikowany:', data);
       alert('Wpis został opublikowany!');
       router.push('/admin/posts');
     } catch (error) {
@@ -357,7 +401,11 @@ export default function NewPostPage() {
                     id="meta-title"
                     type="text"
                     placeholder="Tytuł dla wyszukiwarek..."
+                    maxLength={60}
+                    value={formData.title}
+                    onChange={(e) => handleTitleChange(e.target.value)}
                   />
+                  <div className="text-xs text-gray-500 mt-1">{formData.title.length}/60</div>
                 </div>
 
                 <div>
@@ -367,8 +415,12 @@ export default function NewPostPage() {
                   <textarea
                     id="meta-description"
                     placeholder="Opis dla wyszukiwarek..."
+                    maxLength={160}
+                    value={formData.excerpt}
+                    onChange={(e) => handleInputChange('excerpt', e.target.value)}
                     className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
+                  <div className="text-xs text-gray-500 mt-1">{formData.excerpt.length}/160</div>
                 </div>
               </CardContent>
             </Card>

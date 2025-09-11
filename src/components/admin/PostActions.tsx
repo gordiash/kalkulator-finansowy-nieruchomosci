@@ -54,6 +54,7 @@ export default function PostActions({ id, status, slug }: PostActionsProps) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       });
       if (!response.ok) {
@@ -81,7 +82,7 @@ export default function PostActions({ id, status, slug }: PostActionsProps) {
     if (!confirm('Czy na pewno chcesz usunąć ten wpis?')) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/posts/${id}`, { method: 'DELETE', cache: 'no-store' });
+      const response = await fetch(`/api/posts/${id}`, { method: 'DELETE', cache: 'no-store', credentials: 'include' });
       if (!response.ok) {
         let errorMessage = 'Nie udało się usunąć wpisu';
         try {

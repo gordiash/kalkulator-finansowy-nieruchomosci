@@ -25,6 +25,7 @@ export default function DeletePostButton({ postId, postTitle }: DeletePostButton
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -40,6 +41,7 @@ export default function DeletePostButton({ postId, postTitle }: DeletePostButton
       }
 
       // Odśwież stronę po usunięciu
+      // Odśwież listę po zmianie statusu (archived)
       router.refresh();
     } catch (error) {
       console.error('Błąd podczas usuwania wpisu:', error);

@@ -32,13 +32,34 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function PostsPage() {
+export default async function PostsPage(props: { searchParams: Promise<{ q?: string; status?: string; tag?: string; page?: string; pageSize?: string }> }) {
   const supabase = await getSupabaseServerClient();
-  
-  const { data: posts, error } = await supabase
+  const searchParams = await props.searchParams;
+  const q = (searchParams?.q || '').trim();
+  const status = (searchParams?.status || '').trim();
+  const tag = (searchParams?.tag || '').trim();
+  const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
+  const pageSize = Math.min(50, Math.max(10, parseInt(searchParams?.pageSize || '20', 10)));
+
+  let query = supabase
     .from('posts')
-    .select('*')
+    .select('*', { count: 'exact' })
+    .neq('status', 'archived')
     .order('published_at', { ascending: false });
+  if (q) {
+    query = query.ilike('title', `%${q}%`);
+  }
+  if (status) {
+    query = query.eq('status', status);
+  }
+  if (tag) {
+    query = query.ilike('tags', `%${tag}%`);
+  }
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  query = query.range(from, to);
+
+  const { data: posts, error, count } = await query;
 
   const stats = {
     total: posts?.length || 0,
@@ -107,22 +128,40 @@ export default async function PostsPage() {
         {/* Filtry i wyszukiwanie */}
         <Card className="bg-white shadow-lg border-0 mb-6">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <form className="flex flex-col sm:flex-row gap-4" method="GET">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
+                    name="q"
                     placeholder="Szukaj wpisów..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    defaultValue={q}
                   />
                 </div>
               </div>
-              <Button variant="outline" className="flex items-center">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtruj
-              </Button>
-            </div>
+              <div className="flex items-center gap-2">
+                <select
+                  name="status"
+                  defaultValue={status}
+                  className="border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option value="">Wszystkie statusy</option>
+                  <option value="published">Opublikowane</option>
+                  <option value="draft">Szkice</option>
+                </select>
+                <input
+                  type="text"
+                  name="tag"
+                  placeholder="Tag"
+                  defaultValue={tag}
+                  className="border border-gray-300 rounded-lg px-3 py-2"
+                />
+                <input type="hidden" name="page" value="1" />
+                <button type="submit" className="px-3 py-2 border rounded-lg bg-white hover:bg-gray-50">Zastosuj</button>
+              </div>
+            </form>
           </CardContent>
         </Card>
 
@@ -130,7 +169,7 @@ export default async function PostsPage() {
         <Card className="bg-white shadow-lg border-0">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-900">
-              Wszystkie Wpisy ({posts?.length || 0})
+              Wszystkie Wpisy ({count ?? posts?.length ?? 0})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -162,7 +201,7 @@ export default async function PostsPage() {
                           </span>
                           <span className="flex items-center">
                             <Eye className="h-3 w-3 mr-1" />
-                            1.2k wyświetleń
+                            {(post.views ?? 0).toLocaleString('pl-PL')} wyświetleń
                           </span>
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             post.status === 'published' 
@@ -211,6 +250,33 @@ export default async function PostsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Paginacja */}
+        {(count && count > pageSize) && (
+          <div className="flex items-center justify-center gap-2 py-6">
+            {page > 1 ? (
+              <Link
+                className="px-3 py-1 border rounded"
+                href={{ pathname: '/admin/posts', query: { q, status, tag, page: String(page - 1), pageSize: String(pageSize) } }}
+              >
+                Poprzednia
+              </Link>
+            ) : (
+              <span className="px-3 py-1 border rounded opacity-50">Poprzednia</span>
+            )}
+            <span className="text-sm text-gray-600">Strona {page} z {Math.ceil((count || 0) / pageSize)}</span>
+            {page < Math.ceil((count || 0) / pageSize) ? (
+              <Link
+                className="px-3 py-1 border rounded"
+                href={{ pathname: '/admin/posts', query: { q, status, tag, page: String(page + 1), pageSize: String(pageSize) } }}
+              >
+                Następna
+              </Link>
+            ) : (
+              <span className="px-3 py-1 border rounded opacity-50">Następna</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

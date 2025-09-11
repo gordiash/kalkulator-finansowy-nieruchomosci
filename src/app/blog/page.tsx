@@ -152,7 +152,10 @@ async function BlogContent({ searchParams }: BlogPageProps) {
                         ))}
                       </div>
                     )}
-                    <p className="text-sm text-gray-500">{new Date(post.published_at).toLocaleDateString('pl-PL')}</p>
+                    <p className="text-sm text-gray-500 flex items-center gap-3">
+                      <span>{new Date(post.published_at).toLocaleDateString('pl-PL')}</span>
+                      <span className="inline-flex items-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1"><path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" stroke="currentColor" strokeWidth="2"/><path d="M12 5V3" stroke="currentColor" strokeWidth="2"/><path d="M12 21V19" stroke="currentColor" strokeWidth="2"/><path d="M19 12H21" stroke="currentColor" strokeWidth="2"/><path d="M3 12H5" stroke="currentColor" strokeWidth="2"/><path d="M16.9497 7.05029L18.364 5.63608" stroke="currentColor" strokeWidth="2"/><path d="M5.63611 18.364L7.05032 16.9498" stroke="currentColor" strokeWidth="2"/><path d="M7.05029 7.05029L5.63608 5.63608" stroke="currentColor" strokeWidth="2"/><path d="M18.364 18.364L16.9497 16.9498" stroke="currentColor" strokeWidth="2"/></svg>{(post.views ?? 0).toLocaleString('pl-PL')}</span>
+                    </p>
                   </article>
                 ))}
               </div>

@@ -45,6 +45,7 @@ export default async function AdminPage() {
   const { data: posts } = await supabase
     .from('posts')
     .select('*')
+    .neq('status', 'archived')
     .order('published_at', { ascending: false });
 
   const { data: users } = await supabase

@@ -49,45 +49,21 @@ export default function ImageUpload({ onImageUploaded, currentImageUrl }: ImageU
     setUploadProgress(0);
 
     try {
-      // 1) Próba uploadu bezpośrednio z klienta (rola anon)
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const path = `public/${filename}`;
-
-      const direct = await supabase.storage
-        .from('posts-images')
-        .upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: true });
-
-      if (!direct.error) {
-        const { data: pub } = supabase.storage.from('posts-images').getPublicUrl(path);
-        const url = pub?.publicUrl || '';
-        if (!url) throw new Error('Upload OK, ale brak publicznego URL. Ustaw bucket jako Public lub dodaj SELECT policy.');
-        onImageUploaded(url);
-        setPreviewUrl(URL.createObjectURL(file));
-        setUploadProgress(100);
-        return;
+      // Wymuszamy upload wyłącznie przez endpoint serwerowy
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/admin/upload-image', { method: 'POST', body: form, credentials: 'include' });
+      if (!res.ok) {
+        const err = await res.json().catch(async () => ({ error: await res.text() }));
+        throw new Error(err.error || 'Upload nie powiódł się');
       }
-
-      // Jeśli błąd uprawnień – fallback na endpoint serwerowy
-      if (/policy|permission|not allowed|unauthorized|Forbidden/i.test(direct.error.message)) {
-        const form = new FormData();
-        form.append('file', file);
-        const res = await fetch('/api/admin/upload-image', { method: 'POST', body: form });
-        if (!res.ok) {
-          const err = await res.json().catch(async () => ({ error: await res.text() }));
-          throw new Error(err.error || 'Upload nie powiódł się (server fallback)');
-        }
-        const json = await res.json();
-        const url = json.url as string;
-        if (!url) throw new Error('Brak URL w odpowiedzi serwera');
-        onImageUploaded(url);
-        setPreviewUrl(URL.createObjectURL(file));
-        setUploadProgress(100);
-        return;
-      }
-
-      // Inny błąd
-      throw direct.error;
+      const json = await res.json();
+      const url = json.url as string;
+      if (!url) throw new Error('Brak URL w odpowiedzi serwera');
+      onImageUploaded(url);
+      setPreviewUrl(URL.createObjectURL(file));
+      setUploadProgress(100);
+      return;
     } catch (error) {
       console.error('Błąd podczas uploadu obrazka:', error);
       alert(`Błąd podczas uploadu obrazka: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);

@@ -132,6 +132,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
+        credentials: 'include',
         body: JSON.stringify(updateData),
       });
 
@@ -183,6 +184,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
+        credentials: 'include',
         body: JSON.stringify(updateData),
       });
 

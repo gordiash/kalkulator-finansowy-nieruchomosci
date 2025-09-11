@@ -22,13 +22,26 @@ export async function middleware(request: NextRequest) {
   }
   
   // CSP Header
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseOrigin = (() => {
+    try { return supabaseUrl ? new URL(supabaseUrl).origin : ''; } catch { return ''; }
+  })();
+  const connectSrc = [
+    "'self'",
+    'https://www.google-analytics.com',
+    'https://www.googletagmanager.com',
+    'https://*.supabase.co',
+    'https://*.supabase.in',
+    supabaseOrigin,
+  ].filter(Boolean).join(' ');
+
   response.headers.set('Content-Security-Policy', 
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https: blob:; " +
-    "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com; " +
+    `connect-src ${connectSrc}; ` +
     "frame-ancestors 'none'; " +
     "upgrade-insecure-requests;"
   );
@@ -54,12 +67,8 @@ export async function middleware(request: NextRequest) {
 
   // Zabezpiecz ścieżki admin
   if (pathname.startsWith('/admin')) {
-    // Tymczasowo wyłączone sprawdzanie autoryzacji dla celów testowych
-    // TODO: Przywrócić sprawdzanie autoryzacji po skonfigurowaniu użytkowników admina
-    /*
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
-      
       if (error || !user) {
         return NextResponse.redirect(new URL('/login?redirect=/admin', request.url));
       }
@@ -67,7 +76,6 @@ export async function middleware(request: NextRequest) {
       console.error('Błąd podczas sprawdzania autoryzacji w middleware:', error);
       return NextResponse.redirect(new URL('/login?redirect=/admin', request.url));
     }
-    */
   }
 
   // Zabezpiecz ścieżki panelu użytkownika
@@ -89,7 +97,10 @@ export async function middleware(request: NextRequest) {
       !pathname.startsWith('/api/calculate') && 
       !pathname.startsWith('/api/valuation') &&
       !pathname.startsWith('/api/health') &&
-      !pathname.startsWith('/api/locations')) {
+      !pathname.startsWith('/api/locations') &&
+      // Pozwól trasom /api/posts i /api/admin/upload-image samodzielnie weryfikować sesję (route-level auth)
+      !pathname.startsWith('/api/posts') &&
+      !pathname.startsWith('/api/admin/upload-image')) {
     
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
