@@ -143,8 +143,9 @@ export default function NewPostPage() {
         try {
           const errorData = await response.json();
           if (errorData?.details?.fieldErrors) {
-            const errs = Object.values(errorData.details.fieldErrors).flat();
-            if (errs.length) errorMessage = errs[0];
+            const errs = Object.values(errorData.details.fieldErrors).flat() as unknown[];
+            const first = errs.find((e) => typeof e === 'string') as string | undefined;
+            if (first) errorMessage = first;
           } else if (errorData?.error) {
             errorMessage = errorData.error;
           }
@@ -197,8 +198,9 @@ export default function NewPostPage() {
         try {
           const errorData = await response.json();
           if (errorData?.details?.fieldErrors) {
-            const errs = Object.values(errorData.details.fieldErrors).flat();
-            if (errs.length) errorMessage = errs[0];
+            const errs = Object.values(errorData.details.fieldErrors).flat() as unknown[];
+            const first = errs.find((e) => typeof e === 'string') as string | undefined;
+            if (first) errorMessage = first;
           } else if (errorData?.error) {
             errorMessage = errorData.error;
           }
