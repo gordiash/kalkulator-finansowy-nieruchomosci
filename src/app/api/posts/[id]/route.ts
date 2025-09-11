@@ -107,30 +107,3 @@ export async function DELETE(
     );
   }
 }
-
-export async function DELETE(
-  _request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const supabase = await getSupabaseServerClient();
-    const { id } = await context.params;
-
-    const { error } = await supabase.from('posts').delete().eq('id', id);
-
-    if (error) {
-      console.error('Błąd usuwania wpisu:', error);
-      return NextResponse.json(
-        { error: error.message, details: 'Błąd podczas usuwania wpisu z bazy danych' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ success: true, message: 'Wpis został usunięty' });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
-}
