@@ -120,7 +120,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         content: formData.content,
         short_content: formData.short_content,
         tags: formData.tags,
-        status: 'draft',
+        status: formData.status,
         image_display: formData.image_display,
         seo_title: formData.seo_title,
         seo_content: formData.seo_content
@@ -128,19 +128,25 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
       console.log('Zapisywanie zmian:', updateData);
 
-      const { data, error } = await supabase
-        .from('posts')
-        .update(updateData)
-        .eq('id', post.id)
-        .select();
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify(updateData),
+      });
 
-      if (error) {
-        console.error('Błąd podczas zapisywania:', error);
-        alert(`Błąd podczas zapisywania: ${error.message}`);
-        return;
+      if (!response.ok) {
+        let errorMessage = 'Błąd podczas zapisywania';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
-      console.log('Zmiany zapisane:', data);
       alert('Zmiany zostały zapisane!');
       router.push('/admin/posts');
     } catch (error) {
@@ -168,25 +174,30 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         status: 'published',
         image_display: formData.image_display,
         seo_title: formData.seo_title,
-        seo_content: formData.seo_content,
-        published_at: new Date().toISOString()
+        seo_content: formData.seo_content
       };
 
       console.log('Publikowanie wpisu:', updateData);
 
-      const { data, error } = await supabase
-        .from('posts')
-        .update(updateData)
-        .eq('id', post.id)
-        .select();
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify(updateData),
+      });
 
-      if (error) {
-        console.error('Błąd podczas publikowania:', error);
-        alert(`Błąd podczas publikowania: ${error.message}`);
-        return;
+      if (!response.ok) {
+        let errorMessage = 'Błąd podczas publikowania';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
-      console.log('Wpis opublikowany:', data);
       alert('Wpis został opublikowany!');
       router.push('/admin/posts');
     } catch (error) {

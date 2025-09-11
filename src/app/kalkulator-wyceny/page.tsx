@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import FaqSection from '@/components/ui/FaqSection'
 import { Metadata } from 'next'
 import ValuationCalculator from '../../components/ValuationCalculator'
 import Disclaimer from '@/components/ui/Disclaimer'
@@ -92,6 +93,33 @@ export default async function ValuationPage({ searchParams }: PageProps) {
         </div>
       </aside>
       </section>
+
+      {/* FAQ sekcja */}
+      <FaqSection
+        className="mt-8 sm:mt-12"
+        items={[
+          {
+            question: 'Jak dokładny jest EstymatorAI?',
+            answer:
+              'Model osiąga MAPE ~0.79% w naszych testach. To średni błąd względny – wynik może się różnić dla specyficznych lokalizacji i parametrów.',
+          },
+          {
+            question: 'Czy muszę podawać wszystkie pola?',
+            answer:
+              'Wymagane są miasto, metraż i liczba pokoi. Pozostałe pola pomagają zwiększyć precyzję.',
+          },
+          {
+            question: 'Czy mogę zapisać wynik?',
+            answer:
+              'Tak, po obliczeniu możesz zapisać kalkulację w Panel → Kalkulacje (wymagane logowanie).',
+          },
+          {
+            question: 'Czy wycena jest doradztwem?',
+            answer:
+              'Nie. To wynik modelu statystycznego i nie stanowi porady inwestycyjnej ani operatu szacunkowego.',
+          },
+        ]}
+      />
       
       {/* Additional Features Section */}
       <section className="bg-white py-8 sm:py-12 lg:py-16">

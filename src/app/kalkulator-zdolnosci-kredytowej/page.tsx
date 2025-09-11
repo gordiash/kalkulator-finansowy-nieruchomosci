@@ -14,6 +14,7 @@ import { HelpCircle, AlertTriangle } from "lucide-react";
 import { sanitizeInput, validateNumericInput } from "@/lib/validation"; 
 import SaveCalculationButton from "@/components/SaveCalculationButton";
 import Disclaimer from "@/components/ui/Disclaimer";
+import FaqSection from "@/components/ui/FaqSection";
 
 // Komponent pomocniczy dla pól z tooltipami - POZA głównym komponentem
 const InputWithTooltip = ({ 
@@ -910,6 +911,13 @@ const CreditScoreCalculatorPageContent = () => {
                   )}
 
                   <Disclaimer className="mt-6" />
+                  <FaqSection
+                    items={[
+                      { question: 'Czym jest DSTI i jaki ustawić?', answer: 'DSTI to udział rat w dochodzie. Zalecamy 40–50% w zależności od dochodu. Kalkulator automatycznie ogranicza DSTI dla niskich dochodów.' },
+                      { question: 'Czy uwzględniacie stress test?', answer: 'Tak, automatycznie dodajemy bufor do oprocentowania (zgodnie z praktyką banków).' },
+                      { question: 'Jak zwiększyć zdolność?', answer: 'Wyższy wkład własny, dłuższy okres (max 30 lat), niższe zobowiązania, stabilny dochód – to najczęstsze dźwignie.' },
+                    ]}
+                  />
                 </div>
               )}
             </CardContent>

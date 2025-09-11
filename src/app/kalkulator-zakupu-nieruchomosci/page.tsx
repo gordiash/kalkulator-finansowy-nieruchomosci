@@ -16,6 +16,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CalculationService } from '@/lib/CalculationService';
+import FaqSection from '@/components/ui/FaqSection';
 import { formatCurrency, normalizeText } from '@/lib/utils';
 import { AmortizationChart } from '@/components/charts/AmortizationChart';
 import { InstallmentStructureChart } from '@/components/charts/InstallmentStructureChart';
@@ -1323,6 +1324,13 @@ function RealEstateCalculatorPageContent() {
         </CardContent>
       </Card>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4"><Disclaimer /></div>
+      <FaqSection
+        items={[
+          { question: 'Czy kalkulator uwzględnia podatek PCC?', answer: 'Tak, uwzględniamy PCC, taksę notarialną, opłaty sądowe i inne koszty okołozakupowe.' },
+          { question: 'Czy mogę dodać koszty dodatkowe?', answer: 'Tak, w sekcji dodatkowych kosztów możesz dodać własne pozycje.' },
+          { question: 'Czy wynik to pełny koszt?', answer: 'Prezentujemy estymację na podstawie podanych danych. Rzeczywiste koszty mogą się różnić.' },
+        ]}
+      />
     </div>
     </div>
   );

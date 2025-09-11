@@ -37,6 +37,7 @@ import { AlertTriangle } from "lucide-react";
 import { validateNumericInput, sanitizeInput } from "@/lib/validation";
 import SaveCalculationButton from "@/components/SaveCalculationButton";
 import Disclaimer from "@/components/ui/Disclaimer";
+import FaqSection from "@/components/ui/FaqSection";
 
 // Komponent pomocniczy dla inputs z walidacją
 const InputWithValidation = ({ 
@@ -73,6 +74,13 @@ const InputWithValidation = ({
       <div className="flex items-center gap-1 text-xs sm:text-sm text-red-600">
         <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
         <span>{error}</span>
+        <FaqSection
+          items={[
+            { question: 'Jak interpretować ROI w kalkulatorze?', answer: 'ROI pokazuje roczny zwrot względem zainwestowanej gotówki. Dla wynajmu często istotniejszy jest cash flow oraz neto CoC.' },
+            { question: 'Czy uwzględniacie pustostany?', answer: 'Tak, podaj w miesiącach średni okres pustostanów w roku – wpływa na przychody.' },
+            { question: 'Czy mogę dodać finansowanie kredytem?', answer: 'Tak, sekcja Finansowanie pozwala uwzględnić wkład własny, oprocentowanie i okres kredytowania.' },
+          ]}
+        />
       </div>
     )}
   </div>
