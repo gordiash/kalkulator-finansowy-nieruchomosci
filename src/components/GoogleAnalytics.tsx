@@ -1,8 +1,10 @@
 "use client";
 
 import Script from 'next/script';
+import { useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
-const MEASUREMENT_ID = 'G-9ZQNTH7W8J';
+const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-9ZQNTH7W8J';
 
 function hasAnalyticsConsent(): boolean {
   try {
@@ -16,6 +18,26 @@ function hasAnalyticsConsent(): boolean {
 }
 
 export default function GoogleAnalytics() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Śledź zmiany trasy – ręczny page_view
+    try {
+      const raw = localStorage.getItem('cookieConsent');
+      const ok = !!(raw && JSON.parse(raw || '{}').analytics);
+      if (!ok) return;
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('config', MEASUREMENT_ID, {
+          page_title: document.title,
+          page_location: window.location.href,
+          page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
+        });
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, searchParams]);
+
   return (
     <>
       <Script id="ga-loader" strategy="afterInteractive">
@@ -42,4 +64,4 @@ export default function GoogleAnalytics() {
       </Script>
     </>
   );
-} 
+}
