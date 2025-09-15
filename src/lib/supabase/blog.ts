@@ -135,7 +135,7 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPostDetail | nu
 
   const { data, error } = await sb
     .from('posts')
-    .select('id, slug, title, published_at, content, short_content, image_display, tags, seo_title, seo_content, status, views')
+    .select('id, slug, title, published_at, content, short_content, image_display, tags, seo_title, seo_content, status')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -145,7 +145,7 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPostDetail | nu
   }
 
   if (!data) return null;
-  return { ...(data as any), views: (data as any).views ?? 0 } as BlogPostDetail | null;
+  return data as BlogPostDetail | null;
 }
 
 export async function fetchPostById(id: string): Promise<BlogPostDetail | null> {
