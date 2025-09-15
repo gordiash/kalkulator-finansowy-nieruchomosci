@@ -43,7 +43,7 @@ export async function fetchPublishedPosts() {
 
     const { data, error } = await supabase
       .from('posts')
-      .select('*, post_view_stats!left(count)')
+      .select('*')
       .eq('status', 'published')
       .order('published_at', { ascending: false });
 
@@ -56,12 +56,8 @@ export async function fetchPublishedPosts() {
       });
       return [];
     }
-    // Zmapuj widoki z tabeli agregującej (opcjonalnie)
-    const mapped = (data || []).map((p: any) => ({
-      ...p,
-      views: Array.isArray(p.post_view_stats) && p.post_view_stats[0]?.count ? p.post_view_stats[0].count : p.views ?? 0,
-    }));
-    return mapped;
+    // Fallback: korzystaj z kolumny posts.views jeśli istnieje, w przeciwnym razie 0
+    return (data || []).map((p: any) => ({ ...p, views: p.views ?? 0 }));
   } catch (error) {
     console.error('Error fetching published posts:', {
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -139,7 +135,7 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPostDetail | nu
 
   const { data, error } = await sb
     .from('posts')
-    .select('id, slug, title, published_at, content, short_content, image_display, tags, seo_title, seo_content, status, post_view_stats!left(count)')
+    .select('id, slug, title, published_at, content, short_content, image_display, tags, seo_title, seo_content, status, views')
     .eq('slug', slug)
     .maybeSingle();
 
@@ -149,13 +145,7 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPostDetail | nu
   }
 
   if (!data) return null;
-  const withViews = {
-    ...data,
-    views: Array.isArray((data as any).post_view_stats) && (data as any).post_view_stats[0]?.count
-      ? (data as any).post_view_stats[0].count
-      : (data as any).views ?? 0,
-  } as any;
-  return withViews as BlogPostDetail | null;
+  return { ...(data as any), views: (data as any).views ?? 0 } as BlogPostDetail | null;
 }
 
 export async function fetchPostById(id: string): Promise<BlogPostDetail | null> {

@@ -1,7 +1,7 @@
 "use client";
 
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-9ZQNTH7W8J';
@@ -17,7 +17,7 @@ function hasAnalyticsConsent(): boolean {
   }
 }
 
-export default function GoogleAnalytics() {
+function GAInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -63,5 +63,13 @@ export default function GoogleAnalytics() {
         `}
       </Script>
     </>
+  );
+}
+
+export default function GoogleAnalytics() {
+  return (
+    <Suspense>
+      <GAInner />
+    </Suspense>
   );
 }
