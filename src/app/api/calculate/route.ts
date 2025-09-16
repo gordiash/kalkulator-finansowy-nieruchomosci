@@ -957,7 +957,7 @@ export async function OPTIONS() {
 // Eksporty tylko dla środowiska testowego (Jest) – nie są wychwytywane przez analizator Next.js
 // dzięki czemu nie łamią typu Route
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error - Jest test exports
+// @ts-nocheck
 if (process.env.JEST_WORKER_ID) {
   const mod = module as NodeJS.Module & {
     exports: Record<string, unknown>;
