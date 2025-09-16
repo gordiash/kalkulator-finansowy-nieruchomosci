@@ -7,11 +7,11 @@ import { fetchPostBySlug, fetchPublishedPosts, fetchRelatedPosts } from '@/lib/s
 import type { BlogPostListing } from '@/lib/supabase/blog';
 import MarkdownIt from 'markdown-it';
 import markdownItAttrs from 'markdown-it-attrs';
-// @ts-ignore
+// @ts-expect-error - markdown-it-anchor has no types
 import markdownItAnchor from 'markdown-it-anchor';
-// @ts-ignore
+// @ts-expect-error - markdown-it-container has no types
 import markdownItContainer from 'markdown-it-container';
-// @ts-ignore
+// @ts-expect-error - highlight.js has no types
 import hljs from 'highlight.js';
 // Lazy CSS importowane tylko dla bloga poprzez next/dynamic w layout – tutaj usunięte, aby nie wchodziło do common CSS
 import { defaultMeta } from '@/lib/seo/defaultMeta'

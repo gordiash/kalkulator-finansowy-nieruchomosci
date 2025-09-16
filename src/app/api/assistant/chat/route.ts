@@ -12,9 +12,9 @@ export async function POST(req: Request) {
     // Prosty rate limit per IP (Memory-only; na Vercel zalecane KV/Upstash)
     const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0] || 'anon';
     const key = `ratelimit:${ip}`;
-    // @ts-ignore
+    // @ts-expect-error - global rate limit store
     globalThis.__rl = globalThis.__rl || new Map<string, { count: number; ts: number }>();
-    // @ts-ignore
+    // @ts-expect-error - global rate limit store
     const store = globalThis.__rl as Map<string, { count: number; ts: number }>;
     const now = Date.now();
     const windowMs = 60_000; // 1 min

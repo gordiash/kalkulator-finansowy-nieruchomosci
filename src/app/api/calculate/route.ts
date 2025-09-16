@@ -784,8 +784,7 @@ function handleCreditScoreCalculation(input: CreditScoreInput) {
 function handlePurchaseCalculation(input: PurchaseInput) {
     try {
         // Inicjalizacja wyników
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const results: any = {
+        const results: Record<string, unknown> = {
             pccTax: null,
             notaryFee: null,
             bankCommissionAmount: null,
@@ -958,7 +957,7 @@ export async function OPTIONS() {
 // Eksporty tylko dla środowiska testowego (Jest) – nie są wychwytywane przez analizator Next.js
 // dzięki czemu nie łamią typu Route
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error - Jest test exports
 if (process.env.JEST_WORKER_ID) {
   const mod = module as NodeJS.Module & {
     exports: Record<string, unknown>;

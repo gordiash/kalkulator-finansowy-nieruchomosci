@@ -30,7 +30,7 @@ export async function embed(text: string): Promise<number[]> {
     const res = await client.embeddings.create({
       model: 'text-embedding-3-small',
       input,
-      // @ts-ignore - openai v4 akceptuje signal przez fetch impl
+      // @ts-expect-error - openai v4 akceptuje signal przez fetch impl
       signal: controller.signal,
     } as any);
     return res.data[0].embedding as unknown as number[];

@@ -8,7 +8,7 @@ import { embed } from '@/lib/rag/embed'
 async function parsePdf(buffer: Buffer): Promise<string> {
   console.log(`[PDF] Parsing PDF, buffer size: ${buffer.length} bytes`)
   try {
-    // @ts-ignore
+    // @ts-expect-error - pdf-parse has no types
     const mod = await import('pdf-parse')
     const pdfParse = (mod as any)?.default || (mod as any)
     const data = await pdfParse(buffer)
