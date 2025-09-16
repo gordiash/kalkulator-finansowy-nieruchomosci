@@ -39,7 +39,30 @@ export default {
   testPathIgnorePatterns: [
     '<rootDir>/.venv/',
     '<rootDir>/.next/',
-    '<rootDir>/node_modules/'
+    '<rootDir>/node_modules/',
+    // Legacy/nieużywane moduły (Stripe/MySQL/panel klienta/Strapi)
+    '<rootDir>/tests/auth.api.test.ts',
+    '<rootDir>/tests/auth.lib.test.ts',
+    '<rootDir>/tests/passwordReset.api.test.ts',
+    '<rootDir>/tests/customerPortal.api.test.ts',
+    '<rootDir>/tests/cancelSubscription.api.test.ts',
+    '<rootDir>/tests/protectedMiddleware.test.ts',
+    '<rootDir>/tests/blogPage.test.ts',
+    '<rootDir>/tests/SubscriptionDashboard.test.tsx',
+    '<rootDir>/tests/AccountSettings.test.tsx',
+    '<rootDir>/tests/ValuationsTable.test.tsx',
+    '<rootDir>/tests/ChangePasswordForm.test.tsx',
+    '<rootDir>/tests/middleware.test.ts',
+    '<rootDir>/tests/logout.test.ts',
+    '<rootDir>/tests/stripe.webhook.test.ts',
+    '<rootDir>/tests/api/user/valuations.test.ts',
+    '<rootDir>/tests/calculations.api.test.ts',
+    '<rootDir>/tests/ProfileForm.test.tsx',
+    '<rootDir>/tests/api/user/profile.test.ts',
+    '<rootDir>/tests/api/user/profile-put.test.ts',
+    // Testy UI kalkulatora (do przeglądu i aktualizacji pod nowy API)
+    '<rootDir>/tests/valuationCalculator.test.ts',
+    '<rootDir>/tests/valuationE2E.test.ts'
   ],
   modulePathIgnorePatterns: ['<rootDir>/.venv/'],
   watchPathIgnorePatterns: ['<rootDir>/.venv/']

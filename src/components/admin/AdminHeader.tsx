@@ -56,6 +56,9 @@ export default function AdminHeader() {
               <Link href="/admin/analytics" className="text-gray-600 hover:text-blue-600">
                 Statystyki
               </Link>
+              <Link href="/admin/rag-uploads" className="text-gray-600 hover:text-blue-600">
+                RAG Uploady
+              </Link>
               <Link href="/admin/settings" className="text-gray-600 hover:text-blue-600">
                 Ustawienia
               </Link>
@@ -148,6 +151,9 @@ export default function AdminHeader() {
               </Link>
               <Link href="/admin/analytics" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
                 Statystyki
+              </Link>
+              <Link href="/admin/rag-uploads" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
+                RAG Uploady
               </Link>
               <Link href="/admin/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
                 Ustawienia

@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import NewsletterPopup from "@/components/NewsletterPopup";
+import RagChatWidget from "@/components/RagChatWidget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,6 +82,7 @@ export default function RootLayout({
         <GoogleAnalytics />
         <Navbar />
         <main className="flex-grow">{children}</main>
+        <RagChatWidget />
         <Footer />
         <CookieConsent />
         <NewsletterPopup />

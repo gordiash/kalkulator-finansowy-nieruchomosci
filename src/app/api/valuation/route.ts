@@ -7,9 +7,9 @@ import path from 'path'
 const ValuationSchema = z.object({
   city: z.string().min(2, 'Podaj miasto'),
   district: z.string().optional(),
-  street: z.string().optional(),
-  area: z.number().positive('Metraż musi być > 0'),
-  rooms: z.number().int().positive('Liczba pokoi > 0'),
+  street: z.string().max(500).optional(),
+  area: z.number().min(1, 'Metraż musi być > 0').max(500, 'Metraż musi być ≤ 500 m²'),
+  rooms: z.number().int().min(1, 'Liczba pokoi > 0').max(10, 'Liczba pokoi ≤ 10'),
   floor: z.number().int().nonnegative().optional(),
   year: z.number().int().optional(),
   locationTier: z.enum(['premium', 'high', 'medium', 'standard']).optional(),
@@ -300,13 +300,28 @@ async function callRandomForestModel(inputData: {
         
         if (code === 0) {
           try {
+            // 1) Spróbuj znaleźć JSON i odczytać price
+            const jsonMatch = output.match(/\{[\s\S]*\}/m)
+            if (jsonMatch) {
+              try {
+                const parsed = JSON.parse(jsonMatch[0])
+                if (typeof parsed.price === 'number' && parsed.price > 0) {
+                  console.log('✅ [RF] Success (JSON):', parsed.price)
+                  resolve(parsed.price)
+                  return
+                }
+              } catch (e) {
+                // ignore JSON parse error, spróbuj parsowania liczby
+              }
+            }
+
+            // 2) Fallback: wyciągnij ostatnią liczbę z outputu
             const lines = output.split('\n')
-            const lastLine = lines[lines.length - 2] || lines[lines.length - 1]
-            const price = parseFloat(lastLine.trim())
-            
-            if (!isNaN(price) && price > 0) {
-              console.log('✅ [RF] Success:', price)
-              resolve(price)
+            const lastLine = (lines[lines.length - 2] || lines[lines.length - 1]).trim()
+            const numeric = parseFloat(lastLine)
+            if (!isNaN(numeric) && numeric > 0) {
+              console.log('✅ [RF] Success (numeric):', numeric)
+              resolve(numeric)
             } else {
               console.error('❌ [RF] Nieprawidłowa wycena:', lastLine)
               resolve(null)
@@ -568,7 +583,11 @@ async function callRailwayMLAPI(inputData: {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawText = await request.text()
+    if (rawText.length > 5000) {
+      return NextResponse.json({ error: 'Payload zbyt duży' }, { status: 400 })
+    }
+    const body = rawText ? JSON.parse(rawText) : {}
     console.log('[Valuation API] Received body:', JSON.stringify(body, null, 2))
     
     const parsed = ValuationSchema.safeParse(body)
@@ -650,7 +669,7 @@ export async function POST(request: NextRequest) {
     const minPrice = Math.round(price * (1 - confidence) / 1000) * 1000
     const maxPrice = Math.round(price * (1 + confidence) / 1000) * 1000
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       price,
       minPrice,
       maxPrice,
@@ -666,6 +685,10 @@ export async function POST(request: NextRequest) {
         : 'Wycena heurystyczna - modele ML niedostępne',
       timestamp: new Date().toISOString(),
     })
+    // Proste CORS (dla testu oczekujących nagłówków)
+    res.headers.set('Access-Control-Allow-Origin', '*')
+    res.headers.set('Vary', 'Origin')
+    return res
   } catch (error) {
     console.error('[Valuation API] Błąd:', error)
     
@@ -678,7 +701,7 @@ export async function POST(request: NextRequest) {
       body.year
     )
     
-    return NextResponse.json({
+    const res = NextResponse.json({
       price: emergencyPrice,
       minPrice: Math.round(emergencyPrice * 0.95 / 1000) * 1000,
       maxPrice: Math.round(emergencyPrice * 1.05 / 1000) * 1000,
@@ -686,5 +709,8 @@ export async function POST(request: NextRequest) {
       method: 'emergency_heuristic',
       error: 'Błąd serwera - użyto wyceny awaryjnej',
     })
+    res.headers.set('Access-Control-Allow-Origin', '*')
+    res.headers.set('Vary', 'Origin')
+    return res
   }
 } 

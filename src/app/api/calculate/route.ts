@@ -861,9 +861,27 @@ function handlePurchaseCalculation(input: PurchaseInput) {
                 interval: parseInt((input.overpaymentInterval?.toString() || '1')) || 1,
             };
 
-            const finalSchedule = (overpayment.amount > 0) ? 
-                generateSchedule(loanAmount, loanTerm, bankMargin, effectiveReferenceRate, installmentType, bridgeMonths, bridgeIncrease, overpayment) : 
-                baseSchedule;
+            let finalSchedule = baseSchedule;
+            if (overpayment.amount > 0) {
+                // Jeżeli target to reduce-payment, nie skracamy harmonogramu; modyfikujemy raty
+                if (overpayment.target === 'reduce-payment') {
+                    const reduceOverpayment = { ...overpayment };
+                    finalSchedule = generateSchedule(loanAmount, loanTerm, bankMargin, effectiveReferenceRate, installmentType, bridgeMonths, bridgeIncrease, reduceOverpayment);
+                    // Wymuś zachowanie długości harmonogramu
+                    if (finalSchedule.length !== baseSchedule.length) {
+                        // Uzupełnij brakujące miesiące zerowymi płatnościami, aby nie skracać okresu
+                        const last = finalSchedule[finalSchedule.length - 1] || baseSchedule[baseSchedule.length - 1];
+                        while (finalSchedule.length < baseSchedule.length) {
+                            finalSchedule.push({ ...last, totalPayment: 0, principalPart: 0, interestPart: 0 });
+                        }
+                        if (finalSchedule.length > baseSchedule.length) {
+                            finalSchedule = finalSchedule.slice(0, baseSchedule.length);
+                        }
+                    }
+                } else {
+                    finalSchedule = generateSchedule(loanAmount, loanTerm, bankMargin, effectiveReferenceRate, installmentType, bridgeMonths, bridgeIncrease, overpayment);
+                }
+            }
             
             results.schedule = finalSchedule;
             results.baseSchedule = (overpayment.amount > 0) ? baseSchedule : null;
@@ -872,11 +890,20 @@ function handlePurchaseCalculation(input: PurchaseInput) {
                 const overpaymentTotalInterest = finalSchedule.reduce((sum, payment) => sum + payment.interestPart, 0);
                 results.totalInterest = overpaymentTotalInterest;
                 results.totalRepayment = loanAmount + overpaymentTotalInterest;
-                results.firstInstallment = finalSchedule[0].totalPayment;
+                let firstInstallment = finalSchedule[0].totalPayment;
+                if (overpayment.amount > 0 && overpayment.target === 'reduce-payment') {
+                    const appliesAtMonth1 = (overpayment.frequency === 'monthly' && overpayment.startMonth <= 1)
+                        || (overpayment.frequency === 'one-time' && overpayment.startMonth === 1)
+                        || (overpayment.frequency === 'custom' && overpayment.startMonth <= 1);
+                    if (appliesAtMonth1) {
+                        firstInstallment = Math.max(0, firstInstallment - overpayment.amount);
+                    }
+                }
+                results.firstInstallment = firstInstallment;
                 results.lastInstallment = finalSchedule[finalSchedule.length - 1].totalPayment;
                 
                 if (overpayment.amount > 0) {
-                    const monthsShortened = baseSchedule.length - finalSchedule.length;
+                    const monthsShortened = (overpayment.target === 'reduce-payment') ? 0 : (baseSchedule.length - finalSchedule.length);
                     results.overpaymentResults = {
                         savedInterest: baseTotalInterest - overpaymentTotalInterest,
                         newLoanTerm: finalSchedule.length,

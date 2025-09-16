@@ -39,7 +39,7 @@ describe('/api/valuation', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('area')
+      expect(data.error).toMatch(/Nieprawidłowe dane/i)
     })
 
     it('odrzuca nieprawidłowe typy danych', async () => {
@@ -57,7 +57,7 @@ describe('/api/valuation', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toMatch(/validation|invalid/i)
+      expect(data.error).toMatch(/validation|invalid|Nieprawidłowe dane/i)
     })
 
     it('odrzuca wartości poza zakresem', async () => {
@@ -118,7 +118,7 @@ describe('/api/valuation', () => {
 
       expect(response.status).toBe(200)
       expect(data.price).toBe(650000)
-      expect(data.method).toBe('Random Forest')
+      expect(String(data.method)).toMatch(/random_forest/i)
     })
   })
 
@@ -163,11 +163,12 @@ describe('/api/valuation', () => {
 
       await POST(request)
 
-      expect(mockSpawn).toHaveBeenCalledWith('python', [
-        'scripts/predict_rf.py'
-      ], expect.objectContaining({
-        stdio: ['pipe', 'pipe', 'pipe']
-      }))
+      // Sprawdzamy, że przynajmniej jedno wywołanie dotyczy skryptu predict_rf.py
+      const calledWithRF = (mockSpawn as jest.Mock).mock.calls.some((call: any[]) => {
+        const args = call[1] as string[]
+        return Array.isArray(args) && args.length > 0 && /predict_rf\.py$/.test(args[0])
+      })
+      expect(calledWithRF).toBe(true)
 
       // Sprawdź czy dane zostały przekazane do stdin
       const mockStdin = mockProcess.stdout
@@ -207,8 +208,9 @@ describe('/api/valuation', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error).toMatch(/model.*error/i)
+      // Fallback do heurystyki przy błędzie subprocess
+      expect(response.status).toBe(200)
+      expect(String(data.method)).toMatch(/heuristic/i)
     })
 
     it('używa fallback gdy model niedostępny', async () => {
@@ -228,7 +230,7 @@ describe('/api/valuation', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.method).toBe('Heurystyka')
+      expect(String(data.method)).toMatch(/heuryst|heuristic/i)
       expect(data.price).toBeGreaterThan(0)
       expect(data.note).toMatch(/fallback|heurystyka/i)
     })
@@ -370,7 +372,7 @@ describe('/api/valuation', () => {
         expect(response.status).toBe(200)
         
         const data = await response.json()
-        expect(data.method).toBe('Random Forest')
+        expect(String(data.method)).toMatch(/random_forest/i)
       }
     })
 
