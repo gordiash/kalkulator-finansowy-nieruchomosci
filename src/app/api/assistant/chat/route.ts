@@ -149,20 +149,22 @@ export async function POST(req: Request) {
           );
         if (call.tool === 'calculatePurchaseCosts') {
           // { tax, notary, registry, mortgageFee, total }
+          const purchaseResult = result as { tax: number; notary: number; registry: number; mortgageFee: number; total: number };
           answer = [
             'Koszty zakupu:',
-            `- Podatek (PCC): ${pln(result.tax)}`,
-            `- Notariusz (szacunek): ${pln(result.notary)}`,
-            `- Wpis do KW: ${pln(result.registry)}`,
-            `- Opłata hipoteczna: ${pln(result.mortgageFee)}`,
-            `Suma: ${pln(result.total)}`,
+            `- Podatek (PCC): ${pln(purchaseResult.tax)}`,
+            `- Notariusz (szacunek): ${pln(purchaseResult.notary)}`,
+            `- Wpis do KW: ${pln(purchaseResult.registry)}`,
+            `- Opłata hipoteczna: ${pln(purchaseResult.mortgageFee)}`,
+            `Suma: ${pln(purchaseResult.total)}`,
           ].join('\n');
         } else if (call.tool === 'calculateCreditCapacity') {
           // { maxMonthlyInstallment, maxLoanAmount }
+          const creditResult = result as { maxMonthlyInstallment: number; maxLoanAmount: number };
           answer = [
             'Zdolność kredytowa (szacunek):',
-            `- Maksymalna rata: ${pln(result.maxMonthlyInstallment)}`,
-            `- Maksymalny kredyt: ${pln(result.maxLoanAmount)}`,
+            `- Maksymalna rata: ${pln(creditResult.maxMonthlyInstallment)}`,
+            `- Maksymalny kredyt: ${pln(creditResult.maxLoanAmount)}`,
           ].join('\n');
         } else {
           // Fallback JSON w jednej linii
