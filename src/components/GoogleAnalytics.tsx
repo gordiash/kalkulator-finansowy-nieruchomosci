@@ -62,6 +62,7 @@ function GAInner() {
               s.src = 'https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}';
               s.async = true;
               s.onload = function(){
+                console.log('GA: Script loaded successfully');
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){window.dataLayer.push(arguments);} 
                 window.gtag = gtag;
@@ -75,9 +76,11 @@ function GAInner() {
                 });
                 console.log('GA: Successfully initialized');
               };
-              s.onerror = function() {
-                console.error('GA: Failed to load script');
+              s.onerror = function(error) {
+                console.error('GA: Failed to load script:', error);
+                console.error('GA: Script src was:', s.src);
               };
+              console.log('GA: Appending script to head:', s.src);
               document.head.appendChild(s);
             } catch(e) {
               console.error('GA initialization error:', e);

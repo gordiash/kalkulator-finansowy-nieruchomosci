@@ -37,9 +37,16 @@ Powinieneś zobaczyć:
   hasDataLayer: true/false,
   hasGtag: true/false, 
   hasConsent: true/false,
+  hasGAScript: true/false,  // ← NOWE: czy skrypt GA jest załadowany
   dataLayerLength: number,
-  measurementId: "G-9ZQNTH7W8J"
+  measurementId: "G-9ZQNTH7W8J",
+  gaScriptSrc: "https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J" // ← NOWE: URL skryptu
 }
+```
+
+### Krok 2.5: Sprawdź błędy CSP
+```javascript
+gaDebug.checkCSPViolations()
 ```
 
 ### Krok 3: Sprawdź zgodę na cookies
@@ -77,9 +84,16 @@ gaDebug.sendTestEvent('test_page_view')
 - Sprawdź czy `NEXT_PUBLIC_GA_MEASUREMENT_ID` jest ustawione
 - Domyślnie używa `G-9ZQNTH7W8J`
 
-### 4. Problemy z CSP
+### 4. Problemy z CSP (Content Security Policy)
+- **NAPRAWIONE**: Dodano `https://*.google-analytics.com` i `https://www.googletagmanager.com` do `connect-src` w `next.config.js`
 - Sprawdź czy middleware.ts pozwala na ładowanie skryptów GA
 - Sprawdź Network tab czy są błędy 403/404
+- **WAŻNE**: Google Analytics używa różnych regionów (np. `region1.google-analytics.com`), więc potrzebujemy `*.google-analytics.com`
+
+### 5. Skrypt GA nie jest ładowany
+- Sprawdź `gaDebug.checkGAStatus()` - pole `hasGAScript`
+- Jeśli `hasGAScript: false`, skrypt nie został załadowany
+- Sprawdź logi w konsoli: "GA: Appending script to head"
 
 ## Debugowanie zaawansowane
 

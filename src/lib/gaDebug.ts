@@ -26,12 +26,18 @@ export const gaDebug = {
       }
     })();
 
+    // Sprawdź czy skrypt GA jest załadowany
+    const gaScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+    const hasGAScript = !!gaScript;
+
     const status = {
       hasDataLayer,
       hasGtag,
       hasConsent,
+      hasGAScript,
       dataLayerLength: hasDataLayer ? win.dataLayer.length : 0,
-      measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-9ZQNTH7W8J'
+      measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-9ZQNTH7W8J',
+      gaScriptSrc: hasGAScript ? (gaScript as HTMLScriptElement).src : null
     };
 
     console.log('GA Debug Status:', status);
@@ -84,6 +90,43 @@ export const gaDebug = {
       console.error('GA Debug: Error reading consent:', error);
       return null;
     }
+  },
+
+  /**
+   * Check for CSP violations
+   */
+  checkCSPViolations: () => {
+    if (typeof window === 'undefined') return null;
+
+    const violations: string[] = [];
+    
+    // Sprawdź czy są błędy CSP w konsoli
+    const originalError = console.error;
+    console.error = (...args) => {
+      const message = args.join(' ');
+      if (message.includes('Content Security Policy') || message.includes('CSP')) {
+        violations.push(message);
+      }
+      originalError.apply(console, args);
+    };
+
+    // Sprawdź czy skrypt GA może być załadowany
+    try {
+      const testScript = document.createElement('script');
+      testScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J';
+      testScript.onerror = () => {
+        violations.push('Failed to load GA script - possible CSP violation');
+      };
+      document.head.appendChild(testScript);
+      setTimeout(() => {
+        testScript.remove();
+      }, 1000);
+    } catch (error) {
+      violations.push(`Script loading error: ${error}`);
+    }
+
+    console.log('GA Debug: CSP Violations:', violations);
+    return violations;
   },
 
   /**
