@@ -115,14 +115,80 @@ export async function POST(req: Request) {
     const rentIntent = /(czynsz|najmu|wynajmu|średni.*czynsz|sredni.*czynsz)/.test(qLower);
     const cityHit = cityList.find(c => qLower.includes(c));
 
+    // Definicja narzędzi OpenAI Functions
+    const tools = [
+      {
+        type: "function" as const,
+        function: {
+          name: "calculateCreditCapacity",
+          description: "Oblicza zdolność kredytową na podstawie dochodów i zobowiązań",
+          parameters: {
+            type: "object",
+            properties: {
+              income: {
+                type: "number",
+                description: "Miesięczny dochód netto w PLN"
+              },
+              liabilities: {
+                type: "number",
+                description: "Miesięczne zobowiązania w PLN (domyślnie 0)",
+                default: 0
+              },
+              interestRate: {
+                type: "number",
+                description: "Roczne oprocentowanie w % (domyślnie 7.5)",
+                default: 7.5
+              },
+              termYears: {
+                type: "number",
+                description: "Okres kredytowania w latach (domyślnie 25)",
+                default: 25
+              }
+            },
+            required: ["income"]
+          }
+        }
+      },
+      {
+        type: "function" as const,
+        function: {
+          name: "calculatePurchaseCosts",
+          description: "Oblicza koszty zakupu nieruchomości",
+          parameters: {
+            type: "object",
+            properties: {
+              price: {
+                type: "number",
+                description: "Cena nieruchomości w PLN"
+              },
+              market: {
+                type: "string",
+                enum: ["primary", "secondary"],
+                description: "Typ rynku (domyślnie secondary)",
+                default: "secondary"
+              },
+              mortgage: {
+                type: "boolean",
+                description: "Czy z hipoteką (domyślnie false)",
+                default: false
+              }
+            },
+            required: ["price"]
+          }
+        }
+      }
+    ];
+
     const messages = rentIntent ? (
       [
-        { role: 'system', content: 'Na podstawie kontekstu odpowiedz jednym akapitem po polsku: podaj orientacyjną średnią miesięczną kwotę czynszu najmu mieszkania 2‑pokojowego (w PLN) dla wskazanego miasta. Dodaj krótki disclaimer o zmienności cen. Cytuj źródła z indeksami [1], [2] odpowiadającymi sekcji „Źródła”.' },
+        { role: 'system', content: 'Na podstawie kontekstu odpowiedz jednym akapitem po polsku: podaj orientacyjną średnią miesięczną kwotę czynszu najmu mieszkania 2‑pokojowego (w PLN) dla wskazanego miasta. Dodaj krótki disclaimer o zmienności cen. Cytuj źródła z indeksami [1], [2] odpowiadającymi sekcji „Źródła".' },
         { role: 'user', content: `Miasto: ${cityHit || '—'}\nPytanie: ${query}\n\nKontekst:\n${context}\n\nŹródła:\n${sources}` },
       ]
     ) : (
       [
-        { role: 'system', content: 'Odpowiadasz na podstawie dostarczonego kontekstu. Jeśli brak wiedzy – informujesz o tym. Cytuj źródła, używając indeksów [1], [2], ... odpowiadających sekcji „Źródła” (tej samej kolejności). Gdy użytkownik prosi o obliczenia kredytowe/kosztowe, zwróć JSON {"tool":"calculateCreditCapacity"|"calculatePurchaseCosts","payload":{...}} bez dodatkowego tekstu.' },
+        { role: 'system', content: `Odpowiadasz na podstawie dostarczonego kontekstu. Jeśli brak wiedzy – informujesz o tym. Cytuj źródła, używając indeksów [1], [2], ... odpowiadających sekcji „Źródła" (tej samej kolejności).
+
+Gdy użytkownik prosi o obliczenia kredytowe/kosztowe, użyj odpowiedniej funkcji z dostępnych narzędzi. Wyciągnij liczby z tekstu użytkownika (np. "500000 zł" → 500000). Jeśli użytkownik podaje tylko część informacji, użyj domyślnych wartości.` },
         { role: 'user', content: `Pytanie: ${query}\n\nKontekst:\n${context}\n\nŹródła:\n${sources}` },
       ]
     ) as any[];
@@ -133,23 +199,41 @@ export async function POST(req: Request) {
     const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
+      tools,
+      tool_choice: 'auto',
       temperature: 0.2,
     }, { signal: controller.signal }).finally(() => clearTimeout(timeout));
     const llm_ms = Date.now() - lt0;
 
-    let answer = completion.choices?.[0]?.message?.content ?? '';
-    // Tool calling JSON handshake → formatuj wynik po ludzku
-    if (answer.trim().startsWith('{') && answer.includes('"tool"')) {
+    const message = completion.choices?.[0]?.message;
+    let answer = message?.content ?? '';
+    
+    // Debug: log what LLM returned
+    console.log('LLM Response:', answer);
+    console.log('Tool calls:', message?.tool_calls);
+    
+    // Obsługa natywnych OpenAI Functions
+    if (message?.tool_calls && message.tool_calls.length > 0) {
       try {
-        const call = JSON.parse(answer);
-        const result = await toolDispatcher(call.tool, call.payload);
+        const toolCall = message.tool_calls[0];
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        
+        console.log('Function call:', functionName, functionArgs);
+        const result = await toolDispatcher(functionName, functionArgs);
+        console.log('Tool result:', result);
+        
         const pln = (v: number) =>
           new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
             Math.round(v || 0)
           );
-        if (call.tool === 'calculatePurchaseCosts') {
+        if (functionName === 'calculatePurchaseCosts') {
           // { tax, notary, registry, mortgageFee, total }
           const purchaseResult = result as { tax: number; notary: number; registry: number; mortgageFee: number; total: number };
+          const usedDefaults = [];
+          if (!functionArgs.market) usedDefaults.push('rynek wtórny');
+          if (!functionArgs.mortgage) usedDefaults.push('bez hipoteki');
+          
           answer = [
             'Koszty zakupu:',
             `- Podatek (PCC): ${pln(purchaseResult.tax)}`,
@@ -157,20 +241,35 @@ export async function POST(req: Request) {
             `- Wpis do KW: ${pln(purchaseResult.registry)}`,
             `- Opłata hipoteczna: ${pln(purchaseResult.mortgageFee)}`,
             `Suma: ${pln(purchaseResult.total)}`,
+            '',
+            usedDefaults.length > 0 ? `Użyte domyślne wartości: ${usedDefaults.join(', ')}.` : 'Wszystkie parametry podane przez użytkownika.',
+            'Wyniki są orientacyjne i mogą różnić się od rzeczywistych kosztów.'
           ].join('\n');
-        } else if (call.tool === 'calculateCreditCapacity') {
+        } else if (functionName === 'calculateCreditCapacity') {
           // { maxMonthlyInstallment, maxLoanAmount }
           const creditResult = result as { maxMonthlyInstallment: number; maxLoanAmount: number };
+          const usedDefaults = [];
+          if (!functionArgs.interestRate) usedDefaults.push('oprocentowanie 7.5%');
+          if (!functionArgs.termYears) usedDefaults.push('okres 25 lat');
+          if (!functionArgs.liabilities) usedDefaults.push('brak zobowiązań');
+          
           answer = [
             'Zdolność kredytowa (szacunek):',
             `- Maksymalna rata: ${pln(creditResult.maxMonthlyInstallment)}`,
             `- Maksymalny kredyt: ${pln(creditResult.maxLoanAmount)}`,
+            '',
+            usedDefaults.length > 0 ? `Użyte domyślne wartości: ${usedDefaults.join(', ')}.` : 'Wszystkie parametry podane przez użytkownika.',
+            'Wyniki są orientacyjne i mogą różnić się między bankami.'
           ].join('\n');
         } else {
           // Fallback JSON w jednej linii
           answer = `Wynik: ${JSON.stringify(result)}`;
         }
-      } catch {}
+      } catch (e) {
+        console.log('Tool call parsing error:', e);
+        // Fallback - show the raw JSON if parsing fails
+        answer = `Błąd parsowania odpowiedzi narzędzia: ${answer}`;
+      }
     }
     // Użyj tych samych unikalnych źródeł co dla LLM
     const clientSources = Array.from(uniqueSourcesForLLM.values());

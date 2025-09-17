@@ -11,11 +11,31 @@ export async function calculateCreditCapacity(input: unknown) {
   if (obj.salary && !obj.income) obj.income = obj.salary;
   if (obj.monthlyIncome && !obj.income) obj.income = obj.monthlyIncome;
   if (obj.zarobki && !obj.income) obj.income = obj.zarobki;
+  if (obj.dochod && !obj.income) obj.income = obj.dochod;
+  if (obj.wynagrodzenie && !obj.income) obj.income = obj.wynagrodzenie;
+  if (obj.pensja && !obj.income) obj.income = obj.pensja;
+  
   if (obj.debts && !obj.liabilities) obj.liabilities = obj.debts;
   if (obj.zobowiazania && !obj.liabilities) obj.liabilities = obj.zobowiazania;
+  if (obj.expenses && !obj.liabilities) obj.liabilities = obj.expenses; // mapowanie expenses -> liabilities
+  if (obj.koszty && !obj.liabilities) obj.liabilities = obj.koszty;
+  if (obj.wydatki && !obj.liabilities) obj.liabilities = obj.wydatki;
+  if (obj.raty && !obj.liabilities) obj.liabilities = obj.raty;
+  
   if (obj.rate && !obj.interestRate) obj.interestRate = obj.rate;
   if (obj.percent && !obj.interestRate) obj.interestRate = obj.percent;
+  if (obj.oprocentowanie && !obj.interestRate) obj.interestRate = obj.oprocentowanie;
+  if (obj.stopa && !obj.interestRate) obj.interestRate = obj.stopa;
+  
   if (obj.years && !obj.termYears) obj.termYears = obj.years;
+  if (obj.lata && !obj.termYears) obj.termYears = obj.lata;
+  if (obj.okres && !obj.termYears) obj.termYears = obj.okres;
+  
+  // Domyślne wartości jeśli nie podano
+  if (!obj.interestRate) obj.interestRate = 7.5; // 7.5% rocznie - aktualna średnia
+  if (!obj.termYears) obj.termYears = 25; // 25 lat - standardowy okres
+  if (!obj.liabilities) obj.liabilities = 0; // brak zobowiązań
+  
   // Koercja tekstów na liczby
   const toNum = (v: any) => typeof v === 'string' ? Number(v.replace(/[^0-9.,-]/g, '').replace(',', '.')) : v;
   obj.income = toNum(obj.income);
@@ -41,6 +61,10 @@ export async function calculatePurchaseCosts(input: unknown) {
   if (obj.value && !obj.price) obj.price = obj.value;
   if (obj.kwota && !obj.price) obj.price = obj.kwota;
   if (obj.cena && !obj.price) obj.price = obj.cena;
+  if (obj.wartosc && !obj.price) obj.price = obj.wartosc;
+  if (obj.koszt && !obj.price) obj.price = obj.koszt;
+  if (obj.priceValue && !obj.price) obj.price = obj.priceValue;
+  if (obj.propertyPrice && !obj.price) obj.price = obj.propertyPrice;
   if (typeof obj.market === 'string') {
     const m = obj.market.toLowerCase();
     if (/(wtorny|wtórny)/.test(m)) obj.market = 'secondary';
@@ -50,8 +74,21 @@ export async function calculatePurchaseCosts(input: unknown) {
     const m = String(obj.rynek).toLowerCase();
     obj.market = /(wtorny|wtórny)/.test(m) ? 'secondary' : 'primary';
   }
+  if (obj.typ && !obj.market) {
+    const m = String(obj.typ).toLowerCase();
+    obj.market = /(wtorny|wtórny)/.test(m) ? 'secondary' : 'primary';
+  }
+  if (obj.rodzaj && !obj.market) {
+    const m = String(obj.rodzaj).toLowerCase();
+    obj.market = /(wtorny|wtórny)/.test(m) ? 'secondary' : 'primary';
+  }
   if (obj.kredyt !== undefined && obj.mortgage === undefined) obj.mortgage = !!obj.kredyt;
   if (obj.hipoteka !== undefined && obj.mortgage === undefined) obj.mortgage = !!obj.hipoteka;
+  
+  // Domyślne wartości jeśli nie podano
+  if (!obj.market) obj.market = 'secondary'; // domyślnie rynek wtórny
+  if (obj.mortgage === undefined) obj.mortgage = false; // domyślnie bez hipoteki
+  
   // Koercja tekstu na liczbę
   const toNum = (v: any) => typeof v === 'string' ? Number(v.replace(/[^0-9.,-]/g, '').replace(',', '.')) : v;
   obj.price = toNum(obj.price);

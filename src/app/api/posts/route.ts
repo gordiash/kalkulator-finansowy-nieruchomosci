@@ -9,9 +9,23 @@ import { createPostSchema } from '@/lib/validation/post';
 export async function POST(request: Request) {
   try {
     const supabase = await getSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    // Debug: loguj informacje o autoryzacji
+    console.log('POST /api/posts - Auth check:', { 
+      hasUser: !!user, 
+      userId: user?.id, 
+      authError: authError?.message 
+    });
+    
+    if (authError) {
+      console.error('Błąd autoryzacji:', authError);
+      return NextResponse.json({ error: 'Błąd autoryzacji: ' + authError.message }, { status: 401 });
+    }
+    
     if (!user) {
-      return NextResponse.json({ error: 'Nieautoryzowany' }, { status: 401 });
+      console.log('Brak użytkownika - przekierowanie do logowania');
+      return NextResponse.json({ error: 'Nieautoryzowany - zaloguj się ponownie' }, { status: 401 });
     }
 
     const json = await request.json().catch(() => ({}));

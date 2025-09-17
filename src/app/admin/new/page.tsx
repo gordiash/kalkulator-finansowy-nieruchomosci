@@ -35,7 +35,9 @@ export default function NewPostPage() {
     excerpt: '',
     tags: '',
     status: 'draft',
-    image_display: ''
+    image_display: '',
+    seo_title: '',
+    seo_content: ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -67,6 +69,10 @@ export default function NewPostPage() {
     handleInputChange('title', title);
     if (!formData.slug) {
       handleInputChange('slug', generateSlug(title));
+    }
+    // Automatycznie wypełnij SEO title tylko jeśli jest puste
+    if (!formData.seo_title) {
+      handleInputChange('seo_title', title);
     }
   };
 
@@ -126,8 +132,8 @@ export default function NewPostPage() {
         tags: formData.tags,
         status: 'draft',
         image_display: formData.image_display,
-        seo_title: formData.title,
-        seo_content: formData.excerpt
+        seo_title: formData.seo_title || formData.title,
+        seo_content: formData.seo_content || formData.excerpt
       };
 
       const response = await fetch('/api/posts', {
@@ -181,8 +187,8 @@ export default function NewPostPage() {
         tags: formData.tags,
         status: 'published',
         image_display: formData.image_display,
-        seo_title: formData.title,
-        seo_content: formData.excerpt
+        seo_title: formData.seo_title || formData.title,
+        seo_content: formData.seo_content || formData.excerpt
       };
 
       const response = await fetch('/api/posts', {
@@ -404,10 +410,10 @@ export default function NewPostPage() {
                     type="text"
                     placeholder="Tytuł dla wyszukiwarek..."
                     maxLength={60}
-                    value={formData.title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
+                    value={formData.seo_title}
+                    onChange={(e) => handleInputChange('seo_title', e.target.value)}
                   />
-                  <div className="text-xs text-gray-500 mt-1">{formData.title.length}/60</div>
+                  <div className="text-xs text-gray-500 mt-1">{formData.seo_title.length}/60</div>
                 </div>
 
                 <div>
@@ -418,11 +424,11 @@ export default function NewPostPage() {
                     id="meta-description"
                     placeholder="Opis dla wyszukiwarek..."
                     maxLength={160}
-                    value={formData.excerpt}
-                    onChange={(e) => handleInputChange('excerpt', e.target.value)}
+                    value={formData.seo_content}
+                    onChange={(e) => handleInputChange('seo_content', e.target.value)}
                     className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
-                  <div className="text-xs text-gray-500 mt-1">{formData.excerpt.length}/160</div>
+                  <div className="text-xs text-gray-500 mt-1">{formData.seo_content.length}/160</div>
                 </div>
               </CardContent>
             </Card>
