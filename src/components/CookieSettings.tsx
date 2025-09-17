@@ -32,7 +32,6 @@ const CookieSettings: React.FC<CookieSettingsProps> = ({ isOpen, onClose }) => {
     // Reinicjalizuj GA jeśli zmieniono zgodę na analytics
     if (settings.analytics && typeof window !== 'undefined') {
       try {
-        console.log('GA: Reinitializing after settings change');
         const existing = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
         if (!existing) {
           const s = document.createElement('script');
@@ -51,7 +50,6 @@ const CookieSettings: React.FC<CookieSettingsProps> = ({ isOpen, onClose }) => {
               allow_google_signals: false,
               allow_ad_personalization_signals: false
             });
-            console.log('GA: Successfully reinitialized after settings change');
           };
           document.head.appendChild(s);
         } else {

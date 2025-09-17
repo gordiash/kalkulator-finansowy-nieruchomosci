@@ -50,19 +50,15 @@ function GAInner() {
               if (raw) { 
                 var c = JSON.parse(raw || '{}'); 
                 ok = !!c.analytics; 
-                console.log('GA Consent check:', { raw, parsed: c, analytics: c.analytics, ok });
               }
               if (!ok) {
-                console.log('GA: Analytics consent not given, skipping initialization');
                 return;
               }
               
-              console.log('GA: Initializing with measurement ID: ${MEASUREMENT_ID}');
               var s = document.createElement('script');
               s.src = 'https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}';
               s.async = true;
               s.onload = function(){
-                console.log('GA: Script loaded successfully');
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){window.dataLayer.push(arguments);} 
                 window.gtag = gtag;
@@ -74,13 +70,11 @@ function GAInner() {
                   allow_google_signals: false,
                   allow_ad_personalization_signals: false
                 });
-                console.log('GA: Successfully initialized');
               };
               s.onerror = function(error) {
                 console.error('GA: Failed to load script:', error);
                 console.error('GA: Script src was:', s.src);
               };
-              console.log('GA: Appending script to head:', s.src);
               document.head.appendChild(s);
             } catch(e) {
               console.error('GA initialization error:', e);
