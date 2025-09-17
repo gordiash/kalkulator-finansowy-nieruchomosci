@@ -42,22 +42,44 @@ const CookieConsent = () => {
       if (consentData.analytics && typeof window !== 'undefined') {
         const existing = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
         if (!existing) {
+          console.log('GA: Initializing after consent acceptance');
           const s = document.createElement('script');
           s.src = `https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J`;
           s.async = true;
           s.onload = function(){
-            const win = window as unknown as { dataLayer?: unknown[] };
+            const win = window as unknown as { dataLayer?: unknown[], gtag?: (...args: unknown[]) => void };
             win.dataLayer = win.dataLayer || [];
             const gtag = (...args: unknown[]) => {
               (win.dataLayer as unknown[]).push(args);
             };
+            win.gtag = gtag;
             gtag('js', new Date());
-            gtag('config', 'G-9ZQNTH7W8J');
+            gtag('config', 'G-9ZQNTH7W8J', {
+              anonymize_ip: true,
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false
+            });
+            console.log('GA: Successfully initialized after consent');
+          };
+          s.onerror = function() {
+            console.error('GA: Failed to load script after consent');
           };
           document.head.appendChild(s);
+        } else {
+          console.log('GA: Script already exists, reinitializing');
+          // Jeśli skrypt już istnieje, wyślij event page_view
+          const win = window as unknown as { gtag?: (...args: unknown[]) => void };
+          if (win.gtag) {
+            win.gtag('config', 'G-9ZQNTH7W8J', {
+              page_title: document.title,
+              page_location: window.location.href
+            });
+          }
         }
       }
-    } catch {}
+    } catch (error) {
+      console.error('GA consent initialization error:', error);
+    }
   };
 
   const acceptNecessaryOnly = () => {

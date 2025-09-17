@@ -10,6 +10,11 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import NewsletterPopup from "@/components/NewsletterPopup";
 import RagChatWidget from "@/components/RagChatWidget";
 
+// Import GA debug utilities in development
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/gaDebug');
+}
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "600", "700"],

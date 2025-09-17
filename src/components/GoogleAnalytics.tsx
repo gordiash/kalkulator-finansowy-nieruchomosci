@@ -34,7 +34,9 @@ function GAInner() {
           page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
         });
       }
-    } catch {}
+    } catch (error) {
+      console.error('GA page tracking error:', error);
+    }
   }, [pathname, searchParams]);
 
   return (
@@ -45,19 +47,41 @@ function GAInner() {
             try {
               var raw = localStorage.getItem('cookieConsent');
               var ok = false;
-              if (raw) { var c = JSON.parse(raw || '{}'); ok = !!c.analytics; }
-              if (!ok) return;
+              if (raw) { 
+                var c = JSON.parse(raw || '{}'); 
+                ok = !!c.analytics; 
+                console.log('GA Consent check:', { raw, parsed: c, analytics: c.analytics, ok });
+              }
+              if (!ok) {
+                console.log('GA: Analytics consent not given, skipping initialization');
+                return;
+              }
+              
+              console.log('GA: Initializing with measurement ID: ${MEASUREMENT_ID}');
               var s = document.createElement('script');
               s.src = 'https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}';
               s.async = true;
               s.onload = function(){
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){window.dataLayer.push(arguments);} 
+                window.gtag = gtag;
                 gtag('js', new Date());
-                gtag('config', '${MEASUREMENT_ID}', { page_title: document.title, page_location: window.location.href });
+                gtag('config', '${MEASUREMENT_ID}', { 
+                  page_title: document.title, 
+                  page_location: window.location.href,
+                  anonymize_ip: true,
+                  allow_google_signals: false,
+                  allow_ad_personalization_signals: false
+                });
+                console.log('GA: Successfully initialized');
+              };
+              s.onerror = function() {
+                console.error('GA: Failed to load script');
               };
               document.head.appendChild(s);
-            } catch(e) {}
+            } catch(e) {
+              console.error('GA initialization error:', e);
+            }
           })();
         `}
       </Script>

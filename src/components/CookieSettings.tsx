@@ -28,6 +28,47 @@ const CookieSettings: React.FC<CookieSettingsProps> = ({ isOpen, onClose }) => {
 
   const saveSettings = () => {
     updateConsent(settings);
+    
+    // Reinicjalizuj GA jeśli zmieniono zgodę na analytics
+    if (settings.analytics && typeof window !== 'undefined') {
+      try {
+        console.log('GA: Reinitializing after settings change');
+        const existing = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+        if (!existing) {
+          const s = document.createElement('script');
+          s.src = `https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J`;
+          s.async = true;
+          s.onload = function(){
+            const win = window as unknown as { dataLayer?: unknown[], gtag?: (...args: unknown[]) => void };
+            win.dataLayer = win.dataLayer || [];
+            const gtag = (...args: unknown[]) => {
+              (win.dataLayer as unknown[]).push(args);
+            };
+            win.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-9ZQNTH7W8J', {
+              anonymize_ip: true,
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false
+            });
+            console.log('GA: Successfully reinitialized after settings change');
+          };
+          document.head.appendChild(s);
+        } else {
+          // Jeśli skrypt już istnieje, wyślij event page_view
+          const win = window as unknown as { gtag?: (...args: unknown[]) => void };
+          if (win.gtag) {
+            win.gtag('config', 'G-9ZQNTH7W8J', {
+              page_title: document.title,
+              page_location: window.location.href
+            });
+          }
+        }
+      } catch (error) {
+        console.error('GA settings reinitialization error:', error);
+      }
+    }
+    
     onClose();
   };
 
@@ -37,6 +78,47 @@ const CookieSettings: React.FC<CookieSettingsProps> = ({ isOpen, onClose }) => {
       analytics: true,
       marketing: true,
     });
+    
+    // Reinicjalizuj GA po zaakceptowaniu wszystkich cookies
+    if (typeof window !== 'undefined') {
+      try {
+        console.log('GA: Reinitializing after accept all');
+        const existing = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+        if (!existing) {
+          const s = document.createElement('script');
+          s.src = `https://www.googletagmanager.com/gtag/js?id=G-9ZQNTH7W8J`;
+          s.async = true;
+          s.onload = function(){
+            const win = window as unknown as { dataLayer?: unknown[], gtag?: (...args: unknown[]) => void };
+            win.dataLayer = win.dataLayer || [];
+            const gtag = (...args: unknown[]) => {
+              (win.dataLayer as unknown[]).push(args);
+            };
+            win.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-9ZQNTH7W8J', {
+              anonymize_ip: true,
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false
+            });
+            console.log('GA: Successfully reinitialized after accept all');
+          };
+          document.head.appendChild(s);
+        } else {
+          // Jeśli skrypt już istnieje, wyślij event page_view
+          const win = window as unknown as { gtag?: (...args: unknown[]) => void };
+          if (win.gtag) {
+            win.gtag('config', 'G-9ZQNTH7W8J', {
+              page_title: document.title,
+              page_location: window.location.href
+            });
+          }
+        }
+      } catch (error) {
+        console.error('GA accept all reinitialization error:', error);
+      }
+    }
+    
     onClose();
   };
 
