@@ -16,7 +16,7 @@ interface BlogPostContentProps {
 }
 
 export default function BlogPostContent({ content }: BlogPostContentProps) {
-  // Strapi blocks → plain string
+  // Content blocks → plain string
   let source = '';
   if (Array.isArray(content)) {
     source = content

@@ -121,17 +121,34 @@ export async function generateMetadata(
         ...defaultMeta,
         title: post.title,
         description: post.seo_content ?? post.short_content ?? '',
+        robots: {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+          },
+        },
         alternates: {
           canonical: `${baseUrl}/blog/${post.slug}`,
         },
         openGraph: {
           ...defaultMeta.openGraph,
           title: post.title,
-          description: post.excerpt ?? '',
+          description: post.seo_content ?? post.short_content ?? '',
           type: 'article',
           publishedTime: post.published_at,
+          modifiedTime: post.updated_at ?? post.published_at,
           url: `${baseUrl}/blog/${post.slug}`,
           images: post.image_display ? [{ url: post.image_display }] : undefined,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: post.title,
+          description: post.seo_content ?? post.short_content ?? '',
         },
       };
     }
