@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import BlogPagination from '../../components/blog/BlogPagination';
-import BlogFilter from '../../components/blog/BlogFilter';
 import { fetchPublishedPosts } from '@/lib/supabase/blog';
 import type { BlogPostListing } from '@/lib/supabase/blog';
 
@@ -112,14 +111,6 @@ async function BlogContent({ searchParams }: BlogPageProps) {
             </p>
           </div>
 
-          {/* Filtry */}
-          <div className="mb-8">
-            <BlogFilter 
-              categories={[]}
-              selectedCategory={searchParams.category}
-              searchQuery={searchParams.search}
-            />
-          </div>
 
           {/* Lista postów */}
           {posts.length > 0 ? (
