@@ -1,4 +1,14 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '404 - Strona nie została znaleziona | Kalkulatory Nieruchomości',
+  description: 'Strona nie została znaleziona. Wróć do strony głównej z kalkulatorami nieruchomości.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function NotFound() {
   return (

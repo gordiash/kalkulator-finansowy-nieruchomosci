@@ -40,10 +40,19 @@ User-agent: YandexBot
 Crawl-delay: 2`
 
   if (!isProd) {
-    // W środowiskach innych niż produkcyjne blokujemy całą witrynę
+    // W środowiskach innych niż produkcyjne pozwalamy na indeksowanie
+    // ale dodajemy crawl-delay dla botów
     content = `User-agent: *
-Disallow: /
-Sitemap: ${baseUrl}/sitemap.xml`
+Allow: /
+Crawl-delay: 2
+Sitemap: ${baseUrl}/sitemap.xml
+
+# Środowisko deweloperskie - ograniczone indeksowanie
+User-agent: Googlebot
+Crawl-delay: 5
+
+User-agent: Bingbot
+Crawl-delay: 5`
   }
 
   return new Response(content, {

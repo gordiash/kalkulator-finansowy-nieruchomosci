@@ -23,8 +23,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Kalkulatory Nieruchomości",
-  description: "Zbiór kalkulatorów do analizy rynku nieruchomości.",
+  title: "Kalkulatory Nieruchomości - Wycena AI, Zdolność Kredytowa, Wynajem | Analityka Nieruchomości",
+  description: "Profesjonalne kalkulatory nieruchomości: wycena mieszkania AI (MAPE 0.79%), zdolność kredytowa, rentowność wynajmu, koszty zakupu. Blog ekspercki i analiza rynku.",
+  keywords: "kalkulator wyceny mieszkania, zdolność kredytowa, rentowność wynajmu, koszty zakupu nieruchomości, analiza rynku nieruchomości, AI wycena, kalkulator kredytu hipotecznego, kalkulator zdolności kredytowej, kredyt hipoteczny kalkulator, oblicz zdolność kredytową, symulacja kredytu hipotecznego, kalkulator RRSO, kredyt na mieszkanie kalkulator, oprocentowanie kredytu hipotecznego, koszt kredytu hipotecznego, porównanie ofert kredytowych, wkład własny kalkulator, kalkulator prowizji bankowej, najlepszy kredyt hipoteczny, kredyt dla młodych kalkulator, ile kosztuje kredyt na mieszkanie, jaki kredyt hipoteczny wybrać, refinansowanie kredytu hipotecznego, przedterminowa spłata kredytu kalkulator, banki kredyt hipoteczny porównanie, wycena nieruchomości online, podatek od nieruchomości kalkulator, koszt notariusza przy kredycie, ubezpieczenie nieruchomości kalkulator, marża kredytu hipotecznego, WIBOR aktualne stawki",
+  alternates: {
+    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.kalkulatorynieruchomosci.pl',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
