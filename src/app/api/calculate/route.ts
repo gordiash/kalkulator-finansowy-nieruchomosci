@@ -560,8 +560,8 @@ function handleRentalCalculation(input: RentalInput) {
         const incomeVsCosts = prepareIncomeVsCostsData(annualRentIncome, adminFees, utilities, insurance, otherCosts, monthlyPayment, taxAmount);
         
         // Projekcja wieloletnia
-        const propertyAppreciation = parseFloat(input.propertyAppreciation.toString()) || 3;
-        const rentGrowth = parseFloat(input.rentGrowth.toString()) || 2;
+        const propertyAppreciation = parseFloat(input.propertyAppreciation.toString()) || 3.5;
+        const rentGrowth = parseFloat(input.rentGrowth.toString()) || 3.0;
         
         const projection = generateProjectionRental(
             purchasePrice,

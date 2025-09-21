@@ -913,9 +913,26 @@ const CreditScoreCalculatorPageContent = () => {
                   <Disclaimer className="mt-6" />
                   <FaqSection
                     items={[
-                      { question: 'Czym jest DSTI i jaki ustawić?', answer: 'DSTI to udział rat w dochodzie. Zalecamy 40–50% w zależności od dochodu. Kalkulator automatycznie ogranicza DSTI dla niskich dochodów.' },
-                      { question: 'Czy uwzględniacie stress test?', answer: 'Tak, automatycznie dodajemy bufor do oprocentowania (zgodnie z praktyką banków).' },
-                      { question: 'Jak zwiększyć zdolność?', answer: 'Wyższy wkład własny, dłuższy okres (max 30 lat), niższe zobowiązania, stabilny dochód – to najczęstsze dźwignie.' },
+                      { 
+                        question: 'Czym jest DSTI i jaki ustawić?', 
+                        answer: 'DSTI (Debt Service to Income) to stosunek miesięcznych rat kredytowych do miesięcznego dochodu netto. Jest to kluczowy wskaźnik, który banki używają do oceny zdolności kredytowej. Zalecamy ustawienie DSTI na poziomie 40-50% w zależności od wysokości dochodu. Dla wyższych dochodów można pozwolić sobie na wyższy DSTI (do 50%), natomiast dla niższych dochodów lepiej zachować konserwatywne podejście (40%). Kalkulator automatycznie ogranicza DSTI dla niskich dochodów, aby zapewnić bezpieczeństwo finansowe. Pamiętaj, że wyższy DSTI oznacza mniejszą elastyczność budżetową i większe ryzyko w przypadku nieprzewidzianych wydatków.' 
+                      },
+                      { 
+                        question: 'Czy uwzględniacie stress test?', 
+                        answer: 'Tak, nasz kalkulator automatycznie uwzględnia stress test zgodnie z praktyką banków. Dodajemy bufor do oprocentowania kredytu (zwykle 2-3 punkty procentowe powyżej aktualnej stopy WIBOR), aby sprawdzić, czy będziesz w stanie spłacać raty w przypadku wzrostu stóp procentowych. To ważne zabezpieczenie, które pomaga ocenić rzeczywistą zdolność kredytową w różnych scenariuszach makroekonomicznych. Stress test jest szczególnie istotny w obecnych czasach zmiennych stóp procentowych i pomaga uniknąć problemów finansowych w przyszłości.' 
+                      },
+                      { 
+                        question: 'Jak zwiększyć zdolność kredytową?', 
+                        answer: 'Istnieje kilka sposobów na zwiększenie zdolności kredytowej: 1) Wyższy wkład własny - zmniejsza kwotę kredytu i miesięczną ratę, 2) Dłuższy okres kredytowania (maksymalnie 30 lat) - rozkłada spłatę na więcej miesięcy, 3) Redukcja istniejących zobowiązań - spłata innych kredytów, kart kredytowych, 4) Stabilny i rosnący dochód - długoterminowe umowy o pracę, dodatkowe źródła dochodu, 5) Dobra historia kredytowa - terminowe spłaty, brak negatywnych wpisów w BIK, 6) Wybór odpowiedniego banku - różne banki mają różne kryteria oceny. Pamiętaj, że każda zmiana powinna być przemyślana i nie może pogorszyć Twojej sytuacji finansowej.' 
+                      },
+                      { 
+                        question: 'Czy wszystkie banki mają takie same kryteria?', 
+                        answer: 'Nie, różne banki mają różne kryteria oceny zdolności kredytowej. Podczas gdy podstawowe zasady są podobne (DSTI, historia kredytowa, dochód), szczegóły mogą się różnić. Niektóre banki są bardziej elastyczne wobec freelancerów, inne preferują etatowych pracowników. Różne są też podejścia do dodatkowych źródeł dochodu, wkładu własnego czy okresu kredytowania. Dlatego warto skonsultować się z doradcą kredytowym, który zna specyfikę różnych banków i może pomóc wybrać najlepszą ofertę dopasowaną do Twojej sytuacji finansowej.' 
+                      },
+                      { 
+                        question: 'Co wpływa na oprocentowanie kredytu?', 
+                        answer: 'Oprocentowanie kredytu hipotecznego składa się z kilku elementów: stopy WIBOR (lub innej stopy referencyjnej), marży banku, prowizji i innych opłat. Na wysokość oprocentowania wpływają: Twoja historia kredytowa (im lepsza, tym niższa marża), wysokość wkładu własnego (wyższy wkład = niższe ryzyko = niższe oprocentowanie), okres kredytowania (dłuższy okres może oznaczać wyższe oprocentowanie), rodzaj dochodu (etat vs działalność), lokalizacja nieruchomości, a także aktualna sytuacja makroekonomiczna. Banki często oferują lepsze warunki dla klientów z wysokimi dochodami lub długą historią współpracy.' 
+                      },
                     ]}
                   />
                 </div>

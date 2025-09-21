@@ -1147,23 +1147,41 @@ function RealEstateCalculatorPageContent() {
                 <CardHeader>
                   <CardTitle className="text-lg md:text-xl">Podsumowanie Płatności Kredytu</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                        <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
-                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
+                <CardContent className="space-y-6">
+                  {/* Główna karta z całkowitym kredytem do spłaty */}
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                    <div className="text-center">
+                      <p className="text-lg md:text-xl font-semibold text-gray-700 mb-3">Całkowity Kredyt do Spłaty</p>
+                      <p className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-800 mb-2">
+                        {formatCurrency(parseFloat(formData.loanAmount) + (results.totalInterest || 0))}
+                      </p>
+                      <div className="flex justify-center items-center gap-4 text-sm md:text-base text-gray-600">
+                        <span>Kapitał: <span className="font-semibold text-gray-800">{formatCurrency(parseFloat(formData.loanAmount))}</span></span>
+                        <span className="text-gray-400">+</span>
+                        <span>Odsetki: <span className="font-semibold text-red-600">{formatCurrency(results.totalInterest || 0)}</span></span>
+                      </div>
                     </div>
-                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                        <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
-                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
-                    </div>
-                    <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
-                        <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
-                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
-                    </div>
-                    <div className="p-4 md:p-6 bg-red-100 rounded-lg text-center">
-                        <p className="text-sm md:text-base text-gray-700 mb-2">Całkowity Koszt Kredytu</p>
-                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
-                    </div>
+                  </div>
+
+                  {/* Szczegółowe karty */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                          <p className="text-sm md:text-base text-gray-600 mb-2">Pierwsza Rata</p>
+                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.firstInstallment)}</p>
+                      </div>
+                      <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                          <p className="text-sm md:text-base text-gray-600 mb-2">Ostatnia Rata</p>
+                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(results.lastInstallment)}</p>
+                      </div>
+                      <div className="p-4 md:p-6 bg-gray-100 rounded-lg text-center">
+                          <p className="text-sm md:text-base text-gray-600 mb-2">Suma Odsetek</p>
+                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{formatCurrency(results.totalInterest)}</p>
+                      </div>
+                      <div className="p-4 md:p-6 bg-red-100 rounded-lg text-center">
+                          <p className="text-sm md:text-base text-gray-700 mb-2">Całkowity Koszt Kredytu</p>
+                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-800">{formatCurrency(totalCreditCost)}</p>
+                      </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -1324,9 +1342,26 @@ function RealEstateCalculatorPageContent() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4"><Disclaimer /></div>
       <FaqSection
         items={[
-          { question: 'Czy kalkulator uwzględnia podatek PCC?', answer: 'Tak, uwzględniamy PCC, taksę notarialną, opłaty sądowe i inne koszty okołozakupowe.' },
-          { question: 'Czy mogę dodać koszty dodatkowe?', answer: 'Tak, w sekcji dodatkowych kosztów możesz dodać własne pozycje.' },
-          { question: 'Czy wynik to pełny koszt?', answer: 'Prezentujemy estymację na podstawie podanych danych. Rzeczywiste koszty mogą się różnić.' },
+          { 
+            question: 'Czy kalkulator uwzględnia podatek PCC?', 
+            answer: 'Tak, nasz kalkulator uwzględnia wszystkie główne koszty związane z zakupem nieruchomości, w tym podatek PCC (Podatek od Czynności Cywilnoprawnych). PCC wynosi 2% wartości nieruchomości dla osób fizycznych i 1% dla osób prawnych. Dodatkowo uwzględniamy taksę notarialną (zwykle 0,5-1% wartości), opłaty sądowe za wpis do księgi wieczystej, opłaty za wycenę nieruchomości (jeśli wymagana przez bank), prowizję agencji nieruchomości (zwykle 2-3% od kupującego), opłaty za ubezpieczenie nieruchomości oraz inne koszty okołozakupowe. Wszystkie te koszty są automatycznie dodawane do całkowitego kosztu zakupu.' 
+          },
+          { 
+            question: 'Czy mogę dodać koszty dodatkowe?', 
+            answer: 'Tak, w sekcji "Dodatkowe koszty" możesz dodać własne pozycje kosztów, które nie są uwzględnione w standardowych kategoriach. To może obejmować koszty remontu, wyposażenia, przeprowadzki, konsultacji prawnych, dodatkowych badań technicznych, koszty związane z uzyskaniem pozwolenia na budowę (jeśli dotyczy), opłaty za media, podłączenia, czy inne specyficzne koszty związane z Twoją konkretną transakcją. Możesz dodać dowolną liczbę pozycji z opisem i kwotą, co pozwala na bardzo precyzyjne oszacowanie całkowitego kosztu zakupu nieruchomości.' 
+          },
+          { 
+            question: 'Czy wynik to pełny koszt?', 
+            answer: 'Kalkulator prezentuje kompleksową estymację kosztów na podstawie podanych przez Ciebie danych i aktualnych stawek podatkowych oraz opłat. Uwzględniamy wszystkie standardowe koszty związane z zakupem nieruchomości w Polsce. Jednak rzeczywiste koszty mogą się różnić w zależności od konkretnej lokalizacji, specyfiki nieruchomości, wybranego notariusza, banku czy agencji. Niektóre koszty mogą być wyższe lub niższe niż szacowane, dlatego zawsze warto skonsultować się z notariuszem, doradcą finansowym lub agentem nieruchomości przed finalizacją transakcji. Kalkulator służy jako narzędzie do planowania budżetu i porównywania różnych opcji.' 
+          },
+          { 
+            question: 'Jakie są najważniejsze koszty przy zakupie?', 
+            answer: 'Najważniejsze koszty przy zakupie nieruchomości to: 1) Podatek PCC (2% wartości) - największy jednorazowy koszt, 2) Taksa notarialna (0,5-1% wartości) - obowiązkowa przy sporządzaniu aktu notarialnego, 3) Wkład własny (minimum 20% wartości) - wymagany przez banki, 4) Prowizja banku (0,5-2% kwoty kredytu) - za udzielenie kredytu hipotecznego, 5) Ubezpieczenie nieruchomości (obowiązkowe przy kredycie), 6) Opłaty sądowe za wpis do księgi wieczystej, 7) Koszty wyceny nieruchomości (jeśli wymagana), 8) Prowizja agencji (2-3% od kupującego). Te koszty mogą stanowić nawet 10-15% wartości nieruchomości, dlatego tak ważne jest ich uwzględnienie w budżecie.' 
+          },
+          { 
+            question: 'Czy mogę zmniejszyć koszty zakupu?', 
+            answer: 'Tak, istnieje kilka sposobów na zmniejszenie kosztów zakupu: 1) Negocjuj prowizję agencji - często można ją obniżyć, szczególnie przy szybkiej transakcji, 2) Porównaj oferty banków - różne banki mają różne prowizje i opłaty, 3) Wybierz notariusza z niższą taksą - stawki mogą się różnić, 4) Rozważ zakup bez pośrednika - bezpośredni kontakt z właścicielem eliminuje prowizję agencji, 5) Sprawdź możliwość zwolnienia z PCC - niektóre transakcje mogą być zwolnione (np. pierwszy zakup mieszkania przez młodych), 6) Negocjuj cenę nieruchomości - niższa cena oznacza niższe koszty procentowe, 7) Rozważ różne formy finansowania - niektóre banki oferują lepsze warunki. Pamiętaj, że oszczędności na kosztach nie powinny wpływać na jakość obsługi prawnej.' 
+          },
         ]}
       />
     </div>

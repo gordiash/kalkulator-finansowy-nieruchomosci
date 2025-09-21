@@ -101,22 +101,32 @@ export default async function ValuationPage({ searchParams }: PageProps) {
           {
             question: 'Jak dokładny jest EstymatorAI?',
             answer:
-              'Model osiąga MAPE ~0.79% w naszych testach. To średni błąd względny – wynik może się różnić dla specyficznych lokalizacji i parametrów.',
+              'EstymatorAI osiąga MAPE (Mean Absolute Percentage Error) około 0.79% w naszych testach na rzeczywistych danych rynkowych. To oznacza, że średni błąd względny wynosi mniej niż 1%. Model został wytrenowany na ponad 7000 rzeczywistych ofert z całej Polski i wykorzystuje zaawansowane algorytmy ensemble (łączenie wielu modeli). Dokładność może się różnić dla specyficznych lokalizacji, nietypowych parametrów mieszkania lub bardzo rzadkich kombinacji cech.',
           },
           {
             question: 'Czy muszę podawać wszystkie pola?',
             answer:
-              'Wymagane są miasto, metraż i liczba pokoi. Pozostałe pola pomagają zwiększyć precyzję.',
+              'Nie wszystkie pola są wymagane. Minimalne dane potrzebne do wyceny to: miasto, metraż mieszkania i liczba pokoi. Te podstawowe informacje pozwalają na oszacowanie wartości z dobrą dokładnością. Pozostałe pola (rok budowy, piętro, dzielnica, stan techniczny, wyposażenie) pomagają znacznie zwiększyć precyzję wyceny. Im więcej szczegółów podasz, tym dokładniejszy będzie wynik. System automatycznie dostosowuje wagę każdego parametru w zależności od jego dostępności.',
           },
           {
             question: 'Czy mogę zapisać wynik?',
             answer:
-              'Tak, po obliczeniu możesz zapisać kalkulację w Panel → Kalkulacje (wymagane logowanie).',
+              'Tak, po obliczeniu wyceny możesz zapisać kalkulację w swoim panelu użytkownika. Aby to zrobić, musisz się zalogować (lub zarejestrować jeśli nie masz konta). Zapisane kalkulacje znajdziesz w sekcji "Panel → Kalkulacje", gdzie możesz przeglądać historię swoich wycen, porównywać wyniki i eksportować je do PDF. To szczególnie przydatne przy analizie wielu nieruchomości lub śledzeniu zmian wartości w czasie.',
           },
           {
             question: 'Czy wycena jest doradztwem?',
             answer:
-              'Nie. To wynik modelu statystycznego i nie stanowi porady inwestycyjnej ani operatu szacunkowego.',
+              'Nie, wycena EstymatorAI nie stanowi doradztwa inwestycyjnego, prawnego ani operatu szacunkowego. To wynik działania modelu statystycznego opartego na analizie historycznych danych rynkowych. Wycena ma charakter poglądowy i orientacyjny. Przed podjęciem jakichkolwiek decyzji finansowych dotyczących nieruchomości zalecamy konsultację z wykwalifikowanym doradcą finansowym, rzeczoznawcą majątkowym lub prawnikiem specjalizującym się w nieruchomościach.',
+          },
+          {
+            question: 'Jak często aktualizujecie model?',
+            answer:
+              'Model EstymatorAI jest regularnie aktualizowany nowymi danymi rynkowymi, aby zachować wysoką dokładność w zmieniających się warunkach rynkowych. Aktualizacje obejmują zarówno nowe dane treningowe z rynku nieruchomości, jak i dostrajanie parametrów modelu. Staramy się aktualizować model co najmniej raz na kwartał, a w przypadku znaczących zmian na rynku (np. zmiany stóp procentowych, nowe regulacje) - częściej.',
+          },
+          {
+            question: 'Czy model uwzględnia aktualne trendy rynkowe?',
+            answer:
+              'Tak, EstymatorAI uwzględnia aktualne trendy rynkowe poprzez ciągłe uczenie się na nowych danych. Model analizuje nie tylko podstawowe parametry mieszkania, ale także kontekst rynkowy, w tym lokalne trendy cenowe, dostępność mieszkań w danej lokalizacji, zmiany w infrastrukturze i inne czynniki makroekonomiczne. To pozwala na bardziej precyzyjne oszacowanie wartości w kontekście aktualnej sytuacji rynkowej.',
           },
         ]}
       />

@@ -122,13 +122,6 @@ export default function Page() {
       <FliperCalculatorWithSave />
 
       <Disclaimer className="mt-8" />
-
-      <section aria-label="Noty prawne" className="mt-10">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-          Wyniki mają charakter informacyjny i nie stanowią doradztwa inwestycyjnego ani oferty w rozumieniu K.C. 
-          Rzeczywiste koszty mogą różnić się w zależności od rynku, wykonawców i warunków finansowania.
-        </div>
-      </section>
     </div>
   )
 }

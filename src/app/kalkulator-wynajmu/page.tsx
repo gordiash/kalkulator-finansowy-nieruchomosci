@@ -74,13 +74,6 @@ const InputWithValidation = ({
       <div className="flex items-center gap-1 text-xs sm:text-sm text-red-600">
         <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
         <span>{error}</span>
-        <FaqSection
-          items={[
-            { question: 'Jak interpretować ROI w kalkulatorze?', answer: 'ROI pokazuje roczny zwrot względem zainwestowanej gotówki. Dla wynajmu często istotniejszy jest cash flow oraz neto CoC.' },
-            { question: 'Czy uwzględniacie pustostany?', answer: 'Tak, podaj w miesiącach średni okres pustostanów w roku – wpływa na przychody.' },
-            { question: 'Czy mogę dodać finansowanie kredytem?', answer: 'Tak, sekcja Finansowanie pozwala uwzględnić wkład własny, oprocentowanie i okres kredytowania.' },
-          ]}
-        />
       </div>
     )}
   </div>
@@ -116,8 +109,8 @@ const RentalProfitabilityCalculatorPageContent = () => {
   const [taxationType, setTaxationType] = useState("ryczalt"); // "ryczalt" lub "skala"
   const [taxScale, setTaxScale] = useState("12"); // "12" lub "32" dla skali podatkowej
   // Projekcja wieloletnia
-  const [propertyAppreciation, setPropertyAppreciation] = useState("3"); // % rocznie
-  const [rentGrowth, setRentGrowth] = useState("2"); // % rocznie
+  const [propertyAppreciation, setPropertyAppreciation] = useState("3.5"); // % rocznie
+  const [rentGrowth, setRentGrowth] = useState("3.0"); // % rocznie
 
   // Wyniki z API
   const [results, setResults] = useState<{
@@ -312,8 +305,8 @@ const RentalProfitabilityCalculatorPageContent = () => {
         loanYears: loanYears ? parseFloat(loanYears) : 25,
         taxationType: taxationType as 'ryczalt' | 'skala',
         taxScale: taxScale as '12' | '32',
-        propertyAppreciation: parseFloat(propertyAppreciation) || 3,
-        rentGrowth: parseFloat(rentGrowth) || 2,
+        propertyAppreciation: parseFloat(propertyAppreciation) || 3.5,
+        rentGrowth: parseFloat(rentGrowth) || 3.0,
         otherInitialCosts: parseFloat(transactionCosts) || 0,
         managementFee: 0,
       };
@@ -373,7 +366,7 @@ const RentalProfitabilityCalculatorPageContent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-20 sm:pt-24">
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <Card className="max-w-4xl mx-auto shadow-2xl">
+        <Card className="max-w-6xl mx-auto shadow-2xl">
           <CardHeader className="text-center bg-gray-50 rounded-t-lg py-6 sm:py-8 px-4 sm:px-6">
             <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-extrabold">
               Kalkulator opłacalności wynajmu
@@ -406,77 +399,95 @@ const RentalProfitabilityCalculatorPageContent = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <InputWithValidation
-                      id="purchasePrice"
-                      label="Cena zakupu (zł)"
-                      value={purchasePrice}
-                      onChange={handleNumericInput(setPurchasePrice)}
-                      placeholder="np. 450000"
-                      error={validationErrors.purchasePrice}
-                    />
-                    <InputWithValidation
-                      id="monthlyRent"
-                      label="Mies. przychód z najmu (zł)"
-                      value={monthlyRent}
-                      onChange={handleNumericInput(setMonthlyRent)}
-                      placeholder="np. 2500"
-                      error={validationErrors.monthlyRent}
-                    />
-                    <InputWithValidation
-                      id="transactionCosts"
-                      label="Koszty transakcyjne (zł)"
-                      value={transactionCosts}
-                      onChange={handleNumericInput(setTransactionCosts)}
-                      placeholder="np. 15000"
-                      error={validationErrors.transactionCosts}
-                      helperText="PCC, taksa notarialna, prowizja agencji"
-                    />
-                    <InputWithValidation
-                      id="renovationCosts"
-                      label="Koszt remontu (zł)"
-                      value={renovationCosts}
-                      onChange={handleNumericInput(setRenovationCosts)}
-                      placeholder="np. 25000"
-                      error={validationErrors.renovationCosts}
-                      helperText="Remont i wyposażenie mieszkania"
-                    />
-                    <InputWithValidation
-                      id="adminFees"
-                      label="Czynsz administracyjny (zł/mies.)"
-                      value={adminFees}
-                      onChange={handleNumericInput(setAdminFees)}
-                      placeholder="np. 300"
-                      error={validationErrors.adminFees}
-                      helperText="Do spółdzielni/wspólnoty"
-                    />
-                    <InputWithValidation
-                      id="utilities"
-                      label="Opłaty za media (zł/mies.)"
-                      value={utilities}
-                      onChange={handleNumericInput(setUtilities)}
-                      placeholder="np. 200"
-                      error={validationErrors.utilities}
-                      helperText="Prąd, woda, gaz, internet"
-                    />
-                    <InputWithValidation
-                      id="insurance"
-                      label="Ubezpieczenie (zł/rok)"
-                      value={insurance}  
-                      onChange={handleNumericInput(setInsurance)}
-                      placeholder="np. 600"
-                      error={validationErrors.insurance}
-                      helperText="Roczna składka ubezpieczeniowa"
-                    />
-                    <InputWithValidation
-                      id="otherCosts"
-                      label="Inne koszty (zł/mies.)"
-                      value={otherCosts}
-                      onChange={handleNumericInput(setOtherCosts)}
-                      placeholder="np. 100"
-                      error={validationErrors.otherCosts}
-                      helperText="Podatek od nieruchomości, itp."
-                    />
+                  {/* Podstawowe dane inwestycji */}
+                  <div className="mb-6">
+                    <h4 className="text-base font-semibold mb-4 text-gray-700">Podstawowe dane inwestycji</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <InputWithValidation
+                        id="purchasePrice"
+                        label="Cena zakupu (zł)"
+                        value={purchasePrice}
+                        onChange={handleNumericInput(setPurchasePrice)}
+                        placeholder="np. 450000"
+                        error={validationErrors.purchasePrice}
+                      />
+                      <InputWithValidation
+                        id="monthlyRent"
+                        label="Mies. przychód z najmu (zł)"
+                        value={monthlyRent}
+                        onChange={handleNumericInput(setMonthlyRent)}
+                        placeholder="np. 2500"
+                        error={validationErrors.monthlyRent}
+                      />
+                      <InputWithValidation
+                        id="transactionCosts"
+                        label="Koszty transakcyjne (zł)"
+                        value={transactionCosts}
+                        onChange={handleNumericInput(setTransactionCosts)}
+                        placeholder="np. 15000"
+                        error={validationErrors.transactionCosts}
+                        helperText="PCC, taksa notarialna, prowizja agencji"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Koszty początkowe */}
+                  <div className="mb-6">
+                    <h4 className="text-base font-semibold mb-4 text-gray-700">Koszty początkowe</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <InputWithValidation
+                        id="renovationCosts"
+                        label="Koszt remontu (zł)"
+                        value={renovationCosts}
+                        onChange={handleNumericInput(setRenovationCosts)}
+                        placeholder="np. 25000"
+                        error={validationErrors.renovationCosts}
+                        helperText="Remont i wyposażenie mieszkania"
+                      />
+                      <InputWithValidation
+                        id="adminFees"
+                        label="Czynsz administracyjny (zł/mies.)"
+                        value={adminFees}
+                        onChange={handleNumericInput(setAdminFees)}
+                        placeholder="np. 300"
+                        error={validationErrors.adminFees}
+                        helperText="Do spółdzielni/wspólnoty"
+                      />
+                      <InputWithValidation
+                        id="utilities"
+                        label="Opłaty za media (zł/mies.)"
+                        value={utilities}
+                        onChange={handleNumericInput(setUtilities)}
+                        placeholder="np. 200"
+                        error={validationErrors.utilities}
+                        helperText="Prąd, woda, gaz, internet"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Koszty miesięczne */}
+                  <div className="mb-6">
+                    <h4 className="text-base font-semibold mb-4 text-gray-700">Koszty miesięczne</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <InputWithValidation
+                        id="insurance"
+                        label="Ubezpieczenie (zł/rok)"
+                        value={insurance}  
+                        onChange={handleNumericInput(setInsurance)}
+                        placeholder="np. 600"
+                        error={validationErrors.insurance}
+                        helperText="Roczna składka ubezpieczeniowa"
+                      />
+                      <InputWithValidation
+                        id="otherCosts"
+                        label="Inne koszty (zł/mies.)"
+                        value={otherCosts}
+                        onChange={handleNumericInput(setOtherCosts)}
+                        placeholder="np. 100"
+                        error={validationErrors.otherCosts}
+                        helperText="Podatek od nieruchomości, itp."
+                      />
+                    </div>
                   </div>
                   
                   <div className="mb-6 p-3 sm:p-4 bg-blue-50 rounded-md">
@@ -498,17 +509,19 @@ const RentalProfitabilityCalculatorPageContent = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="downPayment" className={validationErrors.downPayment ? "text-red-600" : ""}>Wkład własny</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="downPayment"
-                            type="number"
-                            value={downPayment}
-                            onChange={(e) => handleNumericInput(setDownPayment)(e.target.value)}
-                            placeholder="np. 150000"
-                            className={validationErrors.downPayment ? "border-red-500 focus:border-red-500" : ""}
-                          />
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <Input
+                              id="downPayment"
+                              type="number"
+                              value={downPayment}
+                              onChange={(e) => handleNumericInput(setDownPayment)(e.target.value)}
+                              placeholder="np. 150000"
+                              className={`h-10 ${validationErrors.downPayment ? "border-red-500 focus:border-red-500" : ""}`}
+                            />
+                          </div>
                           <Select value={downPaymentType} onValueChange={setDownPaymentType}>
-                            <SelectTrigger className="w-20">
+                            <SelectTrigger className="w-20 h-10">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -524,28 +537,46 @@ const RentalProfitabilityCalculatorPageContent = () => {
                           </div>
                         )}
                       </div>
-                      <InputWithValidation
-                        id="interestRate"
-                        label="Oprocentowanie (%)"
-                        value={interestRate}
-                        onChange={handleNumericInput(setInterestRate)}
-                        placeholder="np. 6.5"
-                        error={validationErrors.interestRate}
-                      />
-                      <InputWithValidation
-                        id="loanYears"
-                        label="Okres kredytowania (lata)"
-                        value={loanYears}
-                        onChange={handleNumericInput(setLoanYears)}
-                        placeholder="np. 25"
-                        error={validationErrors.loanYears}
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="interestRate" className={validationErrors.interestRate ? "text-red-600" : ""}>Oprocentowanie (%)</Label>
+                        <Input
+                          id="interestRate"
+                          type="number"
+                          value={interestRate}
+                          onChange={(e) => handleNumericInput(setInterestRate)(e.target.value)}
+                          placeholder="np. 6.5"
+                          className={`h-10 ${validationErrors.interestRate ? "border-red-500 focus:border-red-500" : ""}`}
+                        />
+                        {validationErrors.interestRate && (
+                          <div className="flex items-center gap-1 text-sm text-red-600">
+                            <AlertTriangle className="w-4 h-4" />
+                            <span>{validationErrors.interestRate}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="loanYears" className={validationErrors.loanYears ? "text-red-600" : ""}>Okres kredytowania (lata)</Label>
+                        <Input
+                          id="loanYears"
+                          type="number"
+                          value={loanYears}
+                          onChange={(e) => handleNumericInput(setLoanYears)(e.target.value)}
+                          placeholder="np. 25"
+                          className={`h-10 ${validationErrors.loanYears ? "border-red-500 focus:border-red-500" : ""}`}
+                        />
+                        {validationErrors.loanYears && (
+                          <div className="flex items-center gap-1 text-sm text-red-600">
+                            <AlertTriangle className="w-4 h-4" />
+                            <span>{validationErrors.loanYears}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
                     <h3 className="text-lg font-semibold mb-4">Podatki</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="taxationType">Forma opodatkowania</Label>
                         <Select value={taxationType} onValueChange={setTaxationType}>
@@ -802,7 +833,7 @@ const RentalProfitabilityCalculatorPageContent = () => {
                             label="Wzrost wartości nieruchomości (%/rok)"
                             value={propertyAppreciation}
                             onChange={handleNumericInput(setPropertyAppreciation)}
-                            placeholder="3"
+                            placeholder="3.5"
                             error={validationErrors.propertyAppreciation}
                           />
                           <InputWithValidation
@@ -810,7 +841,7 @@ const RentalProfitabilityCalculatorPageContent = () => {
                             label="Wzrost czynszu (%/rok)"
                             value={rentGrowth}
                             onChange={handleNumericInput(setRentGrowth)}
-                            placeholder="2"
+                            placeholder="3.0"
                             error={validationErrors.rentGrowth}
                           />
                         </div>
@@ -882,6 +913,35 @@ const RentalProfitabilityCalculatorPageContent = () => {
                   </CardContent>
                 </Card>
               )}
+              <FaqSection
+                items={[
+                  { 
+                    question: 'Jak interpretować ROI w kalkulatorze?', 
+                    answer: 'ROI (Return on Investment) pokazuje roczny zwrot względem zainwestowanej gotówki wyrażony w procentach. Dla inwestycji w wynajem często istotniejszy jest cash flow (miesięczny przepływ gotówki) oraz netto CoC (Cash on Cash return). ROI uwzględnia zarówno miesięczne przepływy pieniężne, jak i wzrost wartości nieruchomości w czasie. Dobry ROI dla wynajmu to zwykle 8-12% rocznie, ale zależy to od lokalizacji, typu nieruchomości i warunków rynkowych. Pamiętaj, że ROI to tylko jeden z wielu wskaźników - równie ważne są stabilność cash flow, potencjał wzrostu wartości i ryzyko inwestycyjne.' 
+                  },
+                  { 
+                    question: 'Czy uwzględniacie pustostany?', 
+                    answer: 'Tak, nasz kalkulator uwzględnia okresy pustostanów, które są naturalną częścią każdej inwestycji w wynajem. W polu "Okres pustostanów" podaj średni czas w miesiącach, kiedy mieszkanie pozostaje puste w ciągu roku. To może być spowodowane zmianą najemców, remontami, sezonowością rynku czy innymi czynnikami. Pustostany wpływają bezpośrednio na przychody - jeśli podasz 1 miesiąc pustostanu, kalkulator automatycznie zmniejszy roczny przychód o 1/12. Realistyczne założenie to 1-2 miesiące pustostanu rocznie, ale może się różnić w zależności od lokalizacji i typu nieruchomości.' 
+                  },
+                  { 
+                    question: 'Czy mogę dodać finansowanie kredytem?', 
+                    answer: 'Tak, sekcja "Finansowanie Kredytem" pozwala na pełne uwzględnienie kredytu hipotecznego w kalkulacji. Możesz określić wkład własny (w złotych lub procentach), oprocentowanie kredytu oraz okres kredytowania. Kalkulator automatycznie obliczy miesięczną ratę kredytu i uwzględni ją w przepływach pieniężnych. To pozwala na realistyczną ocenę opłacalności inwestycji z wykorzystaniem dźwigni finansowej. Pamiętaj, że kredyt zwiększa ryzyko inwestycyjne, ale może też zwiększyć zwrot z zainwestowanego kapitału własnego.' 
+                  },
+                  { 
+                    question: 'Jakie koszty uwzględnia kalkulator?', 
+                    answer: 'Kalkulator uwzględnia wszystkie główne koszty związane z inwestycją w wynajem: koszty zakupu nieruchomości, koszty remontu i wyposażenia, koszty transakcyjne (PCC, notariusz, agencja), miesięczne opłaty (czynsz administracyjny, media, ubezpieczenie), inne koszty eksploatacyjne, podatki (ryczałt lub skala podatkowa), koszty finansowania (raty kredytu, odsetki), oraz koszty sprzedaży (jeśli planujesz sprzedać w przyszłości). Możesz też dodać własne koszty w sekcji "Inne koszty". To kompleksowe podejście pozwala na precyzyjne oszacowanie rzeczywistej opłacalności inwestycji.' 
+                  },
+                  { 
+                    question: 'Czy wyniki są dokładne?', 
+                    answer: 'Wyniki kalkulatora mają charakter poglądowy i orientacyjny. Są oparte na podanych przez Ciebie danych i aktualnych stawek podatkowych oraz opłat. Rzeczywiste koszty mogą się różnić w zależności od konkretnej lokalizacji, specyfiki nieruchomości, zmian na rynku, inflacji, zmian stawek podatkowych czy innych czynników makroekonomicznych. Kalkulator służy jako narzędzie do planowania i porównywania różnych scenariuszy inwestycyjnych. Przed podjęciem decyzji o inwestycji zalecamy konsultację z doradcą finansowym, rzeczoznawcą majątkowym lub innym specjalistą z branży nieruchomości.' 
+                  },
+                  { 
+                    question: 'Jak ocenić opłacalność inwestycji?', 
+                    answer: 'Oceniając opłacalność inwestycji w wynajem, zwróć uwagę na kilka kluczowych wskaźników: 1) Cash flow - miesięczny przepływ gotówki powinien być dodatni, 2) ROI - roczny zwrot z inwestycji powinien być wyższy niż alternatywne inwestycje, 3) Cash on Cash return - zwrot z zainwestowanego kapitału własnego, 4) Okres zwrotu - jak szybko zwróci się zainwestowany kapitał, 5) Potencjał wzrostu wartości nieruchomości, 6) Stabilność przychodów z najmu, 7) Ryzyko inwestycyjne. Dobra inwestycja powinna generować stabilny, dodatni cash flow przy rozsądnym poziomie ryzyka. Pamiętaj też o dywersyfikacji portfela inwestycyjnego.' 
+                  },
+                ]}
+                className="mt-8"
+              />
               {results && <Disclaimer className="mt-4" />}
             </div>
           </CardContent>
