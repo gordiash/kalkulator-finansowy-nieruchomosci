@@ -153,7 +153,7 @@ function generateValuationDescription({ city, area, rooms, year, district }: Omi
     description += '. '
   }
   
-  description += 'Model EstymatorAI MAPE 0.79%. Sprawdź też zdolność kredytową i rentowność wynajmu.'
+  description += 'Model EstymatorAI MAPE 0.29%. Sprawdź też zdolność kredytową i rentowność wynajmu.'
   
   return description
 } 

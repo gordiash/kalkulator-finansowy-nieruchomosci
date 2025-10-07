@@ -31,7 +31,8 @@ Nowoczesne kalkulatory finansowe dla rynku nieruchomości w Polsce, zbudowane z 
 ### 4. Kalkulator Wyceny Mieszkań 🚀 AI Ensemble
 - **Zaawansowana sztuczna inteligencja** - Model Ensemble (LightGBM + Random Forest + CatBoost)
 - **Dokładność 0.79% MAPE** - Najlepsza precyzja wyceny w Polsce
-- **Inteligentny fallback** - Ensemble → Random Forest → Heurystyka
+- **EstymatorAI External API** - Integracja z zewnętrznym API estymatorai-production.up.railway.app
+- **Inteligentny fallback** - EstymatorAI External → Local Ensemble → Railway ML → Random Forest → Heurystyka
 - **Autouzupełnianie lokalizacji** - Baza miast i dzielnic z regionu Olsztyn
 - **Integracja z kalkulatorami** - Przekazywanie ceny do innych narzędzi
 - **100+ cech** - Ultra-zaawansowane feature engineering
@@ -128,12 +129,41 @@ git push origin main
 
 ### Zmienne Środowiskowe
 ```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://kalkulatorynieruchomosci.pl
+
+# EstymatorAI Configuration
+ESTYMATORAI_API_URL=https://estymatorai-production.up.railway.app
+
+# Railway ML API (legacy - zachowane dla kompatybilności)
+RAILWAY_ML_API_URL=https://your-railway-ml-api.up.railway.app
+
+# Database
+DATABASE_URL=your_database_url_here
+
+# JWT Secret
+JWT_SECRET=your_jwt_secret_here
+
+# Analytics & Marketing
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXX
 NEXT_PUBLIC_FACEBOOK_PIXEL_ID=XXXXXXXX
 NEXT_PUBLIC_HOTJAR_ID=XXXXXXXX
+
+# Airtable (Newsletter)
 AIRTABLE_BASE_ID=appXXXXXXXXXX
 AIRTABLE_TABLE_NAME=Newsletter
 AIRTABLE_ACCESS_TOKEN=patXXXXXXXXXX
+
+# Email Configuration
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_smtp_password
 ```
 
 ### Build Scripts

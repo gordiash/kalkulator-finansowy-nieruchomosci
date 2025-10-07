@@ -65,22 +65,22 @@ export default async function ValuationPage({ searchParams }: PageProps) {
           <div className="p-3 sm:p-4 bg-white/50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">🤖 EstymatorAI</h3>
             <p className="text-xs sm:text-sm leading-relaxed">
-              Używamy zaawansowanego modelu ensemble wytrenowanego na rzeczywistych ofertach 
-              z rynku nieruchomości w całej Polsce. Dokładność modelu wynosi MAPE 0.79%.
+              Używamy zaawansowanego modelu Random Forest Regressor wytrenowanego na 61,782 próbkach 
+              z całej Polski. Bardzo wysoka dokładność: MAPE 0.29%.
             </p>
           </div>
           <div className="p-3 sm:p-4 bg-white/50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">📊 Analiza parametrów</h3>
             <p className="text-xs sm:text-sm leading-relaxed">
-              EstymatorAI uwzględnia 35+ cech nieruchomości: lokalizację, metraż, liczbę pokoi, 
-              piętro, rok budowy i wiele innych czynników wpływających na cenę.
+              EstymatorAI uwzględnia 81 cech nieruchomości: powierzchnię (24.25%), liczbę pokoi (6.06%), 
+              wiek budynku (5.84%), lokalizację i dostępność usług wpływających na cenę.
             </p>
           </div>
           <div className="p-3 sm:p-4 bg-white/50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">⚡ Natychmiastowe wyniki</h3>
             <p className="text-xs sm:text-sm leading-relaxed">
-              Otrzymasz szacowaną wartość mieszkania w kilka sekund wraz z przedziałem 
-              ufności i możliwością sprawdzenia zdolności kredytowej.
+              Otrzymasz szacowaną wartość mieszkania w 300-500ms wraz z przedziałem 
+              ufności ±2% i możliwością sprawdzenia zdolności kredytowej.
             </p>
           </div>
           <div className="p-3 sm:p-4 bg-white/50 rounded-lg">
@@ -101,7 +101,7 @@ export default async function ValuationPage({ searchParams }: PageProps) {
           {
             question: 'Jak dokładny jest EstymatorAI?',
             answer:
-              'EstymatorAI osiąga MAPE (Mean Absolute Percentage Error) około 0.79% w naszych testach na rzeczywistych danych rynkowych. To oznacza, że średni błąd względny wynosi mniej niż 1%. Model został wytrenowany na ponad 7000 rzeczywistych ofert z całej Polski i wykorzystuje zaawansowane algorytmy ensemble (łączenie wielu modeli). Dokładność może się różnić dla specyficznych lokalizacji, nietypowych parametrów mieszkania lub bardzo rzadkich kombinacji cech.',
+              'EstymatorAI osiąga MAPE (Mean Absolute Percentage Error) około 0.29% w naszych testach na rzeczywistych danych rynkowych. To oznacza, że średni błąd względny wynosi mniej niż 1%. Model został wytrenowany na 61,782 rzeczywistych próbkach z całej Polski i wykorzystuje zaawansowany algorytm Random Forest Regressor. Dokładność może się różnić dla specyficznych lokalizacji, nietypowych parametrów mieszkania lub bardzo rzadkich kombinacji cech.',
           },
           {
             question: 'Czy muszę podawać wszystkie pola?',
@@ -150,7 +150,7 @@ export default async function ValuationPage({ searchParams }: PageProps) {
               </div>
               <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-base sm:text-lg">EstymatorAI</h3>
               <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
-                Zaawansowany model ensemble wytrenowany na rzeczywistych ofertach 
+                Zaawansowany model Random Forest Regressor wytrenowany na 61,782 próbkach 
                 z rynku nieruchomości w całej Polsce.
               </p>
             </div>
@@ -159,7 +159,7 @@ export default async function ValuationPage({ searchParams }: PageProps) {
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
                 <span className="text-lg sm:text-2xl">📊</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-base sm:text-lg">35+ parametrów</h3>
+              <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-base sm:text-lg">81 cech</h3>
               <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
                 Uwzględniamy lokalizację, metraż, liczbę pokoi, 
                 piętro, rok budowy i wiele innych czynników.
@@ -172,8 +172,8 @@ export default async function ValuationPage({ searchParams }: PageProps) {
               </div>
               <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-base sm:text-lg">Błyskawiczne wyniki</h3>
               <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
-                Otrzymasz szacowaną wartość mieszkania w mniej niż 3 sekundy 
-                wraz z przedziałem ufności.
+                Otrzymasz szacowaną wartość mieszkania w 300-500ms 
+                wraz z przedziałem ufności ±2%.
               </p>
             </div>
             

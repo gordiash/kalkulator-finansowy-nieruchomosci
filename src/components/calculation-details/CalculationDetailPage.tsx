@@ -32,6 +32,7 @@ import { DataSection } from './DataSection';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorDisplay } from '../ui/ErrorDisplay';
 import FlipperDetailsSection from './FlipperDetailsSection';
+import GeneratePDFButton from '../GeneratePDFButton';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend as RechartsLegend, BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ReferenceLine } from 'recharts';
 import { formatCurrency, formatCurrencyShort } from '@/lib/utils';
 
@@ -110,9 +111,15 @@ export default function CalculationDetailPage() {
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/panel/kalkulacje" className="text-blue-600 hover:underline mb-4 inline-block">
-          &larr; Wróć do listy
-        </Link>
+        <div className="flex items-center justify-between mb-4">
+          <Link href="/panel/kalkulacje" className="text-blue-600 hover:underline">
+            &larr; Wróć do listy
+          </Link>
+          <GeneratePDFButton 
+            calculationId={calculation.id}
+            calculationTitle={calculation.title || 'Kalkulacja'}
+          />
+        </div>
         <h1 className="text-3xl font-bold text-gray-800">{calculation.title || (calculation.calculation_type === 'flipper' ? 'Kalkulacja flip' : 'Kalkulacja')}</h1>
         <p className="text-gray-500 mt-2">
           Szczegóły zapisanej kalkulacji z dnia {new Date(calculation.created_at).toLocaleDateString('pl-PL')}

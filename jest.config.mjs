@@ -1,6 +1,6 @@
 export default {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -8,9 +8,7 @@ export default {
   },
   globals: {
     'ts-jest': {
-      tsconfig: {
-        jsx: 'react-jsx',
-      },
+      tsconfig: 'tsconfig.test.json',
     },
   },
   setupFiles: ['<rootDir>/jest.setup.ts'],

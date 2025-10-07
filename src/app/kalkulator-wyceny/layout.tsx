@@ -5,8 +5,8 @@ export const generateMetadata = (): Metadata => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'
   return {
     ...defaultMeta,
-    title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.79% | Analityka Nieruchomości',
-    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji EstymatorAI. Model ensemble MAPE 0.79%, wytrenowany na 7000+ ofertach. Sprawdź też zdolność kredytową i rentowność wynajmu.',
+    title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.29% | Analityka Nieruchomości',
+    description: 'Oszacuj wartość rynkową mieszkania za pomocą sztucznej inteligencji EstymatorAI. Model Random Forest MAPE 0.29%, wytrenowany na 61,782 próbkach. Sprawdź też zdolność kredytową i rentowność wynajmu.',
     keywords: [
       'kalkulator wyceny mieszkania',
       'wycena nieruchomości',
@@ -18,8 +18,8 @@ export const generateMetadata = (): Metadata => {
       'Olsztyn',
       'zdolność kredytowa',
       'rentowność wynajmu',
-      'model ensemble',
-      'MAPE 0.79%',
+      'model Random Forest',
+      'MAPE 0.29%',
       'kalkulator kredytu hipotecznego',
       'kredyt hipoteczny kalkulator',
       'zdolność kredytowa kalkulator',
@@ -73,8 +73,8 @@ export const generateMetadata = (): Metadata => {
     },
     openGraph: {
       ...defaultMeta.openGraph,
-      title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.79%',
-      description: 'Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. Model ensemble MAPE 0.79%, wytrenowany na 7000+ ofertach z całej Polski.',
+      title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI MAPE 0.29%',
+      description: 'Oszacuj wartość rynkową mieszkania za pomocą EstymatorAI. Model Random Forest MAPE 0.29%, wytrenowany na 61,782 próbkach z całej Polski.',
       url: `${baseUrl}/kalkulator-wyceny`,
       type: 'website',
       images: [
@@ -89,7 +89,7 @@ export const generateMetadata = (): Metadata => {
     twitter: {
       card: 'summary_large_image',
       title: 'Kalkulator Wyceny Mieszkania - AI EstymatorAI',
-      description: 'Oszacuj wartość mieszkania za pomocą EstymatorAI. Model ensemble MAPE 0.79%.',
+      description: 'Oszacuj wartość mieszkania za pomocą EstymatorAI. Model Random Forest MAPE 0.29%.',
       images: [`${baseUrl}/images/kalkulator-wyceny-twitter.jpg`]
     },
     robots: {
@@ -135,7 +135,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
             applicationCategory: 'FinanceApplication',
             applicationSubCategory: 'RealEstateApplication',
             operatingSystem: 'Web',
-            description: 'Profesjonalny kalkulator do wyceny mieszkań wykorzystujący EstymatorAI. Model ensemble wytrenowany na rzeczywistych danych rynkowych.',
+            description: 'Profesjonalny kalkulator do wyceny mieszkań wykorzystujący EstymatorAI. Model Random Forest wytrenowany na 61,782 próbkach z całej Polski.',
             url: `${baseUrl}/kalkulator-wyceny`,
             author: {
               '@type': 'Organization',
@@ -150,9 +150,10 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
             },
             featureList: [
               'Wycena oparta o EstymatorAI',
-              'Model ensemble (LightGBM+RF+CatBoost)',
-              'MAPE 0.79%',
-              '7000+ próbek treningowych',
+              'Model Random Forest Regressor',
+              'MAPE 0.29%',
+              '61,782 próbek treningowych',
+              '81 cech nieruchomości',
               'Integracja z kalkulatorami',
               'Responsywny interfejs'
             ],
@@ -177,7 +178,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
                 name: 'Jak dokładny jest kalkulator wyceny mieszkania?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Nasz kalkulator wykorzystuje EstymatorAI z dokładnością MAPE 0.79%, wytrenowany na 7000+ rzeczywistych ofertach z całej Polski. To oznacza średni błąd około 0.79%.'
+                  text: 'Nasz kalkulator wykorzystuje EstymatorAI z bardzo wysoką dokładnością MAPE 0.29%, wytrenowany na 61,782 próbkach z całej Polski. To oznacza średni błąd około 0.29%.'
                 }
               },
               {
@@ -185,7 +186,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
                 name: 'Jakie parametry wpływają na wycenę mieszkania?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'EstymatorAI uwzględnia 35+ cech: lokalizację (miasto, dzielnica), metraż, liczbę pokoi, piętro, rok budowy i wiele innych parametrów wpływających na cenę nieruchomości.'
+                  text: 'EstymatorAI uwzględnia 81 cech: powierzchnię mieszkania (24.25%), liczbę pokoi (6.06%), wiek budynku (5.84%), lokalizację, dostępność usług i wiele innych parametrów wpływających na cenę nieruchomości.'
                 }
               },
               {
@@ -201,7 +202,7 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
                 name: 'Dla jakich miast działa kalkulator?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Model został wytrenowany głównie na danych z regionu Olsztyn, ale może być używany dla innych miast w Polsce. Dokładność może być niższa dla lokalizacji znacznie różniących się od danych treningowych.'
+                  text: 'Model został wytrenowany na danych z 30 głównych miast Polski, w tym Warszawa, Kraków, Wrocław, Gdańsk, Poznań, Łódź i wiele innych. Obsługuje wszystkie główne miasta Polski z bardzo wysoką dokładnością.'
                 }
               }
             ]

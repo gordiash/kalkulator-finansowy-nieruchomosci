@@ -62,7 +62,7 @@ const STEPS = [
 
 // Definicje tooltipów z wyjaśnieniami pojęć
 const tooltips = {
-  city: 'Miasto gdzie znajduje się mieszkanie. Model został wytrenowany głównie na danych z Olsztyna i okolic.',
+  city: 'Miasto gdzie znajduje się mieszkanie. Model został wytrenowany na danych z 30 głównych miast Polski.',
   district: 'Dzielnica lub osiedle. Lokalizacja znacząco wpływa na cenę nieruchomości. Opcjonalne pole.',
   street: 'Nazwa ulicy. Pomaga w precyzyjniejszej wycenie, ale nie jest wymagana.',
   area: 'Powierzchnia mieszkania w metrach kwadratowych. Jeden z najważniejszych czynników wpływających na cenę.',
@@ -376,14 +376,14 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
                 <div className="flex items-center space-x-3">
                   <h3 className="text-2xl font-bold text-white">EstymatorAI</h3>
                   <span className="bg-emerald-500/90 text-white text-xs font-semibold px-3 py-1 rounded-full border border-emerald-400/50">
-                    v2.1
+                    v1.0
                   </span>
                 </div>
                 <p className="text-blue-100 text-sm mt-1">Najdokładniejszy model wyceny w Polsce</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-emerald-400">0.79%</div>
+              <div className="text-3xl font-bold text-emerald-400">0.29%</div>
               <div className="text-xs text-blue-200 uppercase tracking-wide">Błąd MAPE</div>
             </div>
           </div>
@@ -391,8 +391,8 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="group">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                <div className="text-2xl font-bold text-white">7000+</div>
-                <div className="text-blue-200 text-sm">Ofert treningowych</div>
+                <div className="text-2xl font-bold text-white">61,782</div>
+                <div className="text-blue-200 text-sm">Próbek treningowych</div>
               </div>
             </div>
             <div className="group">
@@ -403,14 +403,14 @@ export default function ValuationCalculator({ initialData }: ValuationCalculator
             </div>
             <div className="group">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                <div className="text-2xl font-bold text-purple-300">&lt;3s</div>
+                <div className="text-2xl font-bold text-purple-300">300-500ms</div>
                 <div className="text-blue-200 text-sm">Czas odpowiedzi</div>
               </div>
             </div>
             <div className="group">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                <div className="text-2xl font-bold text-orange-300">3</div>
-                <div className="text-blue-200 text-sm">Algorytmy ML</div>
+                <div className="text-2xl font-bold text-orange-300">81</div>
+                <div className="text-blue-200 text-sm">Cech nieruchomości</div>
               </div>
             </div>
           </div>

@@ -35,7 +35,7 @@ export const generateMetadata = (): Metadata => {
     ...defaultMeta,
     title: 'Kalkulatory Nieruchomości - Wycena AI, Zdolność Kredytowa, Wynajem | Analityka Nieruchomości',
     description:
-      'Profesjonalne kalkulatory nieruchomości: wycena mieszkań z AI (MAPE 0.79%), zdolność kredytowa, rentowność wynajmu i koszty zakupu. Blog ekspercki.',
+      'Profesjonalne kalkulatory nieruchomości: wycena mieszkań z AI (MAPE 0.29%), zdolność kredytowa, rentowność wynajmu i koszty zakupu. Blog ekspercki.',
     keywords: [
       'kalkulator wyceny mieszkania',
       'wycena nieruchomości online',
@@ -288,21 +288,21 @@ export default async function HomePage() {
                   </h3>
                   <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                     Pierwszy w Polsce kalkulator wykorzystujący zaawansowany EstymatorAI. 
-                    Połączenie trzech algorytmów: <strong>LightGBM</strong>, <strong>Random Forest</strong> i <strong>CatBoost</strong>.
+                    Model <strong>Random Forest Regressor</strong> z bardzo wysoką dokładnością.
                   </p>
                   
                   <div className="space-y-4 mb-8">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-gray-700">Dokładność predykcji: <strong>MAPE 0.79%</strong></span>
+                      <span className="text-gray-700">Dokładność predykcji: <strong>MAPE 0.29%</strong></span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">Wytrenowany na <strong>7000+ ofertach</strong> z regionu</span>
+                      <span className="text-gray-700">Wytrenowany na <strong>61,782 próbkach</strong> z całej Polski</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                      <span className="text-gray-700">Uwzględnia <strong>35+ cech</strong> mieszkania</span>
+                      <span className="text-gray-700">Uwzględnia <strong>81 cech</strong> nieruchomości</span>
                     </div>
                   </div>
                   
@@ -386,15 +386,15 @@ export default async function HomePage() {
           <div className="text-center">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-green-600 mb-2">0.79%</div>
+                <div className="text-2xl font-bold text-green-600 mb-2">0.29%</div>
                 <div className="text-sm text-gray-600">Średni błąd predykcji (MAPE)</div>
               </div>
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-blue-600 mb-2">7000+</div>
-                <div className="text-sm text-gray-600">Ofert w bazie treningowej</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">61,782</div>
+                <div className="text-sm text-gray-600">Próbek w bazie treningowej</div>
               </div>
               <div className="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                <div className="text-2xl font-bold text-blue-600 mb-2">35+</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">81</div>
                 <div className="text-sm text-gray-600">Cech uwzględnianych w modelu</div>
               </div>
             </div>

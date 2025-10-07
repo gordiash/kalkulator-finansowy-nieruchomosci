@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import GeneratePDFButton from '../GeneratePDFButton';
 
 interface Calculation {
   id: string;
@@ -214,6 +215,11 @@ const CalculationsTable = ({ type }: CalculationsTableProps) => {
                       >
                         Zobacz
                       </Link>
+                      <GeneratePDFButton 
+                        calculationId={calculation.id}
+                        calculationTitle={calculation.title}
+                        variant="compact"
+                      />
                       <button
                         onClick={() => deleteCalculation(calculation.id)}
                         className="text-red-600 hover:text-red-900"
