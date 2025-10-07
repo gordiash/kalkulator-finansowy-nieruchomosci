@@ -687,7 +687,7 @@ function getCalculationTypeLabel(calculationType: string): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = getToken(request);
@@ -695,7 +695,8 @@ export async function GET(
       return NextResponse.json({ error: 'Brak tokenu autoryzacji' }, { status: 401 });
     }
 
-    const calculationId = params.id;
+    const resolvedParams = await params;
+    const calculationId = BigInt(resolvedParams.id);
 
     // Pobierz kalkulację z bazy danych
     const calculation = await prisma.property_calculations.findUnique({
@@ -852,28 +853,28 @@ export async function GET(
         <div class="info-box">
           <h2>${calculation.title || 'Kalkulacja nieruchomości'}</h2>
           <div class="info-grid">
-            <div><strong>Typ kalkulacji:</strong> ${getCalculationTypeLabel(calculation.calculation_type)}</div>
+            <div><strong>Typ kalkulacji:</strong> ${getCalculationTypeLabel(calculation.calculation_type || '')}</div>
             <div><strong>ID kalkulacji:</strong> ${calculation.id}</div>
-            <div><strong>Data utworzenia:</strong> ${new Date(calculation.created_at).toLocaleDateString('pl-PL')}</div>
+            <div><strong>Data utworzenia:</strong> ${calculation.created_at ? new Date(calculation.created_at).toLocaleDateString('pl-PL') : 'Nieznana'}</div>
             <div><strong>Status:</strong> Zapisana</div>
           </div>
         </div>
 
         <div class="section-header">DANE</div>
         <table class="data-table">
-          ${prepareInputTable(inputData, calculation.calculation_type).map(([param, value]) => 
+          ${prepareInputTable(inputData, calculation.calculation_type || '').map(([param, value]) => 
             `<tr class="data-row"><td class="param">${param}:</td><td class="value">${value}</td></tr>`
           ).join('')}
         </table>
 
         <div class="section-header results">WYNIKI KALKULACJI</div>
         <table class="data-table">
-          ${prepareResultTable(resultData, calculation.calculation_type).map(([param, value]) => 
+          ${prepareResultTable(resultData, calculation.calculation_type || '').map(([param, value]) => 
             `<tr class="data-row"><td class="param">${param}:</td><td class="value">${value}</td></tr>`
           ).join('')}
         </table>
 
-        ${calculation.calculation_type === 'flipper' ? `
+        ${(calculation.calculation_type || '') === 'flipper' ? `
           <div class="section-header">WYKRESY</div>
           
           <div style="margin: 20px 0;">
@@ -984,7 +985,7 @@ export async function GET(
           </div>
         ` : ''}
 
-        ${calculation.calculation_type === 'purchase' ? `
+        ${(calculation.calculation_type || '') === 'purchase' ? `
           <div class="section-header">WYKRESY</div>
           
           <div style="margin: 20px 0;">
@@ -1040,7 +1041,7 @@ export async function GET(
           </div>
         ` : ''}
 
-        ${calculation.calculation_type === 'rental' ? `
+        ${(calculation.calculation_type || '') === 'rental' ? `
           <div class="section-header">WYKRESY</div>
           
           <div style="margin: 20px 0;">
@@ -1048,10 +1049,10 @@ export async function GET(
             <div style="text-align: center; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: #f9fafb;">
               ${generatePieChartSVG([
                 { name: 'Przychód z wynajmu', value: parseFloat(resultData.annualIncome) || 0 },
-                { name: 'Koszty operacyjne', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty operacyjne')?.value) || 0 },
+                { name: 'Koszty operacyjne', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty operacyjne')?.value) || 0 },
                 { name: 'Podatek', value: parseFloat(resultData.taxAmount) || 0 },
-                { name: 'Koszty zarządzania', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty zarządzania')?.value) || 0 },
-                { name: 'Inne koszty', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Inne koszty')?.value) || 0 }
+                { name: 'Koszty zarządzania', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty zarządzania')?.value) || 0 },
+                { name: 'Inne koszty', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Inne koszty')?.value) || 0 }
               ])}
             </div>
             <div style="margin-top: 20px;">
@@ -1060,10 +1061,10 @@ export async function GET(
                 ${(() => {
                   const pieData = [
                     { name: 'Przychód z wynajmu', value: parseFloat(resultData.annualIncome) || 0 },
-                    { name: 'Koszty operacyjne', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty operacyjne')?.value) || 0 },
+                    { name: 'Koszty operacyjne', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty operacyjne')?.value) || 0 },
                     { name: 'Podatek', value: parseFloat(resultData.taxAmount) || 0 },
-                    { name: 'Koszty zarządzania', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty zarządzania')?.value) || 0 },
-                    { name: 'Inne koszty', value: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Inne koszty')?.value) || 0 }
+                    { name: 'Koszty zarządzania', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty zarządzania')?.value) || 0 },
+                    { name: 'Inne koszty', value: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Inne koszty')?.value) || 0 }
                   ];
                   const total = pieData.reduce((sum, item) => sum + item.value, 0);
                   const colors = ['#22C55E', '#EF4444', '#F59E0B', '#8B5CF6', '#6B7280'];
@@ -1104,8 +1105,8 @@ export async function GET(
                   name: 'Koszty',
                   zakup: 0,
                   remont: 0,
-                  utrzymanie: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty operacyjne')?.value) || 0,
-                  finansowanie: parseFloat(resultData.costBreakdown?.find(c => c.name === 'Koszty zarządzania')?.value) || 0,
+                  utrzymanie: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty operacyjne')?.value) || 0,
+                  finansowanie: parseFloat(resultData.costBreakdown?.find((c: any) => c.name === 'Koszty zarządzania')?.value) || 0,
                   sprzedaz: parseFloat(resultData.taxAmount) || 0,
                   przychod: 0,
                   zysk: 0
@@ -1125,7 +1126,7 @@ export async function GET(
           </div>
         ` : ''}
 
-        ${calculation.calculation_type === 'valuation' ? `
+        ${(calculation.calculation_type || '') === 'valuation' ? `
           <div class="section-header">WYKRESY</div>
           
           <div style="margin: 20px 0;">
@@ -1136,7 +1137,7 @@ export async function GET(
           </div>
         ` : ''}
 
-        ${calculation.calculation_type === 'creditScore' ? `
+        ${(calculation.calculation_type || '') === 'creditScore' ? `
           <div class="section-header">WYKRESY</div>
           
           <div style="margin: 20px 0;">
